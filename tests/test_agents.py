@@ -51,6 +51,19 @@ class AgentWorkflowTests(unittest.TestCase):
         self.assertTrue(proposal.requires_human_approval)
         self.assertEqual(f"{ONTOLOGY_IRI}encryptedMessageFrequency", proposal.suggested_term)
 
+    def test_human_approval_creates_ontology_v02(self) -> None:
+        proposals = OntologyEvolutionAgent().analyze(self.observations)
+        target = PROJECT_ROOT / "output" / "test-ontology-v0.2.ttl"
+        version = OntologyEvolutionAgent().approve(
+            proposals[0],
+            ONTOLOGY_PATH,
+            target,
+        )
+        self.assertEqual("0.2.0", version)
+        self.assertTrue(target.exists())
+        self.assertIn("encryptedMessageFrequency", target.read_text(encoding="utf-8"))
+        target.unlink()
+
     def test_harness_commits_valid_multi_agent_workflow(self) -> None:
         repository = new_repository()
         result = UpdateHarness(repository).run(self.observations)

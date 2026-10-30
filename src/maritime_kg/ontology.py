@@ -13,9 +13,12 @@ from rdflib.namespace import RDF, XSD
 from .constants import (
     ONTOLOGY_IRI,
     assertion_iri,
+    area_iri,
     change_set_iri,
     graph_version_iri,
     observation_iri,
+    state_snapshot_iri,
+    track_iri,
     vessel_iri,
 )
 from .models import GraphChangeSet, GraphOperation, Modality, ObjectKind, ObservationEvent, OperationKind
@@ -99,10 +102,22 @@ class MaritimeGraphRepository:
 
         graph.add((observation_node, RDF.type, observation_class))
         graph.add((vessel_node, RDF.type, MKG.Vessel))
+        track_node = URIRef(track_iri(resolve_vessel_id(observation)))
+        graph.add((track_node, RDF.type, MKG.Track))
+        graph.add((vessel_node, MKG.hasTrack, track_node))
         graph.add((observation_node, MKG.eventId, Literal(observation.event_id)))
         graph.add((observation_node, MKG.observedAt, self._datetime(observation.observed_at)))
         graph.add((observation_node, MKG.receivedAt, self._datetime(observation.received_at)))
         graph.add((observation_node, MKG.describes, vessel_node))
+        snapshot_node = URIRef(state_snapshot_iri(observation.event_id))
+        graph.add((snapshot_node, RDF.type, MKG.State))
+        graph.add((snapshot_node, MKG.snapshotAt, self._datetime(observation.observed_at)))
+        graph.add((vessel_node, MKG.hasState, snapshot_node))
+        area_id = observation.payload.get("area_id")
+        if area_id:
+            area_node = URIRef(area_iri(str(area_id)))
+            graph.add((area_node, RDF.type, MKG.MaritimeArea))
+            graph.add((vessel_node, MKG.locatedIn, area_node))
         graph.add((observation_node, MKG.confidence, self._decimal(observation.confidence)))
         graph.add((observation_node, MKG.schemaVersion, Literal(observation.schema_version)))
         if observation.speed_mps is not None:
@@ -133,6 +148,14 @@ class MaritimeGraphRepository:
         if operation.kind == OperationKind.CREATE_OBJECT:
             graph.add((subject, RDF.type, MKG.MaritimeObject))
             return
+        if operation.kind == OperationKind.INVALIDATE_FACT:
+            assertion_node = URIRef(assertion_iri(operation.target_fact_id))
+            graph.add((assertion_node, MKG.invalidatedAt, self._datetime(operation.valid_to)))
+            graph.add((assertion_node, MKG.isActive, Literal(False, datatype=XSD.boolean)))
+            return
+        if operation.kind == OperationKind.ROLLBACK:
+            graph.add((subject, MKG.rollbackToVersion, Literal(operation.target_graph_version, datatype=XSD.integer)))
+            return
         raise NotImplementedError(f"operation kind is not implemented in v0.1: {operation.kind.value}")
 
     def _add_assertion(self, graph: Graph, fact) -> None:
@@ -147,6 +170,7 @@ class MaritimeGraphRepository:
         graph.add((assertion_node, RDF.object, object_term))
         graph.add((assertion_node, MKG.confidence, self._decimal(fact.confidence)))
         graph.add((assertion_node, MKG.validFrom, self._datetime(fact.valid_from)))
+        graph.add((assertion_node, MKG.isActive, Literal(True, datatype=XSD.boolean)))
         if fact.valid_to is not None:
             graph.add((assertion_node, MKG.validTo, self._datetime(fact.valid_to)))
         for event_id in fact.evidence_ids:

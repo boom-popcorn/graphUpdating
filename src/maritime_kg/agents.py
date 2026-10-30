@@ -6,6 +6,12 @@ import re
 from collections import defaultdict
 from typing import Iterable
 
+from pathlib import Path
+
+from rdflib import Graph, Literal, URIRef
+from rdflib.namespace import RDF
+from rdflib.namespace import OWL, RDFS
+
 from .constants import ONTOLOGY_IRI
 from .models import (
     CandidateFact,
@@ -83,6 +89,24 @@ class OntologyEvolutionAgent:
             )
         return tuple(proposals)
 
+    def approve(
+        self,
+        proposal: OntologyEvolutionProposal,
+        source_path: Path,
+        target_path: Path,
+    ) -> str:
+        """Apply one human-approved proposal and write a new ontology version."""
+        graph = Graph()
+        graph.parse(source_path, format="turtle")
+        graph.add((URIRef(proposal.suggested_term), RDF.type, OWL.DatatypeProperty))
+        graph.add((URIRef(proposal.suggested_term), RDFS.domain, URIRef(proposal.suggested_domain)))
+        graph.add((URIRef(proposal.suggested_term), RDFS.range, URIRef(proposal.suggested_datatype)))
+        graph.add((URIRef(ONTOLOGY_IRI), OWL.versionInfo, Literal("0.2.0")))
+        graph.add((URIRef(ONTOLOGY_IRI), OWL.versionIRI, URIRef(f"{ONTOLOGY_IRI}0.2.0")))
+        target_path.parent.mkdir(parents=True, exist_ok=True)
+        graph.serialize(destination=target_path, format="turtle")
+        return "0.2.0"
+
 
 class DecisionPlanningAgent:
     """Match rules and produce or repair an atomic graph update plan."""
@@ -113,7 +137,13 @@ class ConsistencyValidationAgent:
     """Run action support checks followed by OWL/SHACL graph validation."""
 
     name = "consistency-validation"
-    supported_operations = {OperationKind.CREATE_RELATION, OperationKind.CREATE_EVENT, OperationKind.CREATE_OBJECT}
+    supported_operations = {
+        OperationKind.CREATE_RELATION,
+        OperationKind.CREATE_EVENT,
+        OperationKind.CREATE_OBJECT,
+        OperationKind.INVALIDATE_FACT,
+        OperationKind.ROLLBACK,
+    }
 
     def validate(
         self,
@@ -141,6 +171,8 @@ class ConsistencyValidationAgent:
                 valid=False,
                 errors=(preview.report,),
                 repair_hints=("review ontology, mapping, and operation values",),
+                rule_optimization_suggestions=("Review the affected OWL/SHACL constraint before retrying.",),
+                mapping_repairs=("Check whether the incoming field-to-ontology mapping is current.",),
             )
         return ValidationFeedback(attempt=attempt, valid=True)
 

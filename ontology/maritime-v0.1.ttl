@@ -15,6 +15,7 @@ mkg:MaritimeObject a owl:Class .
 mkg:Vessel a owl:Class ; rdfs:subClassOf mkg:MaritimeObject .
 mkg:Track a owl:Class ; rdfs:subClassOf mkg:MaritimeObject .
 mkg:State a owl:Class .
+mkg:StateSnapshot a owl:Class ; rdfs:subClassOf mkg:State .
 mkg:VesselType a owl:Class .
 mkg:Observation a owl:Class .
 mkg:AISObservation a owl:Class ; rdfs:subClassOf mkg:Observation .
@@ -41,6 +42,12 @@ mkg:hasState a owl:ObjectProperty ;
 mkg:hasTrack a owl:ObjectProperty ;
     rdfs:domain mkg:Vessel ;
     rdfs:range mkg:Track .
+
+mkg:snapshotAt a owl:DatatypeProperty ;
+    rdfs:domain mkg:State ;
+    rdfs:range xsd:dateTime .
+
+mkg:locatedIn rdfs:range mkg:MaritimeArea .
 
 mkg:identifiedAs a owl:ObjectProperty ;
     rdfs:domain mkg:Vessel ;
@@ -107,6 +114,9 @@ mkg:baseGraphVersion a owl:DatatypeProperty ; rdfs:range xsd:integer .
 mkg:changeSetId a owl:DatatypeProperty ; rdfs:range xsd:string .
 mkg:idempotencyKey a owl:DatatypeProperty ; rdfs:range xsd:string .
 mkg:generatedAt a owl:DatatypeProperty ; rdfs:range xsd:dateTime .
+mkg:isActive a owl:DatatypeProperty ; rdfs:range xsd:boolean .
+mkg:invalidatedAt a owl:DatatypeProperty ; rdfs:range xsd:dateTime .
+mkg:rollbackToVersion a owl:DatatypeProperty ; rdfs:range xsd:integer .
 
 # Rule layer
 

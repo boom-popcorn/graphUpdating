@@ -19,6 +19,18 @@ def observation_iri(event_id: str) -> str:
     return resource_iri("observation", event_id)
 
 
+def track_iri(vessel_id: str) -> str:
+    return resource_iri("track", vessel_id)
+
+
+def state_snapshot_iri(event_id: str) -> str:
+    return resource_iri("state-snapshot", event_id)
+
+
+def area_iri(area_id: str) -> str:
+    return resource_iri("area", area_id)
+
+
 def event_iri(event_id: str) -> str:
     return resource_iri("event", event_id)
 

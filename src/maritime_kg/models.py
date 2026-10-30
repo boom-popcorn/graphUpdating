@@ -142,10 +142,14 @@ class GraphOperation(StrictModel):
     object_value: str | int | float | bool | None = None
     object_kind: ObjectKind | None = None
     valid_from: datetime | None = None
+    valid_to: datetime | None = None
+    target_fact_id: str | None = Field(default=None, pattern=r"^fact-[a-f0-9]{16}$")
+    target_graph_version: int | None = Field(default=None, ge=0)
     evidence_ids: tuple[str, ...] = Field(default_factory=tuple)
     preconditions: tuple[str, ...] = Field(default_factory=tuple)
 
     _timezone_valid_from = field_validator("valid_from")(_require_timezone)
+    _timezone_valid_to = field_validator("valid_to")(_require_timezone)
 
     @model_validator(mode="after")
     def validate_operation_shape(self) -> GraphOperation:
@@ -155,6 +159,15 @@ class GraphOperation(StrictModel):
                 raise ValueError(f"{self.kind.value} requires predicate, object_value, and object_kind")
         if self.kind == OperationKind.CREATE_EVENT and self.valid_from is None:
             raise ValueError("create_event requires valid_from")
+        if self.kind == OperationKind.INVALIDATE_FACT:
+            if self.target_fact_id is None:
+                raise ValueError("invalidate_fact requires target_fact_id")
+            if self.valid_to is None:
+                raise ValueError("invalidate_fact requires valid_to")
+        if self.kind == OperationKind.ROLLBACK and self.target_graph_version is None:
+            raise ValueError("rollback requires target_graph_version")
+        if self.valid_to is not None and self.valid_from is not None and self.valid_to <= self.valid_from:
+            raise ValueError("valid_to must be later than valid_from")
         return self
 
 
@@ -208,6 +221,9 @@ class ValidationFeedback(StrictModel):
     valid: bool
     errors: tuple[str, ...] = Field(default_factory=tuple)
     repair_hints: tuple[str, ...] = Field(default_factory=tuple)
+    rule_optimization_suggestions: tuple[str, ...] = Field(default_factory=tuple)
+    threshold_adjustments: tuple[str, ...] = Field(default_factory=tuple)
+    mapping_repairs: tuple[str, ...] = Field(default_factory=tuple)
 
 
 class WorkflowResult(StrictModel):
