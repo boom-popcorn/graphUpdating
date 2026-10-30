@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "maritime-kg-update"
+version = "0.1.0"
+description = "Minimal executable baseline for maritime spatiotemporal knowledge graph updates"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "pydantic>=2.6,<3",
+    "rdflib>=7,<8",
+    "pyshacl>=0.26,<1",
+]
+
+[project.scripts]
+maritime-kg-demo = "maritime_kg.demo:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
