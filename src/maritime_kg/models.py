@@ -40,6 +40,19 @@ class OperationKind(str, Enum):
     ROLLBACK = "rollback"
 
 
+class WorkflowStatus(str, Enum):
+    COMMITTED = "committed"
+    NO_CHANGE = "no_change"
+    REJECTED = "rejected"
+
+
+class EvolutionKind(str, Enum):
+    ADD_PROPERTY = "add_property"
+    ADD_CLASS = "add_class"
+    ADD_RELATION = "add_relation"
+    UPDATE_MAPPING = "update_mapping"
+
+
 class Position(StrictModel):
     longitude: float = Field(ge=-180, le=180)
     latitude: float = Field(ge=-90, le=90)
@@ -173,3 +186,37 @@ class GraphChangeSet(StrictModel):
     @property
     def evidence_ids(self) -> tuple[str, ...]:
         return tuple(sorted({event_id for fact in self.candidate_facts for event_id in fact.evidence_ids}))
+
+
+class OntologyEvolutionProposal(StrictModel):
+    """A reviewable suggestion; it never changes the ontology automatically."""
+
+    proposal_id: str = Field(pattern=r"^evolution-[a-f0-9]{16}$")
+    kind: EvolutionKind
+    source_field: str = Field(min_length=1)
+    source_modalities: tuple[Modality, ...] = Field(min_length=1)
+    suggested_term: str = Field(pattern=r"^https?://")
+    suggested_domain: str = Field(pattern=r"^https?://")
+    suggested_datatype: str = Field(pattern=r"^https?://")
+    rationale: str = Field(min_length=1)
+    evidence_ids: tuple[str, ...] = Field(min_length=1)
+    requires_human_approval: bool = True
+
+
+class ValidationFeedback(StrictModel):
+    attempt: int = Field(ge=1)
+    valid: bool
+    errors: tuple[str, ...] = Field(default_factory=tuple)
+    repair_hints: tuple[str, ...] = Field(default_factory=tuple)
+
+
+class WorkflowResult(StrictModel):
+    status: WorkflowStatus
+    graph_version: int = Field(ge=0)
+    observation_count: int = Field(ge=0)
+    candidate_fact_count: int = Field(ge=0)
+    planning_attempts: int = Field(ge=0)
+    change_set: GraphChangeSet | None = None
+    evolution_proposals: tuple[OntologyEvolutionProposal, ...] = Field(default_factory=tuple)
+    validation_history: tuple[ValidationFeedback, ...] = Field(default_factory=tuple)
+    message: str = Field(min_length=1)

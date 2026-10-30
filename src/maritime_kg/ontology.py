@@ -41,6 +41,14 @@ class CommitResult:
     change_set_id: str
 
 
+@dataclass(frozen=True)
+class PreviewResult:
+    conforms: bool
+    report: str
+    triple_count: int
+    graph: Graph
+
+
 class MaritimeGraphRepository:
     """In-memory prototype repository with atomic validation before commit."""
 
@@ -168,18 +176,11 @@ class MaritimeGraphRepository:
         )
         return bool(conforms), str(report_text)
 
-    def commit(
+    def preview(
         self,
         change_set: GraphChangeSet,
         observations: list[ObservationEvent],
-    ) -> CommitResult:
-        if change_set.idempotency_key in self._committed_keys:
-            return CommitResult(
-                applied=False,
-                graph_version=self.current_version,
-                triple_count=len(self.data_graph),
-                change_set_id=change_set.change_set_id,
-            )
+    ) -> PreviewResult:
         if change_set.base_graph_version != self.current_version:
             raise GraphVersionConflict(
                 f"expected base version {self.current_version}, got {change_set.base_graph_version}"
@@ -200,10 +201,25 @@ class MaritimeGraphRepository:
         self._add_version_metadata(trial, change_set)
 
         conforms, report = self.validate_graph(trial)
-        if not conforms:
-            raise GraphValidationError(report)
+        return PreviewResult(conforms, report, len(trial), trial)
 
-        self.data_graph = trial
+    def commit(
+        self,
+        change_set: GraphChangeSet,
+        observations: list[ObservationEvent],
+    ) -> CommitResult:
+        if change_set.idempotency_key in self._committed_keys:
+            return CommitResult(
+                applied=False,
+                graph_version=self.current_version,
+                triple_count=len(self.data_graph),
+                change_set_id=change_set.change_set_id,
+            )
+        preview = self.preview(change_set, observations)
+        if not preview.conforms:
+            raise GraphValidationError(preview.report)
+
+        self.data_graph = preview.graph
         self.current_version = change_set.target_graph_version
         self._committed_keys.add(change_set.idempotency_key)
         return CommitResult(

@@ -123,7 +123,13 @@ def build_sample_observations() -> list[ObservationEvent]:
     for index, point in enumerate(hovering_points):
         minute, longitude, latitude, speed, course = point
         label = f"{index:02d}"
-        events.append(_ais_event("412345679", minute, longitude, latitude, speed, course, label))
+        ais_event = _ais_event("412345679", minute, longitude, latitude, speed, course, label)
+        if index == 3:
+            # New schema field: detected but not automatically added to the ontology.
+            ais_event = ais_event.model_copy(
+                update={"payload": {**ais_event.payload, "encrypted_message_frequency": 18}}
+            )
+        events.append(ais_event)
         radar_speed = speed + 0.04 if speed <= 0.5 else speed - 0.1
         events.append(
             _radar_event(
