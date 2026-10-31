@@ -1,0 +1,211 @@
+@prefix mkg: <https://example.org/maritime-kg/ontology/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+mkg: a owl:Ontology ;
+    rdfs:label "Maritime spatiotemporal knowledge graph ontology"@en ;
+    owl:versionIRI mkg:0.1.0,
+        mkg:0.2.0 ;
+    owl:versionInfo "0.1.0",
+        "0.2.0" .
+
+mkg:AISObservation a owl:Class ;
+    rdfs:subClassOf mkg:Observation .
+
+mkg:CreateEventAction a owl:Class ;
+    rdfs:subClassOf mkg:Action .
+
+mkg:CreateObjectAction a owl:Class ;
+    rdfs:subClassOf mkg:Action .
+
+mkg:CreateRelationAction a owl:Class ;
+    rdfs:subClassOf mkg:Action .
+
+mkg:FishingVesselType a owl:NamedIndividual,
+        mkg:VesselType ;
+    rdfs:label "Fishing vessel"@en .
+
+mkg:HoveringDetectionRule a mkg:SpatiotemporalRule ;
+    mkg:ruleExpression "speed <= 0.5 m/s for >= 600 seconds, supported by >= 2 modalities" .
+
+mkg:HoveringState a owl:NamedIndividual,
+        mkg:State ;
+    rdfs:label "Hovering or loitering"@en .
+
+mkg:InvalidateFactAction a owl:Class ;
+    rdfs:subClassOf mkg:Action .
+
+mkg:OWLConstraint a owl:Class ;
+    rdfs:subClassOf mkg:Rule .
+
+mkg:RadarObservation a owl:Class ;
+    rdfs:subClassOf mkg:Observation .
+
+mkg:RollbackAction a owl:Class ;
+    rdfs:subClassOf mkg:Action .
+
+mkg:SWRLRule a owl:Class ;
+    rdfs:subClassOf mkg:Rule .
+
+mkg:SensitiveArea a owl:Class ;
+    rdfs:subClassOf mkg:MaritimeArea .
+
+mkg:StateSnapshot a owl:Class ;
+    rdfs:subClassOf mkg:State .
+
+mkg:UnderWayState a owl:NamedIndividual,
+        mkg:State ;
+    rdfs:label "Under way"@en .
+
+mkg:UpdatePropertyAction a owl:Class ;
+    rdfs:subClassOf mkg:Action .
+
+mkg:baseGraphVersion a owl:DatatypeProperty ;
+    rdfs:range xsd:integer .
+
+mkg:changeSetId a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+
+mkg:confidence a owl:DatatypeProperty ;
+    rdfs:range xsd:decimal .
+
+mkg:courseDegrees a owl:DatatypeProperty ;
+    rdfs:domain mkg:Observation ;
+    rdfs:range xsd:decimal .
+
+mkg:describes a owl:ObjectProperty ;
+    rdfs:domain mkg:Observation ;
+    rdfs:range mkg:MaritimeObject .
+
+mkg:encryptedMessageFrequency a owl:DatatypeProperty ;
+    rdfs:domain mkg:Observation ;
+    rdfs:range xsd:decimal .
+
+mkg:eventId a owl:DatatypeProperty,
+        owl:FunctionalProperty ;
+    rdfs:domain mkg:Observation ;
+    rdfs:range xsd:string .
+
+mkg:generatedAt a owl:DatatypeProperty ;
+    rdfs:range xsd:dateTime .
+
+mkg:generatedVersion a owl:ObjectProperty ;
+    rdfs:domain mkg:ChangeSet ;
+    rdfs:range mkg:GraphVersion .
+
+mkg:graphVersion a owl:DatatypeProperty ;
+    rdfs:range xsd:integer .
+
+mkg:hasState a owl:ObjectProperty ;
+    rdfs:domain mkg:Vessel ;
+    rdfs:range mkg:State .
+
+mkg:hasTrack a owl:ObjectProperty ;
+    rdfs:domain mkg:Vessel ;
+    rdfs:range mkg:Track .
+
+mkg:idempotencyKey a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+
+mkg:identifiedAs a owl:ObjectProperty ;
+    rdfs:domain mkg:Vessel ;
+    rdfs:range mkg:VesselType .
+
+mkg:invalidatedAt a owl:DatatypeProperty ;
+    rdfs:range xsd:dateTime .
+
+mkg:involvesObject a owl:ObjectProperty ;
+    rdfs:domain mkg:MaritimeEvent ;
+    rdfs:range mkg:MaritimeObject .
+
+mkg:isActive a owl:DatatypeProperty ;
+    rdfs:range xsd:boolean .
+
+mkg:latitude a owl:DatatypeProperty ;
+    rdfs:domain mkg:Observation ;
+    rdfs:range xsd:decimal .
+
+mkg:locatedIn a owl:ObjectProperty ;
+    rdfs:domain mkg:MaritimeObject ;
+    rdfs:range mkg:MaritimeArea .
+
+mkg:longitude a owl:DatatypeProperty ;
+    rdfs:domain mkg:Observation ;
+    rdfs:range xsd:decimal .
+
+mkg:observedAt a owl:DatatypeProperty ;
+    rdfs:domain mkg:Observation ;
+    rdfs:range xsd:dateTime .
+
+mkg:receivedAt a owl:DatatypeProperty ;
+    rdfs:domain mkg:Observation ;
+    rdfs:range xsd:dateTime .
+
+mkg:rollbackToVersion a owl:DatatypeProperty ;
+    rdfs:range xsd:integer .
+
+mkg:ruleExpression a owl:DatatypeProperty ;
+    rdfs:domain mkg:Rule ;
+    rdfs:range xsd:string .
+
+mkg:schemaVersion a owl:DatatypeProperty ;
+    rdfs:domain mkg:Observation ;
+    rdfs:range xsd:string .
+
+mkg:snapshotAt a owl:DatatypeProperty ;
+    rdfs:domain mkg:State ;
+    rdfs:range xsd:dateTime .
+
+mkg:speedMps a owl:DatatypeProperty ;
+    rdfs:domain mkg:Observation ;
+    rdfs:range xsd:decimal .
+
+mkg:supportedBy a owl:ObjectProperty ;
+    rdfs:domain mkg:KnowledgeAssertion ;
+    rdfs:range mkg:Observation .
+
+mkg:validFrom a owl:DatatypeProperty ;
+    rdfs:range xsd:dateTime .
+
+mkg:validTo a owl:DatatypeProperty ;
+    rdfs:range xsd:dateTime .
+
+mkg:ChangeSet a owl:Class .
+
+mkg:GraphVersion a owl:Class .
+
+mkg:KnowledgeAssertion a owl:Class ;
+    rdfs:subClassOf rdf:Statement .
+
+mkg:SpatiotemporalRule a owl:Class ;
+    rdfs:subClassOf mkg:Rule .
+
+mkg:Track a owl:Class ;
+    rdfs:subClassOf mkg:MaritimeObject .
+
+mkg:MaritimeEvent a owl:Class ;
+    rdfs:subClassOf mkg:MaritimeObject .
+
+mkg:VesselType a owl:Class .
+
+mkg:MaritimeArea a owl:Class ;
+    rdfs:subClassOf mkg:MaritimeObject .
+
+mkg:Vessel a owl:Class ;
+    rdfs:subClassOf mkg:MaritimeObject ;
+    owl:disjointWith mkg:MaritimeArea,
+        mkg:MaritimeEvent,
+        mkg:Observation .
+
+mkg:Rule a owl:Class .
+
+mkg:State a owl:Class .
+
+mkg:Action a owl:Class .
+
+mkg:MaritimeObject a owl:Class .
+
+mkg:Observation a owl:Class .
+

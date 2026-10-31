@@ -11,7 +11,7 @@ from .agents import (
     OntologyEvolutionAgent,
     SemanticPerceptionAgent,
 )
-from .models import ObservationEvent, ValidationFeedback, WorkflowResult, WorkflowStatus
+from .models import CandidateFact, ObservationEvent, ValidationFeedback, WorkflowResult, WorkflowStatus
 from .ontology import MaritimeGraphRepository
 
 
@@ -45,7 +45,8 @@ class UpdateHarness:
         self.execution_agent = execution_agent or ActionExecutionAgent()
         self.config = config or HarnessConfig()
 
-    def run(self, observations: list[ObservationEvent]) -> WorkflowResult:
+    def prepare(self, observations: list[ObservationEvent]) -> WorkflowResult:
+        """Analyze and validate an update without changing the formal graph."""
         evolution_proposals = self.evolution_agent.analyze(observations)
         candidates = self.semantic_agent.perceive(observations)
         if not candidates:
@@ -70,29 +71,16 @@ class UpdateHarness:
             )
             history.append(feedback)
             if feedback.valid:
-                commit = self.execution_agent.execute(self.repository, change_set, observations)
-                if not commit.applied:
-                    return WorkflowResult(
-                        status=WorkflowStatus.NO_CHANGE,
-                        graph_version=commit.graph_version,
-                        observation_count=len(observations),
-                        candidate_fact_count=len(candidates),
-                        planning_attempts=attempt,
-                        change_set=change_set,
-                        evolution_proposals=evolution_proposals,
-                        validation_history=tuple(history),
-                        message="The same evidence-backed update was already committed; no duplicate data was written.",
-                    )
                 return WorkflowResult(
-                    status=WorkflowStatus.COMMITTED,
-                    graph_version=commit.graph_version,
+                    status=WorkflowStatus.PENDING_REVIEW,
+                    graph_version=self.repository.current_version,
                     observation_count=len(observations),
                     candidate_fact_count=len(candidates),
                     planning_attempts=attempt,
                     change_set=change_set,
                     evolution_proposals=evolution_proposals,
                     validation_history=tuple(history),
-                    message="The validated change set was committed atomically.",
+                    message="The change set passed validation and is waiting for human approval.",
                 )
             if attempt < self.config.max_planning_attempts and feedback.repair_hints:
                 try:
@@ -113,3 +101,67 @@ class UpdateHarness:
             validation_history=tuple(history),
             message="The change set was rejected after consistency validation.",
         )
+
+    def commit_reviewed(
+        self,
+        candidates: list[CandidateFact],
+        observations: list[ObservationEvent],
+    ) -> WorkflowResult:
+        """Re-plan against the latest version, validate again, then commit atomically."""
+        if not candidates:
+            raise ValueError("at least one reviewed candidate fact is required")
+        evolution_proposals = self.evolution_agent.analyze(observations)
+        change_set = self.planning_agent.plan(candidates, self.repository.current_version)
+        history: list[ValidationFeedback] = []
+        for attempt in range(1, self.config.max_planning_attempts + 1):
+            feedback = self.validation_agent.validate(
+                self.repository,
+                change_set,
+                observations,
+                attempt,
+            )
+            history.append(feedback)
+            if feedback.valid:
+                commit = self.execution_agent.execute(self.repository, change_set, observations)
+                status = WorkflowStatus.COMMITTED if commit.applied else WorkflowStatus.NO_CHANGE
+                message = (
+                    "The human-approved change set was committed atomically."
+                    if commit.applied
+                    else "The approved update was already present; no duplicate data was written."
+                )
+                return WorkflowResult(
+                    status=status,
+                    graph_version=commit.graph_version,
+                    observation_count=len(observations),
+                    candidate_fact_count=len(candidates),
+                    planning_attempts=attempt,
+                    change_set=change_set,
+                    evolution_proposals=evolution_proposals,
+                    validation_history=tuple(history),
+                    message=message,
+                )
+            if attempt < self.config.max_planning_attempts and feedback.repair_hints:
+                try:
+                    change_set = self.planning_agent.replan(change_set, feedback)
+                except ValueError:
+                    break
+            else:
+                break
+        return WorkflowResult(
+            status=WorkflowStatus.REJECTED,
+            graph_version=self.repository.current_version,
+            observation_count=len(observations),
+            candidate_fact_count=len(candidates),
+            planning_attempts=len(history),
+            change_set=change_set,
+            evolution_proposals=evolution_proposals,
+            validation_history=tuple(history),
+            message="The approved change set failed final consistency validation.",
+        )
+
+    def run(self, observations: list[ObservationEvent]) -> WorkflowResult:
+        """Compatibility path for automated deployments that do not require review."""
+        prepared = self.prepare(observations)
+        if prepared.status != WorkflowStatus.PENDING_REVIEW or prepared.change_set is None:
+            return prepared
+        return self.commit_reviewed(list(prepared.change_set.candidate_facts), observations)

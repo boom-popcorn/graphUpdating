@@ -94,6 +94,7 @@ class OntologyEvolutionAgent:
         proposal: OntologyEvolutionProposal,
         source_path: Path,
         target_path: Path,
+        target_version: str = "0.2.0",
     ) -> str:
         """Apply one human-approved proposal and write a new ontology version."""
         graph = Graph()
@@ -101,11 +102,14 @@ class OntologyEvolutionAgent:
         graph.add((URIRef(proposal.suggested_term), RDF.type, OWL.DatatypeProperty))
         graph.add((URIRef(proposal.suggested_term), RDFS.domain, URIRef(proposal.suggested_domain)))
         graph.add((URIRef(proposal.suggested_term), RDFS.range, URIRef(proposal.suggested_datatype)))
-        graph.add((URIRef(ONTOLOGY_IRI), OWL.versionInfo, Literal("0.2.0")))
-        graph.add((URIRef(ONTOLOGY_IRI), OWL.versionIRI, URIRef(f"{ONTOLOGY_IRI}0.2.0")))
+        ontology_node = URIRef(ONTOLOGY_IRI)
+        graph.remove((ontology_node, OWL.versionInfo, None))
+        graph.remove((ontology_node, OWL.versionIRI, None))
+        graph.add((ontology_node, OWL.versionInfo, Literal(target_version)))
+        graph.add((ontology_node, OWL.versionIRI, URIRef(f"{ONTOLOGY_IRI}{target_version}")))
         target_path.parent.mkdir(parents=True, exist_ok=True)
         graph.serialize(destination=target_path, format="turtle")
-        return "0.2.0"
+        return target_version
 
 
 class DecisionPlanningAgent:

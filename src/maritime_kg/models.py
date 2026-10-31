@@ -41,6 +41,7 @@ class OperationKind(str, Enum):
 
 
 class WorkflowStatus(str, Enum):
+    PENDING_REVIEW = "pending_review"
     COMMITTED = "committed"
     NO_CHANGE = "no_change"
     REJECTED = "rejected"
@@ -236,3 +237,13 @@ class WorkflowResult(StrictModel):
     evolution_proposals: tuple[OntologyEvolutionProposal, ...] = Field(default_factory=tuple)
     validation_history: tuple[ValidationFeedback, ...] = Field(default_factory=tuple)
     message: str = Field(min_length=1)
+
+
+class IncrementalBatchResult(StrictModel):
+    """Result of consuming one new batch from a live data stream."""
+
+    batch_id: str = Field(min_length=1)
+    accepted_event_ids: tuple[str, ...] = Field(default_factory=tuple)
+    duplicate_event_ids: tuple[str, ...] = Field(default_factory=tuple)
+    workflow: WorkflowResult
+

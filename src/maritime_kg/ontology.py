@@ -55,7 +55,7 @@ class PreviewResult:
 class MaritimeGraphRepository:
     """In-memory prototype repository with atomic validation before commit."""
 
-    def __init__(self, ontology_path: Path, shapes_path: Path) -> None:
+    def __init__(self, ontology_path: Path, shapes_path: Path, snapshot_dir: Path | None = None) -> None:
         self.ontology_graph = Graph()
         self.ontology_graph.parse(ontology_path, format="turtle")
         self.shapes_graph = Graph()
@@ -64,6 +64,10 @@ class MaritimeGraphRepository:
         self._bind_namespaces(self.data_graph)
         self.current_version = 0
         self._committed_keys: set[str] = set()
+        self._snapshots: dict[int, Graph] = {0: self._copy_data_graph()}
+        self.snapshot_dir = snapshot_dir
+        if self.snapshot_dir is not None:
+            self._load_persisted_snapshots()
 
     @staticmethod
     def _bind_namespaces(graph: Graph) -> None:
@@ -246,12 +250,63 @@ class MaritimeGraphRepository:
         self.data_graph = preview.graph
         self.current_version = change_set.target_graph_version
         self._committed_keys.add(change_set.idempotency_key)
+        self._snapshots[self.current_version] = self._copy_data_graph()
+        self._persist_snapshot(self.current_version)
         return CommitResult(
             applied=True,
             graph_version=self.current_version,
             triple_count=len(self.data_graph),
             change_set_id=change_set.change_set_id,
         )
+
+    def available_versions(self) -> tuple[int, ...]:
+        return tuple(sorted(self._snapshots))
+
+    def rollback_to(self, target_version: int) -> int:
+        """Restore a previously committed in-memory snapshot."""
+        if target_version not in self._snapshots:
+            raise GraphVersionConflict(f"graph version {target_version} is not available")
+        restored = self._copy_graph(self._snapshots[target_version])
+        self.data_graph = restored
+        self.current_version = target_version
+        return target_version
+
+    def _snapshot_path(self, version: int) -> Path | None:
+        if self.snapshot_dir is None:
+            return None
+        return self.snapshot_dir / f"graph-v{version:04d}.ttl"
+
+    def _persist_snapshot(self, version: int) -> None:
+        path = self._snapshot_path(version)
+        if path is None:
+            return
+        path.parent.mkdir(parents=True, exist_ok=True)
+        self._snapshots[version].serialize(destination=path, format="turtle")
+
+    def _load_persisted_snapshots(self) -> None:
+        assert self.snapshot_dir is not None
+        self.snapshot_dir.mkdir(parents=True, exist_ok=True)
+        for path in sorted(self.snapshot_dir.glob("graph-v*.ttl")):
+            try:
+                version = int(path.stem.removeprefix("graph-v"))
+            except ValueError:
+                continue
+            graph = Graph()
+            self._bind_namespaces(graph)
+            graph.parse(path, format="turtle")
+            self._snapshots[version] = graph
+        if self._snapshots:
+            latest = max(self._snapshots)
+            self.current_version = latest
+            self.data_graph = self._copy_graph(self._snapshots[latest])
+
+    @classmethod
+    def _copy_graph(cls, source: Graph) -> Graph:
+        target = Graph()
+        cls._bind_namespaces(target)
+        for triple in source:
+            target.add(triple)
+        return target
 
     def serialize(self, path: Path) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)

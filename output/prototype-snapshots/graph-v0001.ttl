@@ -1,0 +1,137 @@
+@prefix mkg: <https://example.org/maritime-kg/ontology/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<https://example.org/maritime-kg/resource/assertion/fact-302ef31e18d22b0a> a mkg:KnowledgeAssertion ;
+    rdf:object mkg:HoveringState ;
+    rdf:predicate mkg:hasState ;
+    rdf:subject <https://example.org/maritime-kg/resource/vessel/412345679> ;
+    mkg:confidence 0.945 ;
+    mkg:isActive true ;
+    mkg:supportedBy <https://example.org/maritime-kg/resource/observation/ais-412345679-01>,
+        <https://example.org/maritime-kg/resource/observation/ais-412345679-02>,
+        <https://example.org/maritime-kg/resource/observation/ais-412345679-03>,
+        <https://example.org/maritime-kg/resource/observation/radar-R-1002-01>,
+        <https://example.org/maritime-kg/resource/observation/radar-R-1002-02>,
+        <https://example.org/maritime-kg/resource/observation/radar-R-1002-03> ;
+    mkg:validFrom "2026-10-26T10:06:00+08:00"^^xsd:dateTime .
+
+<https://example.org/maritime-kg/resource/change-set/changeset-5d108690df032591> a mkg:ChangeSet ;
+    mkg:baseGraphVersion 0 ;
+    mkg:changeSetId "changeset-5d108690df032591" ;
+    mkg:generatedAt "2026-10-26T10:18:07+08:00"^^xsd:dateTime ;
+    mkg:generatedVersion <https://example.org/maritime-kg/resource/graph-version/1> ;
+    mkg:idempotencyKey "idem-ee457f6c5da5eead" .
+
+<https://example.org/maritime-kg/resource/event/hovering-412345679-20261026T100600%2B0800> a mkg:MaritimeEvent ;
+    mkg:involvesObject <https://example.org/maritime-kg/resource/vessel/412345679> ;
+    mkg:validFrom "2026-10-26T10:06:00+08:00"^^xsd:dateTime .
+
+<https://example.org/maritime-kg/resource/area/sensitive-area-alpha> a mkg:MaritimeArea .
+
+<https://example.org/maritime-kg/resource/graph-version/1> a mkg:GraphVersion ;
+    mkg:graphVersion 1 .
+
+<https://example.org/maritime-kg/resource/observation/ais-412345679-01> a mkg:AISObservation ;
+    mkg:confidence 0.98 ;
+    mkg:courseDegrees 182.0 ;
+    mkg:describes <https://example.org/maritime-kg/resource/vessel/412345679> ;
+    mkg:eventId "ais-412345679-01" ;
+    mkg:latitude 21.975 ;
+    mkg:longitude 113.925 ;
+    mkg:observedAt "2026-10-26T10:06:00+08:00"^^xsd:dateTime ;
+    mkg:receivedAt "2026-10-26T10:06:01+08:00"^^xsd:dateTime ;
+    mkg:schemaVersion "1.0" ;
+    mkg:speedMps 0.32 .
+
+<https://example.org/maritime-kg/resource/observation/ais-412345679-02> a mkg:AISObservation ;
+    mkg:confidence 0.98 ;
+    mkg:courseDegrees 15.0 ;
+    mkg:describes <https://example.org/maritime-kg/resource/vessel/412345679> ;
+    mkg:eventId "ais-412345679-02" ;
+    mkg:latitude 21.9751 ;
+    mkg:longitude 113.9252 ;
+    mkg:observedAt "2026-10-26T10:12:00+08:00"^^xsd:dateTime ;
+    mkg:receivedAt "2026-10-26T10:12:01+08:00"^^xsd:dateTime ;
+    mkg:schemaVersion "1.0" ;
+    mkg:speedMps 0.21 .
+
+<https://example.org/maritime-kg/resource/observation/ais-412345679-03> a mkg:AISObservation ;
+    mkg:confidence 0.98 ;
+    mkg:courseDegrees 270.0 ;
+    mkg:describes <https://example.org/maritime-kg/resource/vessel/412345679> ;
+    mkg:eventId "ais-412345679-03" ;
+    mkg:latitude 21.9752 ;
+    mkg:longitude 113.9251 ;
+    mkg:observedAt "2026-10-26T10:18:00+08:00"^^xsd:dateTime ;
+    mkg:receivedAt "2026-10-26T10:18:01+08:00"^^xsd:dateTime ;
+    mkg:schemaVersion "1.0" ;
+    mkg:speedMps 0.28 .
+
+<https://example.org/maritime-kg/resource/observation/radar-R-1002-01> a mkg:RadarObservation ;
+    mkg:confidence 0.91 ;
+    mkg:courseDegrees 184.0 ;
+    mkg:describes <https://example.org/maritime-kg/resource/vessel/412345679> ;
+    mkg:eventId "radar-R-1002-01" ;
+    mkg:latitude 21.9752 ;
+    mkg:longitude 113.9249 ;
+    mkg:observedAt "2026-10-26T10:06:05+08:00"^^xsd:dateTime ;
+    mkg:receivedAt "2026-10-26T10:06:07+08:00"^^xsd:dateTime ;
+    mkg:schemaVersion "1.0" ;
+    mkg:speedMps 0.36 .
+
+<https://example.org/maritime-kg/resource/observation/radar-R-1002-02> a mkg:RadarObservation ;
+    mkg:confidence 0.91 ;
+    mkg:courseDegrees 17.0 ;
+    mkg:describes <https://example.org/maritime-kg/resource/vessel/412345679> ;
+    mkg:eventId "radar-R-1002-02" ;
+    mkg:latitude 21.9753 ;
+    mkg:longitude 113.9251 ;
+    mkg:observedAt "2026-10-26T10:12:05+08:00"^^xsd:dateTime ;
+    mkg:receivedAt "2026-10-26T10:12:07+08:00"^^xsd:dateTime ;
+    mkg:schemaVersion "1.0" ;
+    mkg:speedMps 0.25 .
+
+<https://example.org/maritime-kg/resource/observation/radar-R-1002-03> a mkg:RadarObservation ;
+    mkg:confidence 0.91 ;
+    mkg:courseDegrees 272.0 ;
+    mkg:describes <https://example.org/maritime-kg/resource/vessel/412345679> ;
+    mkg:eventId "radar-R-1002-03" ;
+    mkg:latitude 21.9754 ;
+    mkg:longitude 113.925 ;
+    mkg:observedAt "2026-10-26T10:18:05+08:00"^^xsd:dateTime ;
+    mkg:receivedAt "2026-10-26T10:18:07+08:00"^^xsd:dateTime ;
+    mkg:schemaVersion "1.0" ;
+    mkg:speedMps 0.32 .
+
+<https://example.org/maritime-kg/resource/state-snapshot/ais-412345679-01> a mkg:State ;
+    mkg:snapshotAt "2026-10-26T10:06:00+08:00"^^xsd:dateTime .
+
+<https://example.org/maritime-kg/resource/state-snapshot/ais-412345679-02> a mkg:State ;
+    mkg:snapshotAt "2026-10-26T10:12:00+08:00"^^xsd:dateTime .
+
+<https://example.org/maritime-kg/resource/state-snapshot/ais-412345679-03> a mkg:State ;
+    mkg:snapshotAt "2026-10-26T10:18:00+08:00"^^xsd:dateTime .
+
+<https://example.org/maritime-kg/resource/state-snapshot/radar-R-1002-01> a mkg:State ;
+    mkg:snapshotAt "2026-10-26T10:06:05+08:00"^^xsd:dateTime .
+
+<https://example.org/maritime-kg/resource/state-snapshot/radar-R-1002-02> a mkg:State ;
+    mkg:snapshotAt "2026-10-26T10:12:05+08:00"^^xsd:dateTime .
+
+<https://example.org/maritime-kg/resource/state-snapshot/radar-R-1002-03> a mkg:State ;
+    mkg:snapshotAt "2026-10-26T10:18:05+08:00"^^xsd:dateTime .
+
+<https://example.org/maritime-kg/resource/track/412345679> a mkg:Track .
+
+<https://example.org/maritime-kg/resource/vessel/412345679> a mkg:Vessel ;
+    mkg:hasState mkg:HoveringState,
+        <https://example.org/maritime-kg/resource/state-snapshot/ais-412345679-01>,
+        <https://example.org/maritime-kg/resource/state-snapshot/ais-412345679-02>,
+        <https://example.org/maritime-kg/resource/state-snapshot/ais-412345679-03>,
+        <https://example.org/maritime-kg/resource/state-snapshot/radar-R-1002-01>,
+        <https://example.org/maritime-kg/resource/state-snapshot/radar-R-1002-02>,
+        <https://example.org/maritime-kg/resource/state-snapshot/radar-R-1002-03> ;
+    mkg:hasTrack <https://example.org/maritime-kg/resource/track/412345679> ;
+    mkg:locatedIn <https://example.org/maritime-kg/resource/area/sensitive-area-alpha> .
+
