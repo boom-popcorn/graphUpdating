@@ -1,0 +1,71 @@
+@prefix mkg: <https://example.org/maritime-kg/ontology/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+mkg:ObservationShape a sh:NodeShape ;
+    sh:targetClass mkg:Observation ;
+    sh:property [
+        sh:path mkg:eventId ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1
+    ] ;
+    sh:property [
+        sh:path mkg:observedAt ;
+        sh:datatype xsd:dateTime ;
+        sh:minCount 1 ;
+        sh:maxCount 1
+    ] ;
+    sh:property [
+        sh:path mkg:receivedAt ;
+        sh:datatype xsd:dateTime ;
+        sh:minCount 1 ;
+        sh:maxCount 1
+    ] ;
+    sh:property [
+        sh:path mkg:describes ;
+        sh:nodeKind sh:IRI ;
+        sh:minCount 1
+    ] ;
+    sh:property [
+        sh:path mkg:confidence ;
+        sh:datatype xsd:decimal ;
+        sh:minInclusive 0 ;
+        sh:maxInclusive 1 ;
+        sh:minCount 1 ;
+        sh:maxCount 1
+    ] .
+
+mkg:KnowledgeAssertionShape a sh:NodeShape ;
+    sh:targetClass mkg:KnowledgeAssertion ;
+    sh:property [ sh:path rdf:subject ; sh:nodeKind sh:IRI ; sh:minCount 1 ; sh:maxCount 1 ] ;
+    sh:property [ sh:path rdf:predicate ; sh:nodeKind sh:IRI ; sh:minCount 1 ; sh:maxCount 1 ] ;
+    sh:property [ sh:path rdf:object ; sh:minCount 1 ; sh:maxCount 1 ] ;
+    sh:property [ sh:path mkg:supportedBy ; sh:class mkg:Observation ; sh:minCount 1 ] ;
+    sh:property [
+        sh:path mkg:confidence ;
+        sh:datatype xsd:decimal ;
+        sh:minInclusive 0 ;
+        sh:maxInclusive 1 ;
+        sh:minCount 1 ;
+        sh:maxCount 1
+    ] ;
+    sh:property [ sh:path mkg:validFrom ; sh:datatype xsd:dateTime ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+mkg:GraphVersionShape a sh:NodeShape ;
+    sh:targetClass mkg:GraphVersion ;
+    sh:property [
+        sh:path mkg:graphVersion ;
+        sh:datatype xsd:integer ;
+        sh:minInclusive 1 ;
+        sh:minCount 1 ;
+        sh:maxCount 1
+    ] .
+
+mkg:ChangeSetShape a sh:NodeShape ;
+    sh:targetClass mkg:ChangeSet ;
+    sh:property [ sh:path mkg:changeSetId ; sh:datatype xsd:string ; sh:minCount 1 ; sh:maxCount 1 ] ;
+    sh:property [ sh:path mkg:idempotencyKey ; sh:datatype xsd:string ; sh:minCount 1 ; sh:maxCount 1 ] ;
+    sh:property [ sh:path mkg:generatedVersion ; sh:class mkg:GraphVersion ; sh:minCount 1 ; sh:maxCount 1 ] .
+

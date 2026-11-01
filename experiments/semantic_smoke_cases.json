@@ -1,0 +1,35 @@
+[
+  {
+    "case_id": "funding-en-positive",
+    "adapter_artifacts": {
+      "rule": [{"source_id": "gold-en-1", "modality": "text", "content": "Project Alpha is funded by Foundation Beta."}],
+      "deepseek-llm": [{"source_id": "gold-en-1", "modality": "llm_text", "content": "Project Alpha is funded by Foundation Beta."}],
+      "deepseek-vlm": [{"source_id": "gold-en-1", "modality": "vlm_image", "content": "Project Alpha is funded by Foundation Beta.", "metadata": {"image_url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="}}],
+      "adakgc": [{"source_id": "gold-en-1", "modality": "adakgc", "content": {"text": "Project Alpha is funded by Foundation Beta.", "relation": [{"type": "fundedBy", "args": [{"text": "Project Alpha"}, {"text": "Foundation Beta"}], "confidence": 0.83}]}}],
+      "continuemkgc": [{"source_id": "gold-en-1", "modality": "continuemkgc", "content": {"token": ["Project", "Alpha", "is", "funded", "by", "Foundation", "Beta"], "h": {"name": "Project Alpha"}, "t": {"name": "Foundation Beta"}, "predicted_relation": "fundedBy", "confidence": 0.79}}]
+    },
+    "expected_relations": [{"subject": "https://example.org/odkg/project_alpha", "predicate": "https://example.org/odkg/fundedBy", "object": "https://example.org/odkg/foundation_beta"}]
+  },
+  {
+    "case_id": "funding-zh-positive",
+    "adapter_artifacts": {
+      "rule": [{"source_id": "gold-zh-1", "modality": "text", "content": "项目阿尔法由贝塔基金会资助。"}],
+      "deepseek-llm": [{"source_id": "gold-zh-1", "modality": "llm_text", "content": "项目阿尔法由贝塔基金会资助。"}],
+      "deepseek-vlm": [{"source_id": "gold-zh-1", "modality": "vlm_image", "content": "项目阿尔法由贝塔基金会资助。", "metadata": {"image_url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="}}],
+      "adakgc": [{"source_id": "gold-zh-1", "modality": "adakgc", "content": {"text": "项目阿尔法由贝塔基金会资助。", "relation": [{"type": "fundedBy", "args": [{"text": "项目阿尔法"}, {"text": "贝塔基金会"}], "confidence": 0.83}]}}],
+      "continuemkgc": [{"source_id": "gold-zh-1", "modality": "continuemkgc", "content": {"token": ["项目阿尔法", "由", "贝塔基金会", "资助"], "h": {"name": "项目阿尔法"}, "t": {"name": "贝塔基金会"}, "predicted_relation": "fundedBy", "confidence": 0.79}}]
+    },
+    "expected_relations": [{"subject": "https://example.org/odkg/project_alpha", "predicate": "https://example.org/odkg/fundedBy", "object": "https://example.org/odkg/foundation_beta"}]
+  },
+  {
+    "case_id": "co-mention-negative",
+    "adapter_artifacts": {
+      "rule": [{"source_id": "gold-neg-1", "modality": "text", "content": "Project Alpha. Foundation Beta."}],
+      "deepseek-llm": [{"source_id": "gold-neg-1", "modality": "llm_text", "content": "Project Alpha. Foundation Beta."}],
+      "deepseek-vlm": [{"source_id": "gold-neg-1", "modality": "vlm_image", "content": "Project Alpha. Foundation Beta.", "metadata": {"image_url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="}}],
+      "adakgc": [{"source_id": "gold-neg-1", "modality": "adakgc", "content": {"text": "Project Alpha. Foundation Beta.", "relation": []}}],
+      "continuemkgc": [{"source_id": "gold-neg-1", "modality": "continuemkgc", "content": {"token": ["Project", "Alpha", ".", "Foundation", "Beta", "."], "h": {"name": "Project Alpha"}, "t": {"name": "Foundation Beta"}, "predicted_relation": "no_relation", "confidence": 0.91}}]
+    },
+    "expected_relations": []
+  }
+]

@@ -1,0 +1,1796 @@
+# metamodel_version: 1.7.0
+# version: 0.0.1
+enum ObsoletionPolicyEnum
+  {
+    NoLogicalAxiomsOnObsoletes
+    ObsoleteLabelsArePrefixed
+  }
+
+enum OwlTypeEnum
+  {
+    CLASS
+    OBJECT_PROPERTY
+    NAMED_INDIVIDUAL
+  }
+
+enum SynonymScopeEnum
+  {
+    related
+    broad
+    narrow
+    exact
+  }
+
+type Activity
+  {
+    id: String!
+    startedAtTime: String
+    endedAtTime: String
+    wasInformedBy: Activity
+    wasAssociatedWith: Agent
+    used: String
+    description: String
+  }
+
+type AddNodeToSubset implements AddToSubset
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    changeDescription: String
+    associatedChangeSet: [Change]
+    oldValue: String
+    newValue: String
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+    aboutNode: Node
+    aboutNodeRepresentation: String
+    language: LanguageTag
+    about: OntologyElement
+    inSubset: OntologySubset
+  }
+
+interface AddToSubset
+  {
+    about: OntologyElement
+    hasUndo: Change
+    oldValue: String
+    newValue: String
+    inSubset: OntologySubset
+  }
+
+type Agent
+  {
+    id: String!
+    actedOnBehalfOf: Agent
+    wasInformedBy: Activity
+  }
+
+interface AllowsAutomaticReplacementOfEdges
+  {
+    oldValue: String
+    newValue: String
+    about: OntologyElement
+    hasUndo: Obsoletion
+  }
+
+type Annotation
+  {
+    property: Node
+    filler: String
+    annotationSet: Annotation
+    propertyType: String
+    fillerType: String
+  }
+
+interface Change
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    changeDescription: String
+    associatedChangeSet: [Change]
+  }
+
+interface ChangeLanguageElement
+  {
+  }
+
+interface ChangeMixin
+  {
+    about: OntologyElement
+    hasUndo: Change
+    oldValue: String
+    newValue: String
+  }
+
+type ChangeSetSummaryStatistic
+  {
+  }
+
+type ClassCreation
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    associatedChangeSet: [Change]
+    oldValue: String
+    newValue: String
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+    aboutNode: Node
+    aboutNodeRepresentation: String
+    nodeId: Node
+    name: String
+    owlType: OwlTypeEnum
+    annotationSet: Annotation
+    language: LanguageTag
+    about: OntologyElement
+    superclass: Node
+    changeDescription: String
+  }
+
+type ClassNode
+  {
+    id: String!
+    name: String
+    annotationSet: Annotation
+    owlType: OwlTypeEnum
+  }
+
+interface ComplexChange
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    changeDescription: String
+    associatedChangeSet: [Change]
+    changeSet: [Change]
+  }
+
+type Configuration
+  {
+    namePredicate: String
+    definitionPredicate: String
+    mainSynonymPredicate: String
+    synonymPredicates: String
+    creatorPredicate: String
+    contributorPredicate: String
+    obsoleteNodeLabelPrefix: String
+    obsoletionWorkflow: String
+    obsoletionPolicies: [ObsoletionPolicyEnum]
+    obsoleteSubclassOfShadowProperty: Uriorcurie
+  }
+
+interface Creation
+  {
+    about: OntologyElement
+    oldValue: String
+    newValue: String
+    hasUndo: Deletion
+  }
+
+type DatatypeChange
+  {
+    about: OntologyElement
+    hasUndo: Change
+    oldValue: String
+    newValue: String
+  }
+
+interface DatatypeOrLanguageTagChange
+  {
+    about: OntologyElement
+    hasUndo: Change
+    oldValue: String
+    newValue: String
+  }
+
+interface Deletion
+  {
+    about: OntologyElement
+    hasUndo: Change
+    oldValue: String
+    newValue: String
+  }
+
+type Edge
+  {
+    subject: Node
+    predicate: Node
+    object: Node
+    subjectRepresentation: String
+    predicateRepresentation: String
+    objectRepresentation: String
+    annotationSet: Annotation
+  }
+
+interface EdgeChange
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    changeDescription: String
+    associatedChangeSet: [Change]
+    oldValue: String
+    newValue: String
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+    aboutEdge: Edge
+    objectType: String
+    language: LanguageTag
+    datatype: String
+  }
+
+type EdgeCreation implements Creation
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    associatedChangeSet: [Change]
+    oldValue: String
+    newValue: String
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+    aboutEdge: Edge
+    language: LanguageTag
+    datatype: String
+    subject: Node
+    predicate: Node
+    object: Node
+    subjectType: String
+    predicateType: String
+    objectType: String
+    annotationSet: Annotation
+    changeDescription: String
+    about: OntologyElement
+  }
+
+type EdgeDeletion implements Deletion
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    associatedChangeSet: [Change]
+    oldValue: String
+    newValue: String
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+    aboutEdge: Edge
+    language: LanguageTag
+    datatype: String
+    subject: Node
+    predicate: Node
+    object: Node
+    subjectType: String
+    predicateType: String
+    objectType: String
+    annotationSet: Annotation
+    changeDescription: String
+    about: OntologyElement
+  }
+
+type EdgeLogicalInterpretationChange
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    changeDescription: String
+    associatedChangeSet: [Change]
+    oldValue: String
+    newValue: String
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+    aboutEdge: Edge
+    objectType: String
+    language: LanguageTag
+    datatype: String
+  }
+
+type EdgeObsoletion implements Obsoletion
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    associatedChangeSet: [Change]
+    oldValue: String
+    newValue: String
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+    aboutEdge: Edge
+    objectType: String
+    language: LanguageTag
+    datatype: String
+    subject: Node
+    predicate: Node
+    object: Node
+    annotationSet: Annotation
+    changeDescription: String
+    about: OntologyElement
+  }
+
+type EdgeRewiring
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    changeDescription: String
+    associatedChangeSet: [Change]
+    oldValue: String
+    newValue: String
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+    aboutEdge: Edge
+    objectType: String
+    language: LanguageTag
+    datatype: String
+  }
+
+type InstanceNode
+  {
+    id: String!
+    name: String
+    annotationSet: Annotation
+    owlType: OwlTypeEnum
+  }
+
+type LanguageTagChange
+  {
+    about: OntologyElement
+    hasUndo: Change
+    oldValue: LanguageTag
+    newValue: LanguageTag
+  }
+
+type LogicalAxiomChange
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    changeDescription: String
+    associatedChangeSet: [Change]
+    oldValue: String
+    newValue: String
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+  }
+
+type LogicalDefinition
+  {
+  }
+
+type MappingCreation implements Creation
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    associatedChangeSet: [Change]
+    oldValue: String
+    newValue: String
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+    aboutEdge: Edge
+    language: LanguageTag
+    datatype: String
+    subjectType: String
+    predicateType: String
+    objectType: String
+    about: OntologyElement
+    subject: Node
+    predicate: Node
+    object: Node
+    annotationSet: Annotation
+    changeDescription: String
+  }
+
+type MappingPredicateChange
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    changeDescription: String
+    associatedChangeSet: [Change]
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+    aboutNode: Node
+    aboutNodeRepresentation: String
+    language: LanguageTag
+    oldValue: String
+    newValue: String
+  }
+
+type MappingReplacement
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    changeDescription: String
+    associatedChangeSet: [Change]
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+    aboutNode: Node
+    aboutNodeRepresentation: String
+    language: LanguageTag
+    oldValue: String
+    newValue: String
+  }
+
+type MetadataAssertionPredicateChange
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    changeDescription: String
+    associatedChangeSet: [Change]
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+    aboutNode: Node
+    aboutNodeRepresentation: String
+    language: LanguageTag
+    oldValue: String
+    newValue: String
+  }
+
+type MetadataAssertionReplacement
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    changeDescription: String
+    associatedChangeSet: [Change]
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+    aboutNode: Node
+    aboutNodeRepresentation: String
+    language: LanguageTag
+    oldValue: String
+    newValue: String
+  }
+
+type MultiNodeObsoletion
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    changeSet: [NodeObsoletion]
+    changeDescription: String
+    associatedChangeSet: [Change]
+  }
+
+type NameBecomesSynonym
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    associatedChangeSet: [Change]
+    oldValue: String
+    newValue: String
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+    aboutNode: Node
+    aboutNodeRepresentation: String
+    language: LanguageTag
+    changeDescription: String
+  }
+
+type NewMapping
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    changeDescription: String
+    associatedChangeSet: [Change]
+    oldValue: String
+    newValue: String
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+    aboutNode: Node
+    aboutNodeRepresentation: String
+    language: LanguageTag
+    object: Node
+    predicate: Node
+  }
+
+type NewMetadataAssertion
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    changeDescription: String
+    associatedChangeSet: [Change]
+    oldValue: String
+    newValue: String
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+    aboutNode: Node
+    aboutNodeRepresentation: String
+    language: LanguageTag
+    object: Node
+    predicate: Node
+  }
+
+type NewSynonym
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    changeDescription: String
+    associatedChangeSet: [Change]
+    oldValue: String
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+    aboutNode: Node
+    aboutNodeRepresentation: String
+    newValue: String
+    language: LanguageTag
+    qualifier: String
+    predicate: Node
+  }
+
+type NewTextDefinition
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    changeDescription: String
+    associatedChangeSet: [Change]
+    oldValue: String
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+    aboutNode: Node
+    aboutNodeRepresentation: String
+    language: LanguageTag
+    newValue: String
+  }
+
+type Node
+  {
+    id: String!
+    name: String
+    annotationSet: Annotation
+    owlType: OwlTypeEnum
+  }
+
+type NodeAnnotationChange
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    changeDescription: String
+    associatedChangeSet: [Change]
+    oldValue: String
+    newValue: String
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+    aboutNode: Node
+    aboutNodeRepresentation: String
+    language: LanguageTag
+    annotationProperty: String
+    annotationPropertyType: String
+  }
+
+type NodeAnnotationReplacement
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    changeDescription: String
+    associatedChangeSet: [Change]
+    oldValue: String
+    newValue: String
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+    aboutNode: Node
+    aboutNodeRepresentation: String
+    language: LanguageTag
+    annotationProperty: String
+    annotationPropertyType: String
+  }
+
+interface NodeChange
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    changeDescription: String
+    associatedChangeSet: [Change]
+    oldValue: String
+    newValue: String
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+    aboutNode: Node
+    aboutNodeRepresentation: String
+    language: LanguageTag
+  }
+
+type NodeCreation implements Creation
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    associatedChangeSet: [Change]
+    oldValue: String
+    newValue: String
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+    aboutNode: Node
+    aboutNodeRepresentation: String
+    nodeId: Node
+    name: String
+    owlType: OwlTypeEnum
+    annotationSet: Annotation
+    language: LanguageTag
+    changeDescription: String
+    about: OntologyElement
+  }
+
+type NodeDeepening
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    associatedChangeSet: [Change]
+    oldValue: String
+    newValue: String
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+    aboutEdge: Edge
+    objectType: String
+    language: LanguageTag
+    datatype: String
+    oldObjectType: String
+    newObjectType: String
+    changeDescription: String
+  }
+
+type NodeDeletion implements Deletion
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    associatedChangeSet: [Change]
+    oldValue: String
+    newValue: String
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+    aboutNode: Node
+    aboutNodeRepresentation: String
+    language: LanguageTag
+    changeDescription: String
+    about: OntologyElement
+  }
+
+type NodeDirectMerge implements AllowsAutomaticReplacementOfEdges
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    oldValue: String
+    newValue: String
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+    aboutNodeRepresentation: String
+    language: LanguageTag
+    hasNondirectReplacement: [Node]
+    associatedChangeSet: [Change]
+    about: OntologyElement
+    hasDirectReplacement: Node!
+    aboutNode: Node
+    changeDescription: String
+  }
+
+type NodeMappingChange
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    changeDescription: String
+    associatedChangeSet: [Change]
+    oldValue: String
+    newValue: String
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+    aboutNode: Node
+    aboutNodeRepresentation: String
+    language: LanguageTag
+  }
+
+type NodeMetadataAssertionChange
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    changeDescription: String
+    associatedChangeSet: [Change]
+    oldValue: String
+    newValue: String
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+    aboutNode: Node
+    aboutNodeRepresentation: String
+    language: LanguageTag
+  }
+
+type NodeMove
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    associatedChangeSet: [Change]
+    oldValue: String
+    newValue: String
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+    aboutEdge: Edge
+    objectType: String
+    language: LanguageTag
+    datatype: String
+    oldObjectType: String
+    newObjectType: String
+    changeDescription: String
+  }
+
+type NodeObsoletion implements Obsoletion
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    oldValue: String
+    newValue: String
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+    aboutNode: Node
+    aboutNodeRepresentation: String
+    language: LanguageTag
+    hasDirectReplacement: Node
+    hasNondirectReplacement: [Node]
+    changeDescription: String
+    associatedChangeSet: [Change]
+    about: OntologyElement
+  }
+
+type NodeObsoletionWithDirectReplacement implements AllowsAutomaticReplacementOfEdges
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    oldValue: String
+    newValue: String
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+    aboutNode: Node
+    aboutNodeRepresentation: String
+    language: LanguageTag
+    hasNondirectReplacement: [Node]
+    associatedChangeSet: [Change]
+    about: OntologyElement
+    hasDirectReplacement: Node!
+    changeDescription: String
+  }
+
+type NodeObsoletionWithNoDirectReplacement
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    oldValue: String
+    newValue: String
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+    aboutNode: Node
+    aboutNodeRepresentation: String
+    language: LanguageTag
+    hasDirectReplacement: Node
+    associatedChangeSet: [Change]
+    about: OntologyElement
+    hasNondirectReplacement: [Node]!
+    changeDescription: String
+  }
+
+type NodeRename
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    associatedChangeSet: [Change]
+    oldValueType: String
+    newValueType: String
+    newDatatype: String
+    oldDatatype: String
+    aboutNode: Node
+    aboutNodeRepresentation: String
+    language: LanguageTag
+    oldValue: String
+    newValue: String
+    hasTextualDiff: TextualDiff
+    newLanguage: String
+    oldLanguage: String
+    changeDescription: String
+  }
+
+type NodeShallowing
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    associatedChangeSet: [Change]
+    oldValue: String
+    newValue: String
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+    aboutEdge: Edge
+    objectType: String
+    language: LanguageTag
+    datatype: String
+    oldObjectType: String
+    newObjectType: String
+    changeDescription: String
+  }
+
+type NodeSynonymChange
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    changeDescription: String
+    associatedChangeSet: [Change]
+    oldValue: String
+    newValue: String
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+    aboutNode: Node
+    aboutNodeRepresentation: String
+    language: LanguageTag
+  }
+
+interface NodeTextDefinitionChange
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    changeDescription: String
+    associatedChangeSet: [Change]
+    oldValue: String
+    newValue: String
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+    aboutNode: Node
+    aboutNodeRepresentation: String
+    language: LanguageTag
+  }
+
+type NodeUnobsoletion implements Unobsoletion
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    associatedChangeSet: [Change]
+    oldValue: String
+    newValue: String
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+    aboutNode: Node
+    aboutNodeRepresentation: String
+    language: LanguageTag
+    hasDirectReplacement: Node
+    hasNondirectReplacement: [Node]
+    changeDescription: String
+    about: OntologyElement
+  }
+
+type ObjectPropertyCreation
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    associatedChangeSet: [Change]
+    oldValue: String
+    newValue: String
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+    aboutNode: Node
+    aboutNodeRepresentation: String
+    nodeId: Node
+    name: String
+    owlType: OwlTypeEnum
+    annotationSet: Annotation
+    language: LanguageTag
+    about: OntologyElement
+    changeDescription: String
+  }
+
+interface Obsoletion
+  {
+    oldValue: String
+    newValue: String
+    about: OntologyElement
+    hasUndo: Obsoletion
+  }
+
+type OntologyElement
+  {
+  }
+
+type OntologySubset
+  {
+    id: String!
+    name: String
+    annotationSet: Annotation
+    owlType: OwlTypeEnum
+  }
+
+type PlaceUnder
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    associatedChangeSet: [Change]
+    oldValue: String
+    newValue: String
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+    aboutEdge: Edge
+    language: LanguageTag
+    datatype: String
+    subject: Node
+    predicate: Node
+    object: Node
+    subjectType: String
+    predicateType: String
+    objectType: String
+    annotationSet: Annotation
+    changeDescription: String
+    about: OntologyElement
+  }
+
+type PredicateChange
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    associatedChangeSet: [Change]
+    oldValue: String
+    newValue: String
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+    aboutEdge: Edge
+    objectType: String
+    language: LanguageTag
+    datatype: String
+    changeDescription: String
+  }
+
+type PropertyValue
+  {
+    property: Node
+    filler: String
+  }
+
+interface ProvElement
+  {
+  }
+
+interface RemoveFromSubset
+  {
+    about: OntologyElement
+    oldValue: String
+    newValue: String
+    inSubset: OntologySubset
+    hasUndo: AddToSubset
+  }
+
+type RemoveMapping
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    changeDescription: String
+    associatedChangeSet: [Change]
+    oldValue: String
+    newValue: String
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+    aboutNode: Node
+    aboutNodeRepresentation: String
+    language: LanguageTag
+    object: Node
+    predicate: Node
+  }
+
+type RemoveMetadataAssertion
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    changeDescription: String
+    associatedChangeSet: [Change]
+    oldValue: String
+    newValue: String
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+    aboutNode: Node
+    aboutNodeRepresentation: String
+    language: LanguageTag
+    object: Node
+    predicate: Node
+  }
+
+type RemoveNodeFromSubset implements RemoveFromSubset
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    associatedChangeSet: [Change]
+    oldValue: String
+    newValue: String
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+    aboutNodeRepresentation: String
+    language: LanguageTag
+    changeDescription: String
+    aboutNode: Node
+    inSubset: OntologySubset
+    about: OntologyElement
+  }
+
+type RemoveSynonym
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    changeDescription: String
+    associatedChangeSet: [Change]
+    newValue: String
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+    aboutNode: Node
+    aboutNodeRepresentation: String
+    language: LanguageTag
+    oldValue: String
+  }
+
+type RemoveTextDefinition
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    changeDescription: String
+    associatedChangeSet: [Change]
+    newValue: String
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+    aboutNode: Node
+    aboutNodeRepresentation: String
+    language: LanguageTag
+    oldValue: String
+  }
+
+type RemoveUnder
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    associatedChangeSet: [Change]
+    oldValue: String
+    newValue: String
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+    aboutEdge: Edge
+    language: LanguageTag
+    datatype: String
+    subject: Node
+    predicate: Node
+    object: Node
+    subjectType: String
+    predicateType: String
+    objectType: String
+    annotationSet: Annotation
+    changeDescription: String
+    about: OntologyElement
+  }
+
+type Session
+  {
+    changeSet: [Change]
+    activitySet: [Activity]
+  }
+
+type SetLanguageForName implements LanguageTagChange
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    associatedChangeSet: [Change]
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+    aboutNode: Node
+    aboutNodeRepresentation: String
+    language: LanguageTag
+    oldValue: String
+    newValue: String
+    changeDescription: String
+    about: OntologyElement
+  }
+
+interface SimpleChange
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    changeDescription: String
+    associatedChangeSet: [Change]
+    oldValue: String
+    newValue: String
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+  }
+
+interface SubsetMembershipChange
+  {
+    about: OntologyElement
+    hasUndo: Change
+    oldValue: String
+    newValue: String
+    inSubset: OntologySubset
+  }
+
+type SynonymPredicateChange
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    changeDescription: String
+    associatedChangeSet: [Change]
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+    aboutNode: Node
+    aboutNodeRepresentation: String
+    language: LanguageTag
+    oldValue: String
+    newValue: String
+    hasTextualDiff: TextualDiff
+    target: String
+  }
+
+type SynonymReplacement
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    changeDescription: String
+    associatedChangeSet: [Change]
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+    aboutNode: Node
+    aboutNodeRepresentation: String
+    language: LanguageTag
+    oldValue: String
+    newValue: String
+    qualifier: String
+    hasTextualDiff: TextualDiff
+  }
+
+type TextDefinitionReplacement
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    changeDescription: String
+    associatedChangeSet: [Change]
+    oldValueType: String
+    newValueType: String
+    newLanguage: String
+    oldLanguage: String
+    newDatatype: String
+    oldDatatype: String
+    aboutNode: Node
+    aboutNodeRepresentation: String
+    language: LanguageTag
+    oldValue: String
+    newValue: String
+    hasTextualDiff: TextualDiff
+  }
+
+type TextualDiff
+  {
+  }
+
+type Transaction
+  {
+    id: String!
+    type: String
+    wasGeneratedBy: Activity
+    seeAlso: String
+    pullRequest: String
+    termTrackerIssue: String
+    creator: String
+    changeDate: String
+    contributor: String
+    hasUndo: Change
+    changeDescription: String
+    associatedChangeSet: [Change]
+    changeSet: [Change]
+  }
+
+interface Unobsoletion
+  {
+    about: OntologyElement
+    oldValue: String
+    newValue: String
+    hasUndo: Obsoletion
+  }
+

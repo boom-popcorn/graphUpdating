@@ -1,0 +1,9 @@
+@prefix ex: <https://example.org/odkg/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+
+ex:ResearchProjectShape a sh:NodeShape ;
+  sh:targetClass ex:ResearchProject .
+
+ex:OrganizationShape a sh:NodeShape ;
+  sh:targetClass ex:Organization .
+

@@ -1,0 +1,9 @@
+docs/*
+.vscode/*
+dist/*
+__pycache__
+.pytest_cache
+.idea
+tmp/
+tests/outputs/*
+project/docs/*

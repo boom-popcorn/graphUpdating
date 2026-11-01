@@ -77,10 +77,6 @@ mkg:describes a owl:ObjectProperty ;
     rdfs:domain mkg:Observation ;
     rdfs:range mkg:MaritimeObject .
 
-mkg:encryptedMessageFrequency a owl:DatatypeProperty ;
-    rdfs:domain mkg:Observation ;
-    rdfs:range xsd:decimal .
-
 mkg:eventId a owl:DatatypeProperty,
         owl:FunctionalProperty ;
     rdfs:domain mkg:Observation ;
@@ -94,6 +90,10 @@ mkg:generatedVersion a owl:ObjectProperty ;
     rdfs:range mkg:GraphVersion .
 
 mkg:graphVersion a owl:DatatypeProperty ;
+    rdfs:range xsd:integer .
+
+mkg:hasEncryptedMessageFrequency a owl:DatatypeProperty ;
+    rdfs:domain mkg:vessel ;
     rdfs:range xsd:integer .
 
 mkg:hasState a owl:ObjectProperty ;

@@ -1,0 +1,12 @@
+[
+  {
+    "source_id": "deepseek-demo-document-001",
+    "modality": "llm_text",
+    "content": "Project Alpha is funded by Foundation Beta.",
+    "locator": "sentence:1",
+    "metadata": {
+      "language": "en",
+      "document_kind": "research-news"
+    }
+  }
+]

@@ -1,0 +1,14 @@
+{
+  "proposed_namespace": "https://example.org/odkg/",
+  "relation_labels": {
+    "fundedBy": "https://example.org/odkg/fundedBy",
+    "funded by": "https://example.org/odkg/fundedBy",
+    "/organization/organization/founders": "https://example.org/odkg/fundedBy"
+  },
+  "no_relation_labels": [
+    "no_relation",
+    "none",
+    "na",
+    "0"
+  ]
+}

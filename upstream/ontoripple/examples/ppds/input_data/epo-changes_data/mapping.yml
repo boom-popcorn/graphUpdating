@@ -1,0 +1,184 @@
+prefixes:
+  brick: https://brickschema.org/schema/Brick#
+  csvw: http://www.w3.org/ns/csvw#
+  dc: http://purl.org/dc/elements/1.1/
+  dcat: http://www.w3.org/ns/dcat#
+  dcmitype: http://purl.org/dc/dcmitype/
+  dcterms: http://purl.org/dc/terms/
+  dcam: http://purl.org/dc/dcam/
+  doap: http://usefulinc.com/ns/doap#
+  foaf: http://xmlns.com/foaf/0.1/
+  geo: http://www.opengis.net/ont/geosparql#
+  odrl: http://www.w3.org/ns/odrl/2/
+  org: http://www.w3.org/ns/org#
+  prof: http://www.w3.org/ns/dx/prof/
+  prov: http://www.w3.org/ns/prov#
+  qb: http://purl.org/linked-data/cube#
+  schema: https://schema.org/
+  sh: http://www.w3.org/ns/shacl#
+  skos: http://www.w3.org/2004/02/skos/core#
+  sosa: http://www.w3.org/ns/sosa/
+  ssn: http://www.w3.org/ns/ssn/
+  time: http://www.w3.org/2006/time#
+  vann: http://purl.org/vocab/vann/
+  void: http://rdfs.org/ns/void#
+  wgs: https://www.w3.org/2003/01/geo/wgs84_pos#
+  owl: http://www.w3.org/2002/07/owl#
+  rdf: http://www.w3.org/1999/02/22-rdf-syntax-ns#
+  rdfs: http://www.w3.org/2000/01/rdf-schema#
+  xsd: http://www.w3.org/2001/XMLSchema#
+  xml: http://www.w3.org/XML/1998/namespace
+  rr: http://www.w3.org/ns/r2rml#
+  rml: http://semweb.mmlab.be/ns/rml#
+  ql: http://semweb.mmlab.be/ns/ql#
+  och: https://w3id.org/def/och#
+
+mappings:
+  AddedClasses:
+    sources:
+    - [Parsed_Changes/added_classes_3.0.1.csv~csv]
+    s: http://epo-changes.org/$(reference_version)-$(target_version)/AddClass/$(name)
+    po:
+    - [rdf:type, och:AddClass]
+    - [och:addedClass, $(name_full)~iri]
+    #- [rdfs:comment, $(comment)]
+
+  DeletedClasses:
+    sources:
+    - [Parsed_Changes/deleted_classes_3.0.1.csv~csv]
+    s:
+      http://epo-changes.org/$(reference_version)-$(target_version)/RemoveClass/$(name)
+    po:
+    - [rdf:type, och:RemoveClass]
+    #- [rdfs:comment, $(comment)]
+    - [och:removedClass, $(name_full)~iri]
+
+  AddedSubClasses:
+    sources:
+    - [Parsed_Changes/added_subclass_3.0.1.csv~csv]
+    s:
+      http://epo-changes.org/$(reference_version)-$(target_version)/AddSubClass/$(subject)-$(object)
+    po:
+    - [rdf:type, och:AddSubClass]
+    #- [rdfs:comment, $(comment)]
+    - [och:sourceAddSubClass, $(subject_full)~iri]
+    - [och:targetAddSubClass, $(object_full)~iri]
+
+  RemoveSubClasses:
+    sources:
+    - [Parsed_Changes/deleted_subclass_3.0.1.csv~csv]
+    s:
+      http://epo-changes.org/$(reference_version)-$(target_version)/RemoveSubClass/$(subject)-$(object)
+    po:
+    - [rdf:type, och:RemoveSubClass]
+    #- [rdfs:comment, $(comment)]
+    - [och:sourceRemoveSubClass, $(subject_full)~iri]
+    - [och:targetRemoveSubClass, $(object_full)~iri]
+
+  AddedProperties:
+    sources:
+    - [Parsed_Changes/added_triples_3.0.1.csv~csv]
+    s:
+      http://epo-changes.org/$(reference_version)-$(target_version)/AddObjectProperty/$(predicate)
+    po:
+    - [rdf:type, och:AddObjectProperty]
+    #- [rdfs:comment, $(comment)]
+    - [och:addedObjectProperty, $(predicate_full)~iri]
+
+  AddedPropertiesDomain:
+    sources:
+    - [Parsed_Changes/added_triples_3.0.1.csv~csv]
+    s:
+      http://epo-changes.org/$(reference_version)-$(target_version)/AddDomain/$(predicate)
+    po:
+    - [rdf:type, och:AddDomain]
+    #- [rdfs:comment, $(comment)]
+    - [och:addedDomain, $(subject_full)~iri]
+    - [och:addedDomainToProperty, $(predicate_full)~iri]
+  
+  AddedPropertiesRange:
+    sources:
+    - [Parsed_Changes/added_triples_3.0.1.csv~csv]
+    s:
+      http://epo-changes.org/$(reference_version)-$(target_version)/AddRangeObjectProperty/$(predicate)
+    po:
+    - [rdf:type, och:AddRangeObjectProperty]
+    #- [rdfs:comment, $(comment)]
+    - [och:addedObjectRange, $(object_full)~iri]
+    - [och:addedRangeToProperty, $(predicate_full)~iri]
+
+  DeletedProperties:
+    sources:
+    - [Parsed_Changes/deleted_triples_3.0.1.csv~csv]
+    s:
+      http://epo-changes.org/$(reference_version)-$(target_version)/RemoveObjectProperty/$(predicate)
+    po:
+    - [rdf:type, och:RemoveObjectProperty]
+    #- [rdfs:comment, $(comment)]
+    - [och:removedObjectProperty, $(predicate_full)~iri]
+
+
+  DeletedPropertiesDomain:
+    sources:
+    - [Parsed_Changes/deleted_triples_3.0.1.csv~csv]
+    s:
+      http://epo-changes.org/$(reference_version)-$(target_version)/RemoveDomain/$(predicate)
+    po:
+    - [rdf:type, och:RemoveDomain]
+    #- [rdfs:comment, $(comment)]
+    - [och:removedDomain, $(subject_full)~iri]
+    - [och:removedDomainFromProperty, $(predicate_full)~iri]
+  
+  DeletedPropertiesRange:
+    sources:
+    - [Parsed_Changes/deleted_triples_3.0.1.csv~csv]
+    s:
+      http://epo-changes.org/$(reference_version)-$(target_version)/RemoveRangeObjectProperty/$(predicate)
+    po:
+    - [rdf:type, och:RemoveRangeObjectProperty]
+    #- [rdfs:comment, $(comment)]
+    - [och:removedObjectRange, $(object_full)~iri]
+    - [och:removedRangeFromProperty, $(predicate_full)~iri]
+  
+
+  AddedAttributes:
+    sources:
+    - [Parsed_Changes/modified_attributes_3.0.1.csv~csv]
+    s:
+      http://epo-changes.org/$(reference_version)-$(target_version)/AddDataProperty/$(added_attributes)
+    po:
+    - [rdf:type, och:AddDataProperty]
+    #- [rdfs:comment, $(comment)]
+    - [och:addedDataProperty, $(added_attributes_full)~iri]
+
+  AddedAttributesDomain:
+    sources:
+    - [Parsed_Changes/modified_attributes_3.0.1.csv~csv]
+    s:
+      http://epo-changes.org/$(reference_version)-$(target_version)/AddDomain/$(added_attributes)
+    po:
+    - [rdf:type, och:AddDomain]
+    #- [rdfs:comment, $(comment)]
+    - [och:addedDomain, $(class_full)~iri]
+    - [och:addedDomainToProperty, $(added_attributes_full)~iri]
+
+  DeletedAttributes:
+    sources:
+    - [Parsed_Changes/modified_attributes_3.0.1.csv~csv]
+    s:
+      http://epo-changes.org/$(reference_version)-$(target_version)/RemoveDataProperty/$(deleted_attributes)
+    po:
+    - [rdf:type, och:RemoveDataProperty]
+    #- [rdfs:comment, $(comment)]
+    - [och:removedDataProperty, $(deleted_attributes_full)~iri]
+
+  DeletedAttributesDomain:
+    sources:
+    - [Parsed_Changes/modified_attributes_3.0.1.csv~csv]
+    s:
+      http://epo-changes.org/$(reference_version)-$(target_version)/RemoveDomain/$(deleted_attributes)
+    po:
+    - [rdf:type, och:RemoveDomain]
+    #- [rdfs:comment, $(comment)]
+    - [och:removedDomain, $(class_full)~iri]
+    - [och:removedDomainFromProperty, $(deleted_attributes_full)~iri]

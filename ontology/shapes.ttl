@@ -1,0 +1,7 @@
+@prefix ex: <https://example.org/odkg/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+
+ex:EntityShape a sh:NodeShape ;
+  sh:targetClass ex:Entity ;
+  sh:closed false .
+

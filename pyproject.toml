@@ -3,20 +3,38 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "maritime-kg-update"
+name = "ontology-driven-kg-system"
 version = "0.1.0"
-description = "Minimal executable baseline for maritime spatiotemporal knowledge graph updates"
-readme = "README.md"
-requires-python = ">=3.10"
+description = "Framework-neutral prototype for ontology-evolution-driven multi-agent KG updates"
+requires-python = ">=3.11"
 dependencies = [
-    "pydantic>=2.6,<3",
-    "rdflib>=7,<8",
-    "pyshacl>=0.26,<1",
+  "rdflib>=7.0,<8",
+  "pydantic>=2.7,<3",
 ]
 
+[project.optional-dependencies]
+dev = ["pytest>=8,<9", "pyyaml>=6,<7"]
+mcp = ["mcp>=2,<3"]
+shacl = ["pyshacl>=0.30,<1"]
+neo4j = ["neo4j>=5.28,<7"]
+
 [project.scripts]
-maritime-kg-demo = "maritime_kg.demo:main"
+odkg-demo = "odkg.demo:main"
+odkg-mcp = "odkg.mcp_server:main"
+odkg-maritime-demo = "odkg.maritime.demo:main"
+odkg-workbench = "odkg.workbench.server:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+"odkg.workbench" = ["index.html"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+addopts = "-p no:cacheprovider"
 

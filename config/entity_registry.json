@@ -1,0 +1,14 @@
+{
+  "entities": [
+    {
+      "iri": "https://example.org/odkg/project_alpha",
+      "type_iri": "https://example.org/odkg/ResearchProject",
+      "labels": ["Project Alpha", "项目阿尔法"]
+    },
+    {
+      "iri": "https://example.org/odkg/foundation_beta",
+      "type_iri": "https://example.org/odkg/Organization",
+      "labels": ["Foundation Beta", "贝塔基金会"]
+    }
+  ]
+}

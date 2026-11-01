@@ -1,87 +1,111 @@
-# 海上时空知识图谱更新 MVP
+# Ontology-driven multi-agent knowledge graph update system
 
-这是框架图的第一阶段可执行基线，当前包含：
+This repository is the framework-neutral core of an ontology-evolution-driven
+multi-agent knowledge graph update method. It deliberately keeps third-party
+Harnesses and research baselines behind adapters.
 
-- 三个统一数据结构：`ObservationEvent`、`CandidateFact`、`GraphChangeSet`。
-- 海上时空知识图谱本体 v0.1（OWL/Turtle）。
-- 面向观测、候选事实和版本记录的 SHACL 一致性约束。
-- AIS 与雷达双模态测试数据。
-- 五个独立角色：语义感知、本体演化、决策规划、一致性校验、行动执行。
-- Harness 协同编排，以及“校验失败 -> 反馈 -> 重规划”的有限闭环。
-- 工作台采用两阶段更新：候选变更先完成副本校验，工作人员批准后才原子提交正式图谱。
-- 图谱中写入轨迹、状态快照、空间区域和海上事件；支持事实失效与回滚标记。
-- `IncrementalUpdateService` 按批次接收观测、去重并交给更新链路；仓库保存版本快照，可恢复到已保存版本。
-- 人工批准本体演化建议后，可从 v0.1 生成 v0.2 本体文件。
-- “持续低速观测 -> 候选悬停事实 -> 受控图谱变更”的最小闭环。
+## Implemented vertical slice
 
-## 运行
+1. A pluggable ingestion layer extracts and conservatively fuses text,
+   structured and external vision-model evidence into normalized observations.
+2. Semantic perception emits evidence-bearing candidate facts.
+3. Ontology evolution detects schema gaps and emits a KGCL-like change set.
+4. Decision planning performs consistency checks, SHACL validation and a dry run.
+5. Action execution atomically commits ontology and instance changes, records
+   provenance and supports rollback.
+6. The orchestrator returns runtime feedback that can trigger another evolution
+   cycle or human review.
+7. Committed versions persist ontology, facts, shapes, KGCL, OCH RDF and a
+   SHA-256 manifest; rejected transactions remain auditable.
+8. A configurable evolution policy routes proposals to accept, review or reject.
+9. Optional Neo4j snapshots and four Harness-facing Skills sit behind stable
+   interfaces rather than changing the transaction core.
+10. Rule, OpenAI-compatible LLM/VLM, AdaKGC-result and ContinueMKGC-result
+    adapters normalize into the same evidence-bearing observation contract.
+11. A process-scoped DeepSeek configuration, end-to-end model preview and
+    unified adapter smoke benchmark exercise the complete semantic-to-update
+    path without storing API credentials.
 
-```powershell
-python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -e .
-.\.venv\Scripts\python.exe -m maritime_kg.sample_data
-.\.venv\Scripts\python.exe -m maritime_kg.demo
-.\.venv\Scripts\python.exe -m unittest discover -s tests -v
-\.venv\Scripts\python.exe web\server.py
-```
-
-演示输出位于 `output/demo/`：
-
-- `demo_graph.ttl`：提交更新后的数据图。
-- `demo_change_set.json`：结构化变更集。
-- `demo_summary.json`：处理数量、版本与耗时摘要。
-- `workflow_report.json`：智能体工作流、校验历史和本体演化建议。
-
-## 当前边界
-
-当前版本使用可测试的确定性 Agent，不调用大模型。Agent 只能通过结构化契约交换信息，只有行动执行 Agent 能在一致性校验通过后提交图谱。本体演化 Agent 只生成需要人工审核的建议，不会自动修改正式本体。
-
-## 可视化学习页面
-
-启动本地页面：
+## Run
 
 ```powershell
-\.venv\Scripts\python.exe web\server.py
+python -m pip install -e ".[dev]"
+python -m odkg.demo
+python scripts/run_multimodal_demo.py
+pytest
 ```
 
-浏览器打开 `http://127.0.0.1:8876`。左侧六个工作区均可操作：
+`pyshacl` is used when installed. A deterministic structural validator remains
+available so that the core and tests can run before optional dependencies are
+installed.
 
-- `态势总览`：查看目标、处理链路和待办事项。
-- `目标与轨迹`：选择目标，查看 AIS/雷达融合轨迹和证据记录。
-- `更新审核`：批准或拒绝候选事实、本体演化建议；只有批准的事实会写入正式图谱。
-- `版本记录`：查看图谱快照、操作日志并恢复历史版本。
-- `数据接入`：逐批接收数据，查看来源、标准化观测和去重结果。
-- `规则与本体`：查看四层本体、规则库，并审批本体演化建议。
+## Maritime domain package
 
-## 增量批次接入
+The generic transaction core can run with the merged maritime ontology and
+SHACL package. Set `ODKG_DOMAIN=maritime` before starting `odkg-mcp` to make
+the maritime ontology active. The MCP server exposes `preview_maritime_events`
+and `run_maritime_events` for normalized AIS/radar events. The first tool is a
+non-mutating dry run; the second uses the same policy, validation, versioning,
+audit, Neo4j publication and rollback path as generic updates.
 
-```python
-from maritime_kg.harness import UpdateHarness
-from maritime_kg.incremental import IncrementalUpdateService
+The first maritime rule detects hovering only when low-speed evidence spans at
+least 600 seconds and comes from at least two modalities. Raw events require
+timezone-aware timestamps, bounded WGS84 coordinates and explicit modality.
 
-service = IncrementalUpdateService(UpdateHarness(repository))
-result = service.consume(new_observation_batch)
-print(result.accepted_event_ids)
-print(result.duplicate_event_ids)
+The complete maritime application is installed in `odkg.maritime`. It adds
+versioned graph operations for object creation, property updates, relation and
+event creation, fact invalidation and rollback; incremental batch deduplication;
+schema-drift proposals; human-approved ontology evolution; persistent Turtle
+snapshots; and the interactive review workbench. Start it with:
+
+```powershell
+odkg-workbench
 ```
 
-如果需要恢复当前进程中保存的历史版本：
+Then open `http://127.0.0.1:8876` to inspect targets and tracks, receive data,
+review candidate facts, approve ontology evolution, inspect versions and roll
+back a graph snapshot.
 
-```python
-repository.rollback_to(0)
-```
+## Model-driven multi-agent Harness
 
-当前版本快照保存在内存中；正式部署时还需要把快照或操作日志持久化到数据库。
+`odkg.llm_harness.LLMMultiAgentHarness` runs three independent model roles with
+different prompts: semantic perception, ontology evolution and decision
+planning. Each call records the model, prompt version, input hash, timestamps,
+decision and rationale. OWL/SHACL validation and action execution remain
+deterministic; model output can never directly write the graph. A non-preview
+run still requires `human_approved=true`.
 
-如果需要将快照保存到磁盘：
+Hermes can orchestrate the role-level MCP tools `llm_semantic_perception`,
+`llm_ontology_evolution`, `llm_decision_planning`, followed by the guarded
+execution surface. `run_llm_multi_agent_maritime` provides the same complete
+chain for repeatable demonstrations. The server fails explicitly when no model
+endpoint is configured instead of silently substituting deterministic logic.
 
-```python
-repository = MaritimeGraphRepository(
-    ontology_path,
-    shapes_path,
-    snapshot_dir=Path("output/snapshots"),
-)
-```
+## Upstream integration policy
 
-快照会保存为 `graph-v0000.ttl`、`graph-v0001.ttl` 等文件，程序重新启动时可以读取最近版本。
+- KGCL: change-language adapter.
+- OntoRipple: ontology-change impact propagation to RML/SHACL.
+- ContinueMKGC and AdaKGC: semantic-perception adapters.
+- LKGE, IncDE and FastKGE: post-commit representation-refresh baselines.
+- Hermes and DeepSeek Harness: runtime adapters over the same agent contracts.
+- Claude Code: development aid only, not a runtime dependency.
+
+See [standards integration](docs/standards-integration.md) for the KGCL/OCH
+boundary, isolated OntoRipple execution and persistent runtime layout.
+The [phase 2 acceptance record](docs/phase2-acceptance.md) records the verified
+upstream-parser and mapping/shape-propagation results, as well as the remaining
+scope limits.
+See [phase 3 implementation](docs/phase3-implementation.md) for policy, Neo4j,
+benchmark and safety-preview details, and [Harness integration](docs/harness-integration.md)
+for the Hermes MCP boundary.
+See [phase 4](docs/phase4-multimodal-mcp.md) for the raw-artifact ingestion
+contract, stdio MCP acceptance script and compatible Neo4j deployment path.
+The [Neo4j 5.26 acceptance record](docs/phase4-neo4j-acceptance.md) contains the
+verified online commit and rollback results for the local Windows installation.
+See [phase 5](docs/phase5-harness-semantic-adapters.md) for the real Hermes MCP
+configuration, model adapter contract, research-baseline boundaries and fair
+comparison protocol.
+See [phase 6](docs/phase6-deepseek-benchmark.md) for secure DeepSeek session
+configuration, the first model-backed end-to-end run and the unified semantic
+benchmark workflow.
 

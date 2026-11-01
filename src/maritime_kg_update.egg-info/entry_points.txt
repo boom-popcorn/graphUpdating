@@ -1,2 +1,0 @@
-[console_scripts]
-maritime-kg-demo = maritime_kg.demo:main

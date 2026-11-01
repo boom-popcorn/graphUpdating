@@ -1,0 +1,21 @@
+site_name: "KGCL"
+theme:
+  name: material
+  analytics:
+    gtag: G-2SYBSJVZ23
+#  palette:
+#    scheme: slate
+#    primary: cyan
+  features:
+    - content.tabs.link
+plugins:
+  - search
+  - mermaid2
+docs_dir: docs
+site_dir: mkdocs_html
+nav:
+  - About: main.md
+  - Index: index.md
+  - Examples: examples.md
+site_url: https://incatools.github.io/kgcl/
+repo_url: https://github.com/INCATools/kgcl

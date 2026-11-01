@@ -1,0 +1,20 @@
+# Removes %DATAPROPERTY% from %CLASS%. %RANGE% and %DOMAIN% have to be specified.
+
+PREFIX rr: <http://www.w3.org/ns/rr#>
+PREFIX rml: <http://semweb.mmlab.be/ns/rml#>
+
+DELETE {
+    ?triplesMap rr:predicateObjectMap ?pom.
+    ?pom rr:predicate <%DATAPROPERTY%> .
+    ?pom ?object_property ?objectMap.
+    ?objectMap ?object_term ?objectValue .
+}
+WHERE {
+    ?triplesMap rr:subjectMap ?subjectMap.
+    ?subjectMap rr:class <%DOMAIN%> .
+    ?triplesMap rr:predicateObjectMap ?pom .
+    ?pom rr:predicate <%DATAPROPERTY%> .
+    ?pom rr:objectMap|rr:object ?objectMap .
+    OPTIONAL { ?objectMap rr:datatype <%RANGE%>} .
+    OPTIONAL { ?objectMap ?object_term ?objectValue } .
+}

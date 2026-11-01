@@ -1,0 +1,14 @@
+{
+  "model": "external-vision-or-vlm-adapter",
+  "relations": [
+    {
+      "subject": "https://example.org/odkg/project_alpha",
+      "predicate": "https://example.org/odkg/fundedBy",
+      "object": "https://example.org/odkg/foundation_beta",
+      "subject_type": "https://example.org/odkg/ResearchProject",
+      "object_type": "https://example.org/odkg/Organization",
+      "confidence": 0.79,
+      "bbox": [120, 80, 460, 300]
+    }
+  ]
+}
