@@ -1,0 +1,261 @@
+{
+  "appliedPlans": {
+    "P1": {
+      "attachedEvidence": 6,
+      "changedSubgraph": [
+        "V-017",
+        "A-03",
+        "S-017-0",
+        "S-017-1",
+        "E-017"
+      ],
+      "closedStates": 1,
+      "commitId": "C-0001",
+      "createdNodes": 2,
+      "createdRelations": 5,
+      "createdTypeAssertions": 2,
+      "failure": null,
+      "idempotentReplay": false,
+      "planId": "P1",
+      "success": true,
+      "toolCalls": 24
+    }
+  },
+  "commits": [
+    {
+      "commitId": "C-0001",
+      "planId": "P1",
+      "summary": {
+        "attachedEvidence": 6,
+        "changedSubgraph": [
+          "V-017",
+          "A-03",
+          "S-017-0",
+          "S-017-1",
+          "E-017"
+        ],
+        "closedStates": 1,
+        "commitId": "C-0001",
+        "createdNodes": 2,
+        "createdRelations": 5,
+        "createdTypeAssertions": 2,
+        "failure": null,
+        "idempotentReplay": false,
+        "planId": "P1",
+        "success": true,
+        "toolCalls": 24
+      }
+    }
+  ],
+  "evidence": {
+    "EV-AIS-1006": {
+      "confidence": 0.95,
+      "id": "EV-AIS-1006",
+      "source": "AIS",
+      "subject": "V-017",
+      "timestamp": "2026-11-11T10:06:00+08:00",
+      "type": "AIS"
+    },
+    "EV-AIS-1012": {
+      "confidence": 0.96,
+      "id": "EV-AIS-1012",
+      "source": "AIS",
+      "subject": "V-017",
+      "timestamp": "2026-11-11T10:12:00+08:00",
+      "type": "AIS"
+    },
+    "EV-AIS-1019": {
+      "confidence": 0.95,
+      "id": "EV-AIS-1019",
+      "source": "AIS",
+      "subject": "V-017",
+      "timestamp": "2026-11-11T10:19:00+08:00",
+      "type": "AIS"
+    },
+    "EV-RADAR-1006": {
+      "confidence": 0.9,
+      "id": "EV-RADAR-1006",
+      "source": "Radar",
+      "subject": "V-017",
+      "timestamp": "2026-11-11T10:06:10+08:00",
+      "type": "Radar"
+    },
+    "EV-RADAR-1012": {
+      "confidence": 0.91,
+      "id": "EV-RADAR-1012",
+      "source": "Radar",
+      "subject": "V-017",
+      "timestamp": "2026-11-11T10:12:10+08:00",
+      "type": "Radar"
+    },
+    "EV-RADAR-1019": {
+      "confidence": 0.92,
+      "id": "EV-RADAR-1019",
+      "source": "Radar",
+      "subject": "V-017",
+      "timestamp": "2026-11-11T10:19:10+08:00",
+      "type": "Radar"
+    }
+  },
+  "nodes": {
+    "A-03": {
+      "properties": {
+        "name": "A-03"
+      },
+      "types": [
+        "SensitiveArea"
+      ]
+    },
+    "AIS-017": {
+      "properties": {
+        "deviceNumber": "AIS-017"
+      },
+      "types": [
+        "Device"
+      ]
+    },
+    "E-017": {
+      "evidence": [
+        "EV-AIS-1006",
+        "EV-RADAR-1006",
+        "EV-AIS-1012",
+        "EV-RADAR-1012",
+        "EV-AIS-1019",
+        "EV-RADAR-1019"
+      ],
+      "properties": {
+        "confidence": 0.9,
+        "reviewStatus": "pending"
+      },
+      "types": [
+        "SuspectedIllegalFishingActivity"
+      ]
+    },
+    "Radar-017": {
+      "properties": {
+        "deviceNumber": "Radar-017"
+      },
+      "types": [
+        "Device"
+      ]
+    },
+    "S-017-0": {
+      "properties": {
+        "speed": 8.2
+      },
+      "types": [
+        "UnderWayState"
+      ],
+      "validFrom": "2026-11-11T09:00:00+08:00",
+      "validTo": "2026-11-11T10:06:00+08:00"
+    },
+    "S-017-1": {
+      "properties": {
+        "durationSeconds": 780,
+        "speed": 0.7,
+        "travelDistance": 0.2,
+        "validFrom": "2026-11-11T10:06:00+08:00",
+        "validTo": null
+      },
+      "types": [
+        "LoiteringState"
+      ]
+    },
+    "V-017": {
+      "properties": {
+        "vesselType": "fishing"
+      },
+      "types": [
+        "FishingVessel"
+      ]
+    }
+  },
+  "provenance": [
+    {
+      "event": "E-017",
+      "evidence": "EV-AIS-1006",
+      "relation": "used"
+    },
+    {
+      "event": "E-017",
+      "evidence": "EV-RADAR-1006",
+      "relation": "used"
+    },
+    {
+      "event": "E-017",
+      "evidence": "EV-AIS-1012",
+      "relation": "used"
+    },
+    {
+      "event": "E-017",
+      "evidence": "EV-RADAR-1012",
+      "relation": "used"
+    },
+    {
+      "event": "E-017",
+      "evidence": "EV-AIS-1019",
+      "relation": "used"
+    },
+    {
+      "event": "E-017",
+      "evidence": "EV-RADAR-1019",
+      "relation": "used"
+    }
+  ],
+  "relations": [
+    {
+      "o": "A-03",
+      "p": "locatedIn",
+      "s": "V-017"
+    },
+    {
+      "o": "S-017-0",
+      "p": "hasState",
+      "s": "V-017"
+    },
+    {
+      "o": "T0",
+      "p": "hasInstant",
+      "s": "S-017-0"
+    },
+    {
+      "o": "AIS-017",
+      "p": "hasDevice",
+      "s": "V-017"
+    },
+    {
+      "o": "Radar-017",
+      "p": "hasDevice",
+      "s": "V-017"
+    },
+    {
+      "o": "S-017-1",
+      "p": "hasState",
+      "s": "V-017"
+    },
+    {
+      "o": "A-03",
+      "p": "hasPotentialIllegalActivity",
+      "s": "V-017"
+    },
+    {
+      "o": "V-017",
+      "p": "hasSubject",
+      "s": "E-017"
+    },
+    {
+      "o": "A-03",
+      "p": "hasObject",
+      "s": "E-017"
+    },
+    {
+      "o": "T3",
+      "p": "hasInstant",
+      "s": "E-017"
+    }
+  ],
+  "temporalValues": {
+    "T0": "2026-11-11T09:00:00+08:00",
+    "T3": "2026-11-11T10:19:00+08:00"
+  }
+}

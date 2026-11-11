@@ -1,0 +1,54 @@
+{
+  "versionId": "00",
+  "parentVersion": null,
+  "createdAt": "2026-11-11T10:00:00+08:00",
+  "classes": {
+    "Plat": null,
+    "FishingVessel": "Plat",
+    "TemporalEntity": null,
+    "State": "TemporalEntity",
+    "UnderWayState": "State",
+    "LoiteringState": "State",
+    "Env": null,
+    "SensitiveArea": "Env",
+    "Instant": null,
+    "Device": null,
+    "Event": "TemporalEntity",
+    "FishingEvent": "Event",
+    "Image": null,
+    "Video": null
+  },
+  "disjointClasses": [["State", "Env"]],
+  "objectProperties": {
+    "hasState": {"domain": "Plat", "range": "State"},
+    "dependsOn": {"domain": "State", "range": "Env"},
+    "hasInstant": {"domain": "TemporalEntity", "range": "Instant"},
+    "hasDevice": {"domain": "Plat", "range": "Device"},
+    "locatedIn": {"domain": "Plat", "range": "Env"},
+    "hasSubject": {"domain": "Event", "range": "Plat"},
+    "hasObject": {"domain": "Event", "range": "Env"},
+    "isEmitterOf": {"domain": "Device", "range": "Event"},
+    "isReceiverOf": {"domain": "Device", "range": "Event"},
+    "hasImage": {"domain": "Event", "range": "Image"},
+    "hasVideo": {"domain": "Event", "range": "Video"}
+  },
+  "dataProperties": {
+    "speed": {"domain": "State", "datatype": "decimal", "unit": "kn"},
+    "travelDistance": {"domain": "State", "datatype": "decimal", "unit": "nm"},
+    "durationSeconds": {"domain": "State", "datatype": "integer", "unit": "s"},
+    "coordinate": {"domain": "Plat", "datatype": "string"},
+    "weather": {"domain": "Env", "datatype": "string"},
+    "timestamp": {"domain": "Instant", "datatype": "dateTime"},
+    "deviceNumber": {"domain": "Device", "datatype": "string"},
+    "vesselType": {"domain": "Plat", "datatype": "string"}
+  },
+  "rules": {
+    "R1": {
+      "id": "R1",
+      "name": "low_speed_loitering_state",
+      "swrl": "FishingVessel(?v) ^ hasState(?v, ?s) ^ speed(?s, ?x) ^ swrlb:lessThan(?x, 5) -> LoiteringState(?s)",
+      "when": {"speedLessThan": 5},
+      "then": {"stateType": "LoiteringState"}
+    }
+  }
+}

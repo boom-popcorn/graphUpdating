@@ -1,0 +1,17 @@
+{
+  "checks": {
+    "baseVersion": true,
+    "classHierarchy": true,
+    "disjointness": true,
+    "domainRangeDeclarations": true,
+    "ruleReferences": true
+  },
+  "consistent": true,
+  "engine": "mvp_owl_constraint_checker",
+  "hermitExecuted": false,
+  "ontologyVersion": "01",
+  "proposalId": "EP-001",
+  "reason": null,
+  "unsatisfiableClasses": [],
+  "violatedConstraints": []
+}

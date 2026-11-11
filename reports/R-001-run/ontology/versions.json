@@ -1,0 +1,17 @@
+{
+  "latestVersion": "01",
+  "versions": [
+    {
+      "path": "00/ontology.ttl",
+      "versionId": "00"
+    },
+    {
+      "createdAt": "2026-11-11T10:19:10+08:00",
+      "parentVersion": "00",
+      "path": "01/ontology.ttl",
+      "proposalId": "EP-001",
+      "validationReport": "01/validation_report.json",
+      "versionId": "01"
+    }
+  ]
+}

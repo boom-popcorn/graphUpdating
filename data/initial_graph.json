@@ -1,0 +1,21 @@
+{
+  "nodes": {
+    "V-017": {"types": ["FishingVessel"], "properties": {"vesselType": "fishing"}},
+    "A-03": {"types": ["SensitiveArea"], "properties": {"name": "A-03"}},
+    "S-017-0": {"types": ["UnderWayState"], "validFrom": "2026-11-11T09:00:00+08:00", "validTo": null, "properties": {"speed": 8.2}},
+    "AIS-017": {"types": ["Device"], "properties": {"deviceNumber": "AIS-017"}},
+    "Radar-017": {"types": ["Device"], "properties": {"deviceNumber": "Radar-017"}}
+  },
+  "temporalValues": {"T0": "2026-11-11T09:00:00+08:00"},
+  "relations": [
+    {"s": "V-017", "p": "locatedIn", "o": "A-03"},
+    {"s": "V-017", "p": "hasState", "o": "S-017-0"},
+    {"s": "S-017-0", "p": "hasInstant", "o": "T0"},
+    {"s": "V-017", "p": "hasDevice", "o": "AIS-017"},
+    {"s": "V-017", "p": "hasDevice", "o": "Radar-017"}
+  ],
+  "evidence": {},
+  "provenance": [],
+  "commits": [],
+  "appliedPlans": {}
+}

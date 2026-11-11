@@ -1,0 +1,166 @@
+{
+  "changeLog": {
+    "newClasses": [
+      "SuspectedIllegalFishingActivity"
+    ],
+    "newObjectProperties": [
+      "hasPotentialIllegalActivity"
+    ],
+    "newRules": [
+      "R2",
+      "R3"
+    ],
+    "validationEngine": "mvp_owl_constraint_checker"
+  },
+  "classes": {
+    "Device": null,
+    "Env": null,
+    "Event": "TemporalEntity",
+    "FishingEvent": "Event",
+    "FishingVessel": "Plat",
+    "Image": null,
+    "Instant": null,
+    "LoiteringState": "State",
+    "Plat": null,
+    "SensitiveArea": "Env",
+    "State": "TemporalEntity",
+    "SuspectedIllegalFishingActivity": "FishingEvent",
+    "TemporalEntity": null,
+    "UnderWayState": "State",
+    "Video": null
+  },
+  "createdAt": "2026-11-11T10:19:10+08:00",
+  "dataProperties": {
+    "coordinate": {
+      "datatype": "string",
+      "domain": "Plat"
+    },
+    "deviceNumber": {
+      "datatype": "string",
+      "domain": "Device"
+    },
+    "durationSeconds": {
+      "datatype": "integer",
+      "domain": "State",
+      "unit": "s"
+    },
+    "speed": {
+      "datatype": "decimal",
+      "domain": "State",
+      "unit": "kn"
+    },
+    "timestamp": {
+      "datatype": "dateTime",
+      "domain": "Instant"
+    },
+    "travelDistance": {
+      "datatype": "decimal",
+      "domain": "State",
+      "unit": "nm"
+    },
+    "vesselType": {
+      "datatype": "string",
+      "domain": "Plat"
+    },
+    "weather": {
+      "datatype": "string",
+      "domain": "Env"
+    }
+  },
+  "disjointClasses": [
+    [
+      "State",
+      "Env"
+    ]
+  ],
+  "objectProperties": {
+    "dependsOn": {
+      "domain": "State",
+      "range": "Env"
+    },
+    "hasDevice": {
+      "domain": "Plat",
+      "range": "Device"
+    },
+    "hasImage": {
+      "domain": "Event",
+      "range": "Image"
+    },
+    "hasInstant": {
+      "domain": "TemporalEntity",
+      "range": "Instant"
+    },
+    "hasObject": {
+      "domain": "Event",
+      "range": "Env"
+    },
+    "hasPotentialIllegalActivity": {
+      "domain": "Plat",
+      "range": "SensitiveArea"
+    },
+    "hasState": {
+      "domain": "Plat",
+      "range": "State"
+    },
+    "hasSubject": {
+      "domain": "Event",
+      "range": "Plat"
+    },
+    "hasVideo": {
+      "domain": "Event",
+      "range": "Video"
+    },
+    "isEmitterOf": {
+      "domain": "Device",
+      "range": "Event"
+    },
+    "isReceiverOf": {
+      "domain": "Device",
+      "range": "Event"
+    },
+    "locatedIn": {
+      "domain": "Plat",
+      "range": "Env"
+    }
+  },
+  "parentVersion": "00",
+  "proposalId": "EP-001",
+  "rules": {
+    "R1": {
+      "id": "R1",
+      "name": "low_speed_loitering_state",
+      "swrl": "FishingVessel(?v) ^ hasState(?v, ?s) ^ speed(?s, ?x) ^ swrlb:lessThan(?x, 5) -> LoiteringState(?s)",
+      "then": {
+        "stateType": "LoiteringState"
+      },
+      "when": {
+        "speedLessThan": 5
+      }
+    },
+    "R2": {
+      "id": "R2",
+      "name": "sensitive_area_risk",
+      "swrl": "FishingVessel(?v) ^ hasState(?v, ?s) ^ LoiteringState(?s) ^ locatedIn(?v, ?a) ^ SensitiveArea(?a) -> hasPotentialIllegalActivity(?v, ?a)",
+      "then": {
+        "relation": "hasPotentialIllegalActivity"
+      },
+      "when": {
+        "inSensitiveArea": true,
+        "stateType": "LoiteringState"
+      }
+    },
+    "R3": {
+      "id": "R3",
+      "name": "suspected_illegal_fishing_candidate",
+      "swrl": "hasPotentialIllegalActivity(?v, ?a) ^ durationSeconds(?s, ?d) ^ swrlb:greaterThan(?d, 600) ^ travelDistance(?s, ?m) ^ swrlb:lessThan(?m, 0.5) -> SuspectedIllegalFishingActivity(?e)",
+      "then": {
+        "eventType": "SuspectedIllegalFishingActivity"
+      },
+      "when": {
+        "durationSecondsGreaterThan": 600,
+        "travelDistanceLessThan": 0.5
+      }
+    }
+  },
+  "versionId": "01"
+}

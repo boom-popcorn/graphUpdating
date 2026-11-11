@@ -1,0 +1,549 @@
+---
+
+# 一、MVP目标与边界
+
+## 1.1 MVP目标
+
+1. 用一艘船V-017、一个敏感海域A-03、三组新航迹，跑通：
+   **增量数据 → 语义感知 → 本体演化/HermiT → 决策规划 → 计划校验 → MCP增量执行 → 图谱提交 → 反馈**。
+2. 验证四个智能体职责边界：语义感知不改本体/图谱；本体演化承担本体校验和计划校验；决策规划只做规则匹配和计划生成；行动执行只执行校验通过的计划。
+3. 验证本体从版本00增量演化到01，图谱只改V-017影响子图，历史状态不删除。
+4. 验证HermiT能拒绝冲突本体提案，本体演化智能体能拒绝非法更新计划。
+5. 形成可复现的测试用例、指标和演示脚本，支撑申请书第四部分和原型软件。
+
+## 1.2 MVP边界
+
+- **场景**：单船、单敏感海域、AIS/雷达轨迹为主，图像/文本/通信作为证据挂接预留。
+- **本体**：小规模OWL本体，复用案例中的Plat、FishingVessel、State、LoiteringState、Env、SensitiveArea、Instant、Device、Event、FishingEvent、Image、Video等概念。
+- **规则**：先实现R1-R3，预留R4-R7扩展接口。
+- **更新方式**：增量子图更新，不做全量重建；旧状态用validTo关闭，不物理删除。
+- **校验**：HermiT做本体一致性；本体演化智能体做更新计划一致性校验；不做独立一致性校验智能体。
+- **执行**：MCP工具封装，事务提交、幂等、可回滚。
+- **不包含**：真实船舶控制、指挥调度、大规模模型训练、复杂多模态融合算法。
+
+---
+
+# 二、总体架构与组件
+
+## 2.1 组件清单
+
+| 组件 | 建议技术 | 职责 |
+|---|---|---|
+| Harness | Python有限状态机/消息总线 | 编排四智能体，传递结构化消息，记录轨迹 |
+| 语义感知智能体 | Python + 轨迹聚合脚本 | 输出ΔS、ΔR、ΔE、证据ID、置信度 |
+| 本体演化智能体 | OWL API/Jena + HermiT + 校验器 | 演化提案、HermiT校验、发布本体版本、校验更新计划 |
+| 决策规划智能体 | Python规则匹配器/SWRL引擎 | 在最新本体版本上匹配R1-R3，生成增量计划P1 |
+| 行动执行智能体 | MCP Server + 图数据库客户端 | 调用工具执行增删改，事务提交/回滚 |
+| 本体库 | OWL/Turtle文件 + 版本目录 | 00、01版本及变更日志 |
+| 图谱库 | Apache Jena TDB2/GraphDB/Neo4j（RDF优先） | 存储实例、关系、证据、状态有效期 |
+| 证据库 | 文件/对象存储 + PROV-O关系 | 原始AIS/雷达观测、来源、时间 |
+| 校验服务 | HermiT + 自定义SHACL/规则校验 | 本体一致性、计划约束校验 |
+| 日志与指标 | JSONL/OpenTelemetry | 记录每轮输入输出、耗时、命中、失败原因 |
+
+## 2.2 四智能体职责（修正后）
+
+| 智能体 | 输入 | 输出 | 明确不做什么 |
+|---|---|---|---|
+| 语义感知智能体 | AIS/雷达新航迹、图像视频、设备环境数据 | ΔS、ΔR、ΔE、证据、置信度 | 不改本体、不改图谱、不做一致性校验 |
+| 本体演化智能体 | ΔS/ΔR/ΔE、当前本体、更新计划 | 演化提案/拒绝原因、本体版本、计划校验报告 | 不直接执行图谱写入 |
+| 决策规划智能体 | 更新后本体、现有图谱、规则 | 结构化增量更新计划P | 不做一致性校验，只根据校验反馈重规划 |
+| 行动执行智能体 | 校验通过的P、实体ID、时间有效性、证据 | 执行结果、变更摘要、commitId | 不判断语义一致性，只执行 |
+
+> 关键修正：一致性校验全部归本体演化智能体；决策规划智能体框内不再写“一致性校验”，只保留“规则匹配、影响分析、更新方案生成、异常反馈与重规划”。
+
+---
+
+# 三、本体与规则设计
+
+## 3.1 本体版本00最小内容
+
+**类**：Plat、FishingVessel、State、UnderWayState、LoiteringState、Env、SensitiveArea、Instant、Device、Event、FishingEvent、Image、Video。  
+**对象属性**：hasState、dependsOn、hasInstant、hasDevice、locatedIn、hasSubject、hasObject、isEmitterOf、isReceiveOf、hasImage、hasVideo。  
+**数据属性**：speed、travelDistance、durationSeconds、coordinate、weather、timestamp、deviceNumber、vesselType。  
+**OWL公理**：FishingVessel⊑Plat；LoiteringState⊑State；hasState domain Plat range State；dependsOn domain State range Env；关键类互斥（如SensitiveArea与Env按案例约束处理）。  
+**初始实例**：V-017、A-03、S-017-0、AIS-017、Radar-017；locatedIn(V-017,A-03)；hasState(V-017,S-017-0)；hasInstant(S-017-0,T0)；speed(S-017-0,8.2kn)。
+
+## 3.2 规则R1-R3
+
+| 规则 | 前件 | 结论 | MVP实现方式 |
+|---|---|---|---|
+| R1 | FishingVessel(v) ∧ hasState(v,s) ∧ speed(s,x) ∧ x<5 | LoiteringState(s) | 决策规划规则匹配器 |
+| R2 | hasState(v,s) ∧ LoiteringState(s) ∧ locatedIn(v,a) ∧ SensitiveArea(a) | hasPotentialIllegalActivity(v,a) | 决策规划规则匹配器 |
+| R3 | hasPotentialIllegalActivity(v,a) ∧ durationSeconds(s,d)>600 ∧ travelDistance(s,m)<0.5 | SuspectedIllegalFishingActivity(e) | 决策规划规则匹配器 |
+
+> HermiT负责本体一致性；规则匹配由决策规划执行。若后续用推理机执行SWRL，需保证DL-safe和性能；MVP建议先自写规则匹配器，规则与SWRL文本保持一一对应，便于后续切换。
+
+## 3.3 本体演化提案01
+
+新增类：SuspectedIllegalFishingActivity ⊑ FishingEvent。  
+新增对象属性：hasPotentialIllegalActivity，domain Plat，range SensitiveArea。  
+新增规则：R2、R3（以SWRL文本登记到本体）。  
+发布本体版本01，记录变更日志：提案ID、操作人、时间、HermiT报告、影响范围。
+
+## 3.4 扩展预留
+
+R4：AIS声明渔船∧视觉无渔具/有定向天线→身份矛盾。  
+R5：VHF无应答∧高频加密短报文外发→通信矛盾/高危行为。  
+R6：绕舰/Z字形/定点悬停→异常轨迹。  
+R7：多矛盾+敏感区→威胁等级提升/告警。  
+MVP只预留类、属性和规则接口，不要求全部实现。
+
+---
+
+# 四、数据结构与消息协议
+
+智能体之间只传结构化JSON，不传自然语言。建议定义以下消息。
+
+## 4.1 增量语义变化 DeltaSemantics
+
+```json
+{
+  "roundId": "R-001",
+  "timestamp": "2026-11-11T10:19:00Z",
+  "entities": [
+    {"id": "V-017", "type": "FishingVessel"},
+    {"id": "A-03", "type": "SensitiveArea"},
+    {"id": "S-017-1", "type": "State"}
+  ],
+  "states": [
+    {"id": "S-017-1", "of": "V-017", "speed": 0.7, "unit": "kn",
+     "travelDistance": 0.20, "distanceUnit": "nm",
+     "durationSeconds": 780, "validFrom": "T1", "validTo": null}
+  ],
+  "relations": [
+    {"s": "V-017", "p": "locatedIn", "o": "A-03"},
+    {"s": "V-017", "p": "hasState", "o": "S-017-1"}
+  ],
+  "events": [],
+  "evidence": [
+    {"id": "EV-AIS-1006", "type": "AIS", "subject": "V-017", "timestamp": "T1", "confidence": 0.95},
+    {"id": "EV-RADAR-1012", "type": "Radar", "subject": "V-017", "timestamp": "T2", "confidence": 0.90}
+  ],
+  "unknownSemantics": ["敏感海域持续低速小范围徘徊"]
+}
+```
+
+## 4.2 演化提案 EvolutionProposal
+
+```json
+{
+  "proposalId": "EP-001",
+  "baseOntologyVersion": "00",
+  "newClasses": [
+    {"id": "SuspectedIllegalFishingActivity", "parent": "FishingEvent"}
+  ],
+  "newObjectProperties": [
+    {"id": "hasPotentialIllegalActivity", "domain": "Plat", "range": "SensitiveArea"}
+  ],
+  "newRules": ["R2", "R3"],
+  "mappingChanges": [],
+  "rationale": "当前本体缺失疑似非法捕捞事件类及潜在非法活动关系"
+}
+```
+
+## 4.3 HermiT校验报告 ValidationReport
+
+```json
+{
+  "proposalId": "EP-001",
+  "consistent": true,
+  "unsatisfiableClasses": [],
+  "violatedConstraints": [],
+  "reason": null,
+  "ontologyVersion": "01"
+}
+```
+
+失败示例：
+```json
+{
+  "consistent": false,
+  "unsatisfiableClasses": ["SensitiveArea"],
+  "violatedConstraints": ["SensitiveArea与Env互斥但被同时声明"],
+  "reason": "互斥约束冲突，拒绝演化"
+}
+```
+
+## 4.4 增量更新计划 UpdatePlan
+
+```json
+{
+  "planId": "P1",
+  "baseOntologyVersion": "01",
+  "closeStates": [
+    {"id": "S-017-0", "validTo": "T1"}
+  ],
+  "createIndividuals": [
+    {"id": "S-017-1", "type": "LoiteringState"},
+    {"id": "E-017", "type": "SuspectedIllegalFishingActivity"}
+  ],
+  "assertTypes": [
+    {"id": "S-017-1", "type": "LoiteringState"},
+    {"id": "E-017", "type": "SuspectedIllegalFishingActivity"}
+  ],
+  "assertRelations": [
+    {"s": "V-017", "p": "hasState", "o": "S-017-1"},
+    {"s": "V-017", "p": "hasPotentialIllegalActivity", "o": "A-03"},
+    {"s": "E-017", "p": "hasSubject", "o": "V-017"},
+    {"s": "E-017", "p": "hasObject", "o": "A-03"},
+    {"s": "E-017", "p": "hasInstant", "o": "T3"}
+  ],
+  "attachEvidence": [
+    {"event": "E-017", "evidence": "EV-AIS-1006"},
+    {"event": "E-017", "evidence": "EV-RADAR-1012"}
+  ],
+  "expectedSubgraph": ["V-017", "A-03", "S-017-0", "S-017-1", "E-017"]
+}
+```
+
+## 4.5 计划校验报告 PlanValidationReport
+
+```json
+{
+  "planId": "P1",
+  "passed": true,
+  "checks": {
+    "typeCheck": true,
+    "domainRangeCheck": true,
+    "mutualExclusionCheck": true,
+    "temporalCheck": true,
+    "provenanceCheck": true,
+    "ruleReferenceCheck": true
+  },
+  "suggestions": []
+}
+```
+
+失败时返回`passed:false`和`replanSuggestions`，由Harness回传决策规划重规划。
+
+## 4.6 执行结果 ExecutionResult
+
+```json
+{
+  "planId": "P1",
+  "commitId": "C-0001",
+  "success": true,
+  "changedSubgraph": ["V-017", "A-03", "S-017-0", "S-017-1", "E-017"],
+  "createdNodes": 2,
+  "createdRelations": 7,
+  "closedStates": 1,
+  "attachedEvidence": 6,
+  "failure": null
+}
+```
+
+---
+
+# 五、MCP工具设计
+
+行动执行智能体只调工具，不直接写库。工具分本体工具、图谱工具、事务工具、查询工具。
+
+| 工具 | 输入 | 输出 | 说明 |
+|---|---|---|---|
+| createClass | classId,parent,axioms | 操作结果 | 本体演化用 |
+| createObjectProperty | propId,domain,range | 操作结果 | 本体演化用 |
+| addSWRLRule | ruleId,ruleText | 操作结果 | 本体演化用 |
+| publishOntologyVersion | baseVersion,changes | newVersion | 发布00→01 |
+| getOntologyVersion | 无 | version | 决策规划读取 |
+| closeState | stateId,validTo | 操作结果 | 保留历史 |
+| createIndividual | id,type | 操作结果 | 创建S-017-1/E-017 |
+| assertType | id,type | 操作结果 | 幂等 |
+| assertRelation | s,p,o | 操作结果 | 幂等 |
+| attachEvidence | eventId,evidenceId | 操作结果 | PROV-O关系 |
+| beginTransaction | planId | txId | 事务开始 |
+| commitTransaction | txId | commitId | 提交 |
+| rollbackTransaction | txId | 结果 | 回滚 |
+| getSubgraph | entityId,depth | 子图 | 决策规划读取 |
+| queryState | vesselId,time | 状态 | 校验/查询 |
+
+工具要求：
+- 幂等：重复assert不产生重复三元组；
+- 事务：P1整体提交，失败回滚；
+- 只改影响子图：禁止全图重写；
+- 记录变更摘要：每个工具记录操作前后值、操作者、planId；
+- 证据挂接：用PROV-O或等价关系，保留来源、时间、置信度。
+
+---
+
+# 六、Harness状态机
+
+## 6.1 状态定义
+
+```text
+IDLE
+→ PERCEIVING
+→ ONTOLOGY_EVOLVING
+→ ONTOLOGY_VALIDATED / ONTOLOGY_REJECTED
+→ PLANNING
+→ PLAN_VALIDATING
+→ PLAN_REJECTED → PLANNING
+→ EXECUTING
+→ COMMITTED / EXECUTION_FAILED
+→ FEEDBACK
+→ IDLE
+```
+
+## 6.2 编排伪代码
+
+```python
+def run_round(raw_data, current_ontology_version):
+    delta = semantic_agent.perceive(raw_data)
+    proposal = ontology_agent.propose(delta, current_ontology_version)
+    report = ontology_agent.validate_ontology(proposal)  # HermiT
+    if not report.consistent:
+        return reject_and_feedback(report)
+
+    new_version = ontology_agent.publish(proposal, report)
+    plan = planning_agent.plan(delta, new_version, graph.get_subgraph("V-017"))
+
+    plan_report = ontology_agent.validate_plan(plan, new_version)
+    if not plan_report.passed:
+        plan = planning_agent.replan(plan, plan_report.suggestions)
+        plan_report = ontology_agent.validate_plan(plan, new_version)
+        if not plan_report.passed:
+            return reject_and_feedback(plan_report)
+
+    result = execution_agent.execute(plan)
+    feedback = build_feedback(delta, report, plan_report, result)
+    harness.record(feedback)
+    return result
+```
+
+## 6.3 失败处理
+
+- 本体校验失败：拒绝演化，记录不可满足类/冲突原因，回传语义感知或人工复核；不进入规划。
+- 计划校验失败：回传决策规划重规划；连续失败N次则人工介入。
+- 执行失败：回滚事务，保留失败日志，计划状态标记FAILED，可重试。
+- 人工复核：误报/漏报回传，用于调整阈值、规则和映射。
+
+---
+
+# 七、案例逐轮执行细节
+
+## 7.1 输入
+
+10:06、10:12、10:19三组航迹；AIS速度0.8、0.6、0.7kn；相邻点距离0.12、0.08nm；总移动0.20nm；窗口780s。
+
+## 7.2 语义感知输出
+
+新增状态S-017-1；ΔS={speed=0.7kn, travelDistance=0.20nm, durationSeconds=780}；ΔR={locatedIn(V-017,A-03), hasState(V-017,S-017-1)}；ΔE证据6条；未知语义“敏感海域持续低速小范围徘徊”。
+
+## 7.3 本体演化
+
+发现LoiteringState已存在，可直接映射；SuspectedIllegalFishingActivity和hasPotentialIllegalActivity缺失；生成EP-001；HermiT检查父类、domain/range、规则引用、互斥约束；通过；发布01。
+
+## 7.4 决策规划
+
+在01上匹配R1-R3：
+- R1：S-017-1速度0.7<5 → LoiteringState(S-017-1)；
+- R2：V-017位于A-03且A-03是SensitiveArea → hasPotentialIllegalActivity(V-017,A-03)；
+- R3：780>600且0.20<0.5 → 创建E-017，类型SuspectedIllegalFishingActivity。
+
+生成P1：关闭S-017-0；创建S-017-1并赋LoiteringState；建立V-017 hasState S-017-1；建立V-017 hasPotentialIllegalActivity A-03；创建E-017；建立hasSubject/hasObject/hasInstant；挂接6条证据。
+
+## 7.5 计划校验
+
+本体演化智能体`validatePlan(P1,01)`检查：
+- S-017-1类型LoiteringState是否⊑State；
+- hasPotentialIllegalActivity的domain/range是否为Plat/SensitiveArea；
+- E-017类型是否⊑FishingEvent；
+- 时间T1/T3顺序是否合理；
+- 证据ID是否存在；
+- 规则引用是否在01中；
+- 是否违反互斥约束。
+通过后交行动执行。
+
+## 7.6 行动执行
+
+beginTransaction(P1) → closeState(S-017-0,T1) → createIndividual(S-017-1,LoiteringState) → createIndividual(E-017,SuspectedIllegalFishingActivity) → assertType → assertRelation（7条） → attachEvidence（6条） → commitTransaction(C-0001)。
+
+## 7.7 反馈
+
+记录：本体新增1类、1对象属性、2规则；图谱新增2节点、7关系、关闭1状态、挂接6证据；HermiT通过；R1-R3命中；事件置信度；人工复核结果；端到端耗时。
+
+---
+
+# 八、计划校验规则清单
+
+`validatePlan(plan, ontologyVersion)`至少包含：
+
+1. **类型校验**：所有个体类型在目标本体中存在且可满足；子类关系正确。
+2. **domain/range校验**：每条关系的subject/object类型符合domain/range。
+3. **互斥校验**：不违反关键类互斥。
+4. **基数/值域校验**：speed、durationSeconds、travelDistance等单位与范围合理。
+5. **时空校验**：validFrom<validTo；事件时间落在观测窗口内；状态关闭时间不早于开始。
+6. **证据溯源校验**：每个事件至少挂接一条证据；证据ID存在且subject一致。
+7. **规则引用校验**：计划引用的规则在目标本体版本中存在。
+8. **状态一致性校验**：同一船舶同一时间不应有两个互斥状态同时有效；关闭旧状态后再开新状态。
+9. **影响子图校验**：计划只涉及允许的实体子图，不越界写其他船。
+10. **动作边界校验**：只允许知识消费/语义服务动作，不触发真实控制。
+
+校验失败返回结构化建议，如“hasPotentialIllegalActivity的range应为SensitiveArea，当前计划写成State”“E-017缺少证据挂接”“S-017-0关闭时间早于其validFrom”。
+
+---
+
+# 九、版本、事务、证据与回滚
+
+## 9.1 本体版本
+
+- 版本目录：`ontology/00/`、`ontology/01/`；
+- 元数据：`versionId, parentVersion, createdAt, proposalId, hermitReport, changeLog`；
+- 发布后只读；新演化基于最新版本；
+- 决策规划的Plan必须记录`baseOntologyVersion`，防止在旧版本上规划。
+
+## 9.2 图谱提交
+
+- 每轮一个`planId`，一个事务，一个`commitId`；
+- 提交前写`changeSet`；提交后写`changeSummary`；
+- 支持按`commitId`回滚；
+- 幂等键：`(planId, operationId)`，重复执行不重复写入。
+
+## 9.3 历史状态
+
+- 旧状态不删除，`closeState`写`validTo`；
+- 新状态写`validFrom`；
+- 查询按时间点取有效状态；
+- 证据用PROV-O：`wasGeneratedBy`、`used`、`wasAttributedTo`等，至少保留来源、时间、置信度。
+
+## 9.4 回滚策略
+
+- 工具级失败：事务回滚，图谱不变；
+- 提交后校验失败：按commitId反向操作或从快照恢复；
+- 本体发布后发现问题：不回滚历史版本，发布修正版本02，保留01审计记录；
+- 人工复核误报：不删除历史事件，增加`reviewStatus=rejected`和原因，反馈阈值调整。
+
+---
+
+# 十、测试用例与验收标准
+
+## 10.1 功能测试用例
+
+| 编号 | 输入 | 预期 |
+|---|---|---|
+| T1 | 案例三组航迹 | 本体00→01；P1通过；E-017创建；S-017-0关闭；6证据挂接 |
+| T2 | 速度6kn | R1不触发，不生成徘徊状态 |
+| T3 | 持续时间500s | R3不触发 |
+| T4 | 移动距离0.8nm | R3不触发 |
+| T5 | 船舶在敏感区外 | R2不触发 |
+| T6 | 提案把hasPotentialIllegalActivity range写成State | HermiT拒绝演化 |
+| T7 | 计划引用未声明类 | validatePlan拒绝，回传重规划 |
+| T8 | 重复执行P1 | 幂等，不重复创建节点/关系 |
+| T9 | 执行中断 | 事务回滚，图谱无半写状态 |
+| T10 | 人工复核为误报 | 事件保留，reviewStatus=rejected，反馈阈值调整 |
+
+## 10.2 验收标准
+
+1. 四智能体按结构化消息通信，Harness可回放一轮完整轨迹。
+2. 本体版本00→01可发布、可查询、可审计。
+3. HermiT能拒绝至少1个冲突提案并给出不可满足类/原因。
+4. validatePlan能拦截至少3类非法计划：类型错、range错、证据缺失。
+5. 图谱只改V-017影响子图，历史S-017-0保留且validTo=T1。
+6. 重复执行P1结果一致，commitId不同但图谱无重复。
+7. 端到端耗时记录完整；MVP目标≤10s，若HermiT较慢则记录并说明低频演化/高频更新分离。
+8. 输出演示脚本、测试报告、变更摘要和指标表。
+
+---
+
+# 十一、实验与指标
+
+## 11.1 对比实验
+
+- **基线**：每轮全量重建本体+图谱；
+- **MVP**：增量演化+增量子图更新；
+- 比较：耗时、写入三元组数、历史保留、HermiT调用次数、计划校验耗时、回滚次数。
+
+## 11.2 指标
+
+| 指标 | 说明 |
+|---|---|
+| 端到端延迟 | 数据到达到commit完成 |
+| 语义感知耗时 | 聚合、对齐、Δ生成 |
+| HermiT耗时 | 本体校验 |
+| 计划校验耗时 | validatePlan |
+| 增量写入量 | 新增/关闭/关系/证据数 |
+| 全量重建写入量 | 对比基线 |
+| 规则命中率 | R1-R3命中/应命中 |
+| 计划校验拦截率 | 非法计划被拦截比例 |
+| 回滚率 | 执行失败回滚比例 |
+| 证据挂接完整率 | 事件有证据比例 |
+| 人工复核误报率 | 反馈闭环效果 |
+
+## 11.3 消融实验
+
+- 去掉HermiT：冲突提案是否被放过；
+- 去掉validatePlan：非法计划是否写入；
+- 去掉证据校验：事件是否可追溯；
+- 去掉版本管理：旧状态是否被覆盖。
+
+---
+
+# 十二、目录结构与技术栈建议
+
+```text
+mvp/
+├─ harness/
+│  ├─ orchestrator.py
+│  └─ state_machine.py
+├─ agents/
+│  ├─ semantic_agent.py
+│  ├─ ontology_agent.py
+│  ├─ planning_agent.py
+│  └─ execution_agent.py
+├─ ontology/
+│  ├─ 00/ontology.ttl
+│  ├─ 01/ontology.ttl
+│  └─ versions.json
+├─ rules/
+│  ├─ r1_r3.json
+│  └─ r1_r3.swrl
+├─ mcp/
+│  ├─ server.py
+│  └─ tools/
+├─ graph/
+│  ├─ store.py
+│  └─ queries/
+├─ validation/
+│  ├─ hermit_runner.py
+│  └─ plan_validator.py
+├─ data/
+│  ├─ ais_1006.json
+│  ├─ ais_1012.json
+│  └─ radar_1019.json
+├─ tests/
+│  └─ test_cases.py
+└─ reports/
+   └─ round_R001.json
+```
+
+技术栈：Python 3.10+；OWL API/Jena或rdflib+OWLRL；HermiT通过Java桥或OWL API调用；图库Jena TDB2/GraphDB；MCP用Python MCP Server；消息JSON；测试pytest；日志JSONL。
+
+---
+
+
+
+# 十三、风险与应对
+
+| 风险 | 应对 |
+|---|---|
+| HermiT性能慢 | 本体演化低频路径；缓存版本；只校验候选本体；图谱更新高频路径不每次调HermiT |
+| SWRL表达受限 | MVP先用规则匹配器，SWRL文本登记；后续换推理机 |
+| 图数据库事务弱 | 用支持事务的RDF库；或写changeSet+补偿回滚 |
+| 多模态接入复杂 | MVP先AIS/雷达，图像/文本作为证据挂接；预留接口 |
+| 规则冲突 | 规则优先级、互斥检查、人工复核 |
+| 误报反馈 | 保留历史，reviewStatus+阈值调整，不物理删除 |
+| 智能体职责漂移 | 消息schema+接口契约+Harness状态机强制边界 |
+
+---
+
+# 十四、MVP交付物清单
+
+1. 本体00/01及版本元数据；
+2. 初始图谱与案例增量图谱；
+3. 四智能体代码与Harness；
+4. MCP工具集与事务/回滚；
+5. HermiT校验报告与validatePlan报告；
+6. T1-T10测试用例与测试报告；
+7. 一轮完整执行轨迹`round_R001.json`；
+8. 指标表与全量重建对比；
+9. 演示脚本与README；
+10. 面向申请书第四部分的案例说明：**本体演化智能体承担本体校验和计划校验，决策规划只做规则匹配与计划生成，行动执行只执行校验通过的计划，图谱只改影响子图并保留历史。**

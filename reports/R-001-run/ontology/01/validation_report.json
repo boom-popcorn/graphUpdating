@@ -1,0 +1,21 @@
+{
+  "cacheHit": false,
+  "cachedDurationMs": null,
+  "checks": {
+    "baseVersion": true,
+    "classHierarchy": true,
+    "disjointness": true,
+    "domainRangeDeclarations": true,
+    "ruleReferences": true
+  },
+  "consistent": true,
+  "durationMs": 703.533,
+  "engine": "HermiT",
+  "hermitExecuted": true,
+  "hermitResultUsed": true,
+  "ontologyVersion": "01",
+  "proposalId": "EP-001",
+  "reason": null,
+  "unsatisfiableClasses": [],
+  "violatedConstraints": []
+}

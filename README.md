@@ -1,111 +1,53 @@
-# Ontology-driven multi-agent knowledge graph update system
+# 海上时空知识图谱自动更新 MVP
 
-This repository is the framework-neutral core of an ontology-evolution-driven
-multi-agent knowledge graph update method. It deliberately keeps third-party
-Harnesses and research baselines behind adapters.
+这是按 `plan.txt` 和“海上时空知识图谱自动更新叙事案例”实现的一轮可运行闭环。示例把 10:06、10:12、10:19 的 AIS/雷达观测聚合为状态增量，演化本体 `00 → 01`，匹配 R1-R3，经本体演化智能体校验计划后，以事务方式增量更新 V-017 子图。
 
-## Implemented vertical slice
+## 运行与汇报界面
 
-1. A pluggable ingestion layer extracts and conservatively fuses text,
-   structured and external vision-model evidence into normalized observations.
-2. Semantic perception emits evidence-bearing candidate facts.
-3. Ontology evolution detects schema gaps and emits a KGCL-like change set.
-4. Decision planning performs consistency checks, SHACL validation and a dry run.
-5. Action execution atomically commits ontology and instance changes, records
-   provenance and supports rollback.
-6. The orchestrator returns runtime feedback that can trigger another evolution
-   cycle or human review.
-7. Committed versions persist ontology, facts, shapes, KGCL, OCH RDF and a
-   SHA-256 manifest; rejected transactions remain auditable.
-8. A configurable evolution policy routes proposals to accept, review or reject.
-9. Optional Neo4j snapshots and four Harness-facing Skills sit behind stable
-   interfaces rather than changing the transaction core.
-10. Rule, OpenAI-compatible LLM/VLM, AdaKGC-result and ContinueMKGC-result
-    adapters normalize into the same evidence-bearing observation contract.
-11. A process-scoped DeepSeek configuration, end-to-end model preview and
-    unified adapter smoke benchmark exercise the complete semantic-to-update
-    path without storing API credentials.
-
-## Run
+需要 Python 3.10 或更高版本、JDK 17 和 Maven。首次构建会从 Maven 仓库下载 OWLAPI/HermiT，打包为项目内的校验器；之后运行不需要网络。
 
 ```powershell
-python -m pip install -e ".[dev]"
-python -m odkg.demo
-python scripts/run_multimodal_demo.py
-pytest
+cd D:\HZAU\KG\code\code0
+.\hermit\build.ps1
+python run_demo.py
+python -m unittest discover -s tests -v
+.\web\start_demo.ps1
 ```
 
-`pyshacl` is used when installed. A deterministic structural validator remains
-available so that the core and tests can run before optional dependencies are
-installed.
+启动界面后打开 `http://127.0.0.1:8765`。页面会通过本地 Harness 运行实际案例；支持逐步/自动播放，也支持本体冲突拒绝、计划驳回重规划和执行失败回滚三种真实异常路径。人工确认/误报操作会保留事件并记录复核状态。
 
-## Maritime domain package
+如果 8765 已被占用，可在启动前切换端口：`$env:MARITIME_DEMO_PORT=8766; .\web\start_demo.ps1`，然后打开对应地址。
 
-The generic transaction core can run with the merged maritime ontology and
-SHACL package. Set `ODKG_DOMAIN=maritime` before starting `odkg-mcp` to make
-the maritime ontology active. The MCP server exposes `preview_maritime_events`
-and `run_maritime_events` for normalized AIS/radar events. The first tool is a
-non-mutating dry run; the second uses the same policy, validation, versioning,
-audit, Neo4j publication and rollback path as generic updates.
+命令行演示报告写入 `reports/R-001-run/round_R-001.json`，更新后的图谱快照写入同目录下的 `graph_after_R-001.json`，耗时和增量/全量逻辑写入量对比写入 `metrics.csv`。本次运行使用隔离的临时本体工作区，产出的 OWL/Turtle 与 JSON 版本记录复制到 `reports/R-001-run/ontology/`，不会覆盖 `ontology/` 中已发布的本体版本。可用 `--input` 和 `--output-dir` 指定其他输入与输出目录。
 
-The first maritime rule detects hovering only when low-speed evidence spans at
-least 600 seconds and comes from at least two modalities. Raw events require
-timezone-aware timestamps, bounded WGS84 coordinates and explicit modality.
+## 智能体职责
 
-The complete maritime application is installed in `odkg.maritime`. It adds
-versioned graph operations for object creation, property updates, relation and
-event creation, fact invalidation and rollback; incremental batch deduplication;
-schema-drift proposals; human-approved ontology evolution; persistent Turtle
-snapshots; and the interactive review workbench. Start it with:
+- 语义感知智能体：聚合轨迹、计算观测窗口/移动距离，输出结构化 DeltaSemantics；不写图谱或本体。
+- 本体演化智能体：生成提案、检查候选本体并发布版本；同时独占更新计划的类型、domain/range、互斥、时间、证据、规则引用和影响子图校验。
+- 决策规划智能体：只执行 R1-R3 匹配和计划生成；计划被拒绝时根据校验反馈重规划，不负责校验。
+- 行动执行智能体：只执行已通过校验的计划；MCPToolbox 是本地 MCP 风格工具适配器，支持事务暂存、幂等、回滚和操作审计。
 
-```powershell
-odkg-workbench
+## 校验边界
+
+`OntologyConsistencyChecker` 通过 OWLAPI 调用 HermiT 1.4.5，对候选 OWL TBox 和相关图谱断言组成的 ABox 进行实际推理。报告写明推理器名称、本轮是否启动 HermiT（`hermitExecuted`）、是否使用 HermiT 推理结果（`hermitResultUsed`）、缓存状态、冲突原因和耗时；缺少构建产物或 Java 调用失败时本轮会停止，不降级成近似检查。HermiT 结果按候选本体/ABox 序列化摘要缓存，命中时使用已缓存的真实 HermiT 结果并将本轮推理耗时记为 0。
+
+规则文件中的 `swrl`/`swrlPattern` 用于登记规则语义；运行时由 Python 规则匹配器执行可运行条件。R3 的事件创建是规划器的动作，因为标准 SWRL 不能在规则头部生成新的匿名个体；本例由规划器生成确定性 ID `E-017`，再交给行动执行智能体落图。
+
+本地图谱适配器使用内存中的 JSON 图模型，事务提交后由演示脚本输出快照；它验证增量操作、审计及失败回滚逻辑，不是生产级图数据库，也不启动 MCP 网络/stdio 服务。界面中的态势关系图是示意图，因为案例未提供地理坐标，不代表真实海图。演示数据固定回放，不连接真实 AIS、雷达或大模型。增量与全量对比统一按节点、关系、类型、证据来源记录和状态关闭计数；本案例为 22 项增量逻辑操作，全量重建按更新后图快照估算 36 项。这是当前 fixture 的逻辑写入量估算，不是数据库性能基准，也不应与叙事稿中的 7 条关系混淆：当前可运行计划显式创建的是 5 条关系。
+
+## 目录
+
+```text
+code0/
+├─ data/                 # 叙事案例输入与初始知识图谱
+├─ mvp/                  # 四智能体、计划校验、事务工具和 Harness
+├─ ontology/00/          # 初始 JSON/OWL Turtle 本体
+├─ hermit/               # HermiT Java/OWLAPI 桥与 Maven 构建脚本
+├─ rules/                # R1-R3 JSON 与 SWRL 登记文本
+├─ reports/R-001-run/    # 本轮报告、图谱快照、指标和隔离的 00/01 本体版本
+├─ tests/                # T1-T10 相关核心闭环/边界测试
+├─ web/                  # 本地汇报界面与启动脚本
+├─ plan.txt              # 用户提供的实现思路，保留原文件
+└─ run_demo.py
 ```
-
-Then open `http://127.0.0.1:8876` to inspect targets and tracks, receive data,
-review candidate facts, approve ontology evolution, inspect versions and roll
-back a graph snapshot.
-
-## Model-driven multi-agent Harness
-
-`odkg.llm_harness.LLMMultiAgentHarness` runs three independent model roles with
-different prompts: semantic perception, ontology evolution and decision
-planning. Each call records the model, prompt version, input hash, timestamps,
-decision and rationale. OWL/SHACL validation and action execution remain
-deterministic; model output can never directly write the graph. A non-preview
-run still requires `human_approved=true`.
-
-Hermes can orchestrate the role-level MCP tools `llm_semantic_perception`,
-`llm_ontology_evolution`, `llm_decision_planning`, followed by the guarded
-execution surface. `run_llm_multi_agent_maritime` provides the same complete
-chain for repeatable demonstrations. The server fails explicitly when no model
-endpoint is configured instead of silently substituting deterministic logic.
-
-## Upstream integration policy
-
-- KGCL: change-language adapter.
-- OntoRipple: ontology-change impact propagation to RML/SHACL.
-- ContinueMKGC and AdaKGC: semantic-perception adapters.
-- LKGE, IncDE and FastKGE: post-commit representation-refresh baselines.
-- Hermes and DeepSeek Harness: runtime adapters over the same agent contracts.
-- Claude Code: development aid only, not a runtime dependency.
-
-See [standards integration](docs/standards-integration.md) for the KGCL/OCH
-boundary, isolated OntoRipple execution and persistent runtime layout.
-The [phase 2 acceptance record](docs/phase2-acceptance.md) records the verified
-upstream-parser and mapping/shape-propagation results, as well as the remaining
-scope limits.
-See [phase 3 implementation](docs/phase3-implementation.md) for policy, Neo4j,
-benchmark and safety-preview details, and [Harness integration](docs/harness-integration.md)
-for the Hermes MCP boundary.
-See [phase 4](docs/phase4-multimodal-mcp.md) for the raw-artifact ingestion
-contract, stdio MCP acceptance script and compatible Neo4j deployment path.
-The [Neo4j 5.26 acceptance record](docs/phase4-neo4j-acceptance.md) contains the
-verified online commit and rollback results for the local Windows installation.
-See [phase 5](docs/phase5-harness-semantic-adapters.md) for the real Hermes MCP
-configuration, model adapter contract, research-baseline boundaries and fair
-comparison protocol.
-See [phase 6](docs/phase6-deepseek-benchmark.md) for secure DeepSeek session
-configuration, the first model-backed end-to-end run and the unified semantic
-benchmark workflow.
 

@@ -1,8 +1,0 @@
-PREFIX sh: <http://www.w3.org/ns/shacl#>
-PREFIX ex: <http://example.org/>
-
-INSERT DATA {
-  ex:ExampleClassShape
-    a sh:NodeShape ;
-    sh:targetClass ex:exampleClass ;
-}

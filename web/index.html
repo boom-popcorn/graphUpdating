@@ -1,0 +1,878 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f6f5">
+  <title>海上态势知识更新演示</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --canvas: #f1f4f2;
+      --surface: #ffffff;
+      --surface-muted: #f7f9f8;
+      --ink: #202a2b;
+      --muted: #687576;
+      --line: #dce3e1;
+      --line-dark: #cbd5d2;
+      --green: #16745b;
+      --green-soft: #e4f2ec;
+      --blue: #246f97;
+      --blue-soft: #e7f2f7;
+      --orange: #ad6226;
+      --orange-soft: #fbefe3;
+      --red: #a64b48;
+      --red-soft: #f9eae8;
+      --teal: #2f7779;
+      --shadow: 0 1px 2px rgb(24 42 39 / 6%);
+      font-family: "Microsoft YaHei UI", "Segoe UI", sans-serif;
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--canvas); color: var(--ink); font-size: 14px; }
+    button { font: inherit; color: inherit; }
+    .app { min-height: 100vh; display: flex; flex-direction: column; }
+    .topbar {
+      min-height: 60px; display: flex; align-items: center; justify-content: space-between;
+      gap: 18px; padding: 0 24px; color: #f4faf8; background: #203b3b;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .brand-mark { width: 27px; height: 27px; border: 1px solid #76a99b; color: #afe1ce; display: grid; place-items: center; font-size: 13px; }
+    .brand-title { font-size: 15px; font-weight: 600; white-space: nowrap; }
+    .brand-sub { color: #b0c7c1; margin-left: 4px; font-size: 12px; }
+    .top-meta { display: flex; align-items: center; gap: 20px; color: #c3d5d0; font-size: 12px; }
+    .online { display: inline-flex; align-items: center; gap: 7px; color: #bbdfd0; }
+    .online::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #74c4a3; }
+    .main { width: min(1480px, 100%); margin: 0 auto; padding: 20px 24px 26px; flex: 1; }
+    .resultbar { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 16px; }
+    .result-copy { min-width: 0; }
+    .eyebrow { color: var(--muted); font-size: 11px; letter-spacing: 1.1px; text-transform: uppercase; }
+    h1 { font-size: 24px; line-height: 1.25; margin: 3px 0 5px; font-weight: 650; }
+    .result-sub { margin: 0; color: var(--muted); font-size: 13px; }
+    .result-state { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); min-width: 250px; }
+    .state-symbol { width: 29px; height: 29px; border-radius: 50%; display: grid; place-items: center; background: var(--green-soft); color: var(--green); font-weight: 700; }
+    .state-title { font-weight: 650; font-size: 13px; }
+    .state-caption { color: var(--muted); font-size: 11px; margin-top: 2px; }
+    .summary-strip { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); margin-bottom: 16px; }
+    .summary { min-width: 0; padding: 10px 15px; border-right: 1px solid var(--line); }
+    .summary:last-child { border-right: 0; }
+    .summary-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+    .summary-value { font-size: 15px; font-weight: 650; overflow-wrap: anywhere; }
+    .summary-value.good { color: var(--green); }
+    .layout { display: grid; grid-template-columns: minmax(290px, .94fr) minmax(390px, 1.42fr) minmax(285px, .88fr); gap: 14px; align-items: start; }
+    .column { min-width: 0; display: grid; gap: 14px; }
+    .panel { background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); min-width: 0; }
+    .panel-head { min-height: 44px; padding: 0 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; border-bottom: 1px solid var(--line); }
+    .panel-title { margin: 0; font-size: 13px; font-weight: 650; }
+    .panel-kicker { font-size: 11px; color: var(--muted); }
+    .panel-body { padding: 13px 14px; }
+    .schematic { background: #f2f7f5; border-bottom: 1px solid var(--line); padding: 8px; }
+    .schematic svg { display: block; width: 100%; height: auto; max-height: 258px; }
+    .map-legend { display: flex; flex-wrap: wrap; gap: 7px 14px; padding: 10px 14px 12px; color: var(--muted); font-size: 11px; }
+    .legend-key { display: inline-flex; align-items: center; gap: 6px; }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--blue); }
+    .legend-dot.risk { background: var(--red); }
+    .legend-dot.old { background: #9ba6a3; }
+    .legend-line { width: 17px; height: 0; border-top: 2px solid var(--blue); }
+    .disclaimer { padding: 8px 14px; border-top: 1px solid var(--line); color: #72817e; font-size: 10px; }
+    .agent-list { display: grid; gap: 0; }
+    .agent { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; gap: 10px; align-items: start; padding: 12px 13px; border-bottom: 1px solid var(--line); position: relative; }
+    .agent:last-child { border-bottom: 0; }
+    .agent.active { background: #f3f8f5; }
+    .agent.done .agent-index { background: var(--green-soft); color: var(--green); }
+    .agent.error .agent-index { background: var(--red-soft); color: var(--red); }
+    .agent-index { width: 25px; height: 25px; display: grid; place-items: center; background: #edf1ef; color: #52615e; font-size: 11px; font-weight: 650; }
+    .agent-name { font-weight: 650; font-size: 12px; margin: 1px 0 4px; }
+    .agent-summary { color: #566564; font-size: 11px; line-height: 1.55; }
+    .agent-status { font-size: 10px; color: var(--muted); white-space: nowrap; padding-top: 4px; }
+    .agent.done .agent-status { color: var(--green); }
+    .agent.error .agent-status { color: var(--red); }
+    .timeline { padding: 12px 13px 13px; background: #fafbfa; border-top: 1px solid var(--line); }
+    .timeline-top { display: flex; justify-content: space-between; gap: 10px; align-items: center; margin-bottom: 9px; }
+    .timeline-label { font-size: 11px; color: var(--muted); }
+    .timeline-count { color: var(--ink); font-size: 11px; font-variant-numeric: tabular-nums; }
+    .track { height: 3px; background: #e6ece9; margin-bottom: 12px; }
+    .track-fill { width: 0; height: 100%; background: var(--green); transition: width .35s ease; }
+    .step-detail { margin: 12px 0; min-height: 74px; }
+    .step-title { font-size: 13px; font-weight: 650; margin-bottom: 5px; }
+    .step-copy { color: #566564; font-size: 12px; line-height: 1.65; }
+    .step-outcome { display: none; margin-top: 7px; padding-left: 9px; border-left: 2px solid var(--green); color: var(--green); font-size: 11px; line-height: 1.55; }
+    .step-outcome.visible { display: block; }
+    .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
+    .button { min-height: 34px; border: 1px solid var(--line-dark); background: white; padding: 0 10px; cursor: pointer; font-size: 11px; font-weight: 550; display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
+    .button:hover { background: #f3f7f5; }
+    .button:focus-visible { outline: 2px solid #34826a; outline-offset: 2px; }
+    .button.primary { color: white; background: #286e59; border-color: #286e59; }
+    .button.primary:hover { background: #1f5d49; }
+    .button.danger { color: var(--red); }
+    .button[disabled] { opacity: .5; cursor: default; }
+    .button svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .scenario-controls { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 11px; border-top: 1px solid var(--line); padding-top: 10px; }
+    .scenario-label { width: 100%; color: var(--muted); font-size: 10px; }
+    .mini-button { border: 0; padding: 4px 0; margin-right: 10px; background: transparent; color: #536662; cursor: pointer; font-size: 10px; text-decoration: underline; text-underline-offset: 3px; }
+    .mini-button:hover { color: var(--green); }
+    .version-tree { display: flex; align-items: center; gap: 7px; padding: 1px 0 13px; }
+    .version-node { width: 38px; height: 31px; border: 1px solid var(--line-dark); display: grid; place-items: center; font-size: 11px; font-weight: 650; background: #f7f9f8; }
+    .version-node.current { color: var(--green); border-color: #75a895; background: var(--green-soft); }
+    .version-link { width: 36px; border-top: 1px solid #76a895; position: relative; }
+    .version-link::after { content: ""; border: 4px solid transparent; border-left-color: #76a895; position: absolute; right: -5px; top: -4px; }
+    .version-caption { color: var(--muted); font-size: 10px; }
+    .map-marker, .map-link, .map-node { opacity: 0; transition: opacity .3s ease; }
+    .map-marker.visible, .map-link.visible, .map-node.visible { opacity: 1; }
+    .map-node.inactive { opacity: .38; }
+    .evidence[hidden] { display: none; }
+    .change-list { display: grid; gap: 7px; }
+    .change-row { display: flex; justify-content: space-between; align-items: start; gap: 10px; font-size: 11px; }
+    .change-kind { color: var(--muted); }
+    .change-value { text-align: right; font-weight: 600; }
+    .check-list { display: grid; gap: 8px; }
+    .check-row { display: grid; grid-template-columns: 16px minmax(0, 1fr) auto; align-items: center; gap: 7px; font-size: 11px; }
+    .check-icon { width: 15px; height: 15px; display: grid; place-items: center; font-size: 10px; font-weight: 700; border-radius: 50%; background: var(--green-soft); color: var(--green); }
+    .check-icon.fail { background: var(--red-soft); color: var(--red); }
+    .check-icon.pending { background: #edf1ef; color: #52615e; }
+    .check-note { color: var(--muted); font-size: 10px; text-align: right; }
+    .evidence-list { display: grid; gap: 0; }
+    .evidence { display: grid; grid-template-columns: 33px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 8px 0; border-bottom: 1px solid #edf0ef; }
+    .evidence:last-child { border-bottom: 0; }
+    .evidence-kind { color: var(--blue); background: var(--blue-soft); padding: 4px 3px; text-align: center; font-size: 9px; font-weight: 700; }
+    .evidence-id { font-size: 10px; font-weight: 600; }
+    .evidence-time { font-size: 9px; color: var(--muted); margin-top: 2px; }
+    .confidence { color: #496761; font-size: 10px; font-variant-numeric: tabular-nums; }
+    .event-panel { grid-column: 1 / -1; }
+    .metrics-panel { margin-top: 14px; }
+    .metrics-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .metric { min-width: 0; padding: 2px 14px 5px; border-right: 1px solid var(--line); }
+    .metric:first-child { padding-left: 0; }
+    .metric:last-child { border-right: 0; }
+    .metric-label { color: var(--muted); font-size: 11px; margin-bottom: 5px; }
+    .metric-value { font-size: 19px; font-weight: 650; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+    .metric-unit { color: var(--muted); font-size: 10px; margin-left: 5px; }
+    .metrics-note { margin: 12px 0 0; padding-top: 10px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; line-height: 1.6; }
+    .event-content { display: grid; grid-template-columns: minmax(230px, 1.15fr) minmax(200px, .85fr) minmax(180px, .72fr) auto; align-items: center; gap: 15px; }
+    .event-name { display: flex; align-items: center; gap: 9px; min-width: 0; }
+    .event-mark { width: 31px; height: 31px; flex: 0 0 auto; border: 1px solid #dca6a2; color: var(--red); background: var(--red-soft); display: grid; place-items: center; font-size: 13px; font-weight: 700; }
+    .event-id { font-weight: 700; font-size: 13px; }
+    .event-title { color: #465251; font-size: 11px; margin-top: 3px; }
+    .event-facts { display: flex; flex-wrap: wrap; gap: 7px 13px; font-size: 10px; color: var(--muted); }
+    .event-facts strong { color: var(--ink); font-weight: 600; }
+    .rules { display: flex; flex-wrap: wrap; gap: 5px; }
+    .rule { padding: 4px 6px; color: #46665c; background: #edf5f1; font-size: 9px; white-space: nowrap; }
+    .review-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+    .footer { padding: 8px 24px; color: #82908d; text-align: right; font-size: 10px; }
+    .alert { display: none; margin-bottom: 12px; padding: 10px 12px; color: var(--red); background: var(--red-soft); border-left: 3px solid var(--red); font-size: 12px; }
+    .alert.visible { display: block; }
+    .loading { opacity: .68; pointer-events: none; }
+    @media (max-width: 1080px) {
+      .layout { grid-template-columns: minmax(260px, .9fr) minmax(350px, 1.1fr); }
+      .right-col { grid-column: 1 / -1; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .event-content { grid-template-columns: 1fr 1fr; }
+      .metrics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 13px; }
+      .metric:nth-child(2) { border-right: 0; }
+      .metric:nth-child(3) { padding-left: 0; }
+    }
+    @media (max-width: 720px) {
+      .topbar { padding: 11px 14px; align-items: flex-start; }
+      .brand { flex-wrap: wrap; gap: 7px 9px; }
+      .brand-sub { display: none; }
+      .top-meta { gap: 5px; flex-direction: column; align-items: flex-end; font-size: 10px; }
+      .main { padding: 15px 12px 20px; }
+      .resultbar { align-items: flex-start; flex-direction: column; gap: 10px; }
+      h1 { font-size: 21px; }
+      .result-state { width: 100%; min-width: 0; }
+      .summary-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .summary { border-bottom: 1px solid var(--line); }
+      .summary:nth-child(2n) { border-right: 0; }
+      .summary:last-child { border-bottom: 0; }
+      .layout { grid-template-columns: minmax(0, 1fr); }
+      .right-col { grid-column: auto; grid-template-columns: minmax(0, 1fr); }
+      .event-panel { grid-column: auto; }
+      .event-content { grid-template-columns: minmax(0, 1fr); }
+      .metrics-panel { margin-top: 14px; }
+      .event-facts { gap: 6px 10px; }
+      .footer { text-align: left; padding: 9px 13px; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; } }
+  </style>
+</head>
+<body>
+<div class="app" id="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">海</div>
+      <div class="brand-title">海上态势知识更新演示</div>
+      <div class="brand-sub">本体演化驱动的增量识别闭环</div>
+    </div>
+    <div class="top-meta">
+      <span>案例轮次 R-001</span>
+      <span class="online" id="connection">演示服务连接中</span>
+    </div>
+  </header>
+  <main class="main">
+    <div class="resultbar">
+      <div class="result-copy">
+        <div class="eyebrow">海上敏感海域 · 知识更新闭环</div>
+        <h1 id="headline">V-017 敏感海域案例</h1>
+        <p class="result-sub" id="result-sub">尚未运行 · 案例起点：渔船处于正常航行状态</p>
+      </div>
+      <div class="result-state" id="result-state" aria-live="polite">
+        <div class="state-symbol" id="state-symbol">○</div>
+        <div><div class="state-title" id="state-title">等待开始</div><div class="state-caption" id="state-caption">点击“运行闭环”后逐步回放</div></div>
+      </div>
+    </div>
+    <div class="alert" id="alert" role="alert"></div>
+    <section class="summary-strip" aria-label="案例摘要">
+      <div class="summary"><div class="summary-label">观测时间</div><div class="summary-value">10:06–10:19</div></div>
+      <div class="summary"><div class="summary-label">最新航速</div><div class="summary-value" id="summary-speed">等待观测</div></div>
+      <div class="summary"><div class="summary-label">窗口内移动</div><div class="summary-value" id="summary-distance">待感知计算</div></div>
+      <div class="summary"><div class="summary-label">已到达证据</div><div class="summary-value" id="summary-evidence">0 / 6 条</div></div>
+      <div class="summary"><div class="summary-label">知识版本</div><div class="summary-value" id="version-summary">00</div></div>
+    </section>
+
+    <div class="layout" id="dashboard">
+      <div class="column left-col">
+        <section class="panel" aria-labelledby="situation-heading">
+          <div class="panel-head"><h2 class="panel-title" id="situation-heading">海上态势</h2><span class="panel-kicker">V-017 / A-03</span></div>
+          <div class="schematic">
+            <svg viewBox="0 0 420 250" role="img" aria-labelledby="map-title map-desc">
+              <title id="map-title">V-017 航迹和知识节点示意</title>
+              <desc id="map-desc">敏感海域内三处观测点、保留的旧状态、新徘徊状态以及疑似事件的关系示意。位置并非真实经纬度。</desc>
+              <defs>
+                <pattern id="water" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M0 12 C5 9 10 15 15 12 S25 9 30 12" fill="none" stroke="#d8e7e1" stroke-width="1"/></pattern>
+                <pattern id="area-hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><rect width="8" height="8" fill="#e4f1eb"/><path d="M0 0 V8" stroke="#c8e0d4" stroke-width="2"/></pattern>
+              </defs>
+              <rect x="0" y="0" width="420" height="250" fill="url(#water)"/>
+              <path d="M125 28 C194 6 307 25 365 76 C396 104 387 173 333 211 C272 244 168 218 104 181 C65 150 62 84 125 28Z" fill="url(#area-hatch)" stroke="#6c9f89" stroke-width="1.4"/>
+              <text x="217" y="56" text-anchor="middle" fill="#487765" font-size="11" font-weight="600">敏感海域 A-03</text>
+              <path class="map-link" data-segment="2" d="M167 99 C195 111 222 126 236 143" fill="none" stroke="#307fa1" stroke-width="3" stroke-linecap="round" stroke-dasharray="7 5"/>
+              <path class="map-link" data-segment="3" d="M236 143 C248 157 235 169 213 166 C197 163 190 151 202 144 C214 137 235 142 250 156" fill="none" stroke="#307fa1" stroke-width="3" stroke-linecap="round" stroke-dasharray="7 5"/>
+              <circle class="map-marker" data-observation="1" cx="167" cy="99" r="8" fill="#fff" stroke="#28799b" stroke-width="3"/>
+              <circle class="map-marker" data-observation="2" cx="236" cy="143" r="8" fill="#fff" stroke="#28799b" stroke-width="3"/>
+              <circle class="map-marker" data-observation="3" cx="250" cy="156" r="8" fill="#fff" stroke="#28799b" stroke-width="3"/>
+              <text class="map-marker" data-observation="1" x="143" y="91" text-anchor="end" fill="#33515b" font-size="10">10:06 · 0.8 节</text>
+              <text class="map-marker" data-observation="2" x="247" y="133" fill="#33515b" font-size="10">10:12 · 0.6 节</text>
+              <text class="map-marker" data-observation="3" x="261" y="171" fill="#33515b" font-size="10">10:19 · 0.7 节</text>
+              <g id="old-state-node" class="map-node visible">
+                <rect x="15" y="51" width="103" height="42" fill="#fff" stroke="#c8d0ce"/>
+                <circle cx="29" cy="67" r="5" fill="#9ba6a3"/>
+                <text x="40" y="70" fill="#596562" font-size="10" font-weight="600">S-017-0</text>
+                <text id="old-state-label" x="25" y="84" fill="#727d7a" font-size="9">当前状态 · 正常航行</text>
+              </g>
+              <path d="M118 76 L154 96" fill="none" stroke="#9ba6a3" stroke-width="1.2"/>
+              <g id="new-state-node" class="map-node">
+                <rect x="286" y="82" width="119" height="48" fill="#fff" stroke="#79a6bf"/>
+                <circle cx="301" cy="99" r="5" fill="#28799b"/>
+                <text x="313" y="102" fill="#24596d" font-size="10" font-weight="600">S-017-1</text>
+                <text x="296" y="118" fill="#647876" font-size="9">持续低速徘徊</text>
+              </g>
+              <path d="M286 115 L253 150" fill="none" stroke="#5790aa" stroke-width="1.2"/>
+              <g id="event-map-node" class="map-node">
+                <rect x="289" y="178" width="116" height="48" fill="#fff" stroke="#d28f88"/>
+                <path d="M302 190 L308 201 L296 201Z" fill="#b95450"/>
+                <text x="316" y="199" fill="#884642" font-size="10" font-weight="700">E-017</text>
+                <text x="298" y="216" fill="#7b625f" font-size="9">疑似非法捕捞事件</text>
+              </g>
+              <path d="M289 190 C276 180 265 171 251 162" fill="none" stroke="#bd6c64" stroke-width="1.3"/>
+              <rect x="16" y="190" width="120" height="36" fill="#fff" stroke="#cbd5d2"/>
+              <text x="27" y="205" fill="#50615d" font-size="9">新旧知识并存</text>
+              <text x="27" y="218" fill="#778480" font-size="9">只更新 V-017 相关部分</text>
+            </svg>
+          </div>
+          <div class="map-legend" aria-label="图示图例">
+            <span class="legend-key"><i class="legend-dot"></i>新增状态</span>
+            <span class="legend-key"><i class="legend-dot risk"></i>待复核事件</span>
+            <span class="legend-key"><i class="legend-dot old"></i>保留历史</span>
+            <span class="legend-key"><i class="legend-line"></i>观测轨迹</span>
+          </div>
+          <div class="disclaimer">关系示意，非真实海图；案例未提供经纬度</div>
+        </section>
+      </div>
+
+      <div class="column center-col">
+        <section class="panel" aria-labelledby="flow-heading">
+          <div class="panel-head"><h2 class="panel-title" id="flow-heading">更新过程</h2><span class="panel-kicker" id="flow-status">等待回放</span></div>
+          <div class="agent-list" id="agent-list" aria-live="polite">
+            <div class="agent" data-agent="0"><div class="agent-index">1</div><div><div class="agent-name">语义感知</div><div class="agent-summary">三组观测聚合为一个新增状态，提取航速、移动范围和时间窗口。</div></div><div class="agent-status">待开始</div></div>
+            <div class="agent" data-agent="1"><div class="agent-index">2</div><div><div class="agent-name">本体演化与逻辑检查</div><div class="agent-summary">补齐事件概念和区域风险关系；检查通过后发布知识版本 01。</div></div><div class="agent-status">待开始</div></div>
+            <div class="agent" data-agent="2"><div class="agent-index">3</div><div><div class="agent-name">决策规划</div><div class="agent-summary">依据航速、敏感区域和停留特征匹配业务规则，形成更新方案。</div></div><div class="agent-status">待开始</div></div>
+            <div class="agent" data-agent="3"><div class="agent-index">4</div><div><div class="agent-name">受控执行与计划复核</div><div class="agent-summary">本体演化智能体复核计划，执行工具只提交获准的图谱变更。</div></div><div class="agent-status">待开始</div></div>
+          </div>
+          <div class="timeline">
+            <div class="timeline-top"><span class="timeline-label" id="step-label">案例起点</span><span class="timeline-count" id="step-count">尚未运行</span></div>
+            <div class="track" id="track" role="progressbar" aria-label="案例讲解进度" aria-valuemin="0" aria-valuemax="8" aria-valuenow="0"><div class="track-fill" id="track-fill"></div></div>
+            <div class="controls">
+              <button class="button primary" id="run-button" type="button"><span aria-hidden="true">▶</span>运行闭环</button>
+              <button class="button" id="prev-button" type="button" aria-label="上一步" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>上一步</button>
+              <button class="button" id="next-button" type="button" aria-label="下一步" disabled>下一步<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
+              <button class="button" id="auto-button" type="button" disabled><span aria-hidden="true">▷</span>自动播放</button>
+            </div>
+            <div class="step-detail" aria-live="polite">
+              <div class="step-title" id="step-title">V-017 位于敏感海域 A-03，当前状态为正常航行。</div>
+              <div class="step-copy" id="step-copy">案例尚未运行。开始后可以逐步回放观测如何变成知识图谱更新。</div>
+              <div class="step-outcome" id="step-outcome"></div>
+            </div>
+            <div class="scenario-controls">
+              <div class="scenario-label">异常演示</div>
+              <button class="mini-button" data-mode="ontology_conflict" type="button">错误本体被拒</button>
+              <button class="mini-button" data-mode="plan_rejected" type="button">错误计划被拦截</button>
+              <button class="mini-button" data-mode="execution_rollback" type="button">写入失败回滚</button>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="column right-col">
+        <section class="panel" aria-labelledby="ontology-heading">
+          <div class="panel-head"><h2 class="panel-title" id="ontology-heading">知识模型变化</h2><span class="panel-kicker">版本树</span></div>
+          <div class="panel-body">
+            <div class="version-tree" aria-label="知识版本从00演进到01"><div class="version-node">00</div><div class="version-link"></div><div class="version-node current" id="version-node">01</div><span class="version-caption" id="version-caption">已发布</span></div>
+            <div class="change-list" id="ontology-changes">
+              <div class="version-caption" id="change-title">等待提案</div>
+              <div class="change-row"><span class="change-kind">新增概念</span><span class="change-value">疑似非法捕捞事件</span></div>
+              <div class="change-row"><span class="change-kind">新增关系</span><span class="change-value">船舶潜在区域风险</span></div>
+              <div class="change-row"><span class="change-kind">新增规则</span><span class="change-value">区域风险 · 持续停留</span></div>
+            </div>
+          </div>
+        </section>
+        <section class="panel" aria-labelledby="checks-heading">
+          <div class="panel-head"><h2 class="panel-title" id="checks-heading">逻辑与计划复核</h2><span class="panel-kicker" id="check-status">等待检查</span></div>
+          <div class="panel-body">
+            <div class="check-list" id="check-list">
+              <div class="check-row" data-check="ontology"><span class="check-icon">·</span><span>知识约束检查</span><span class="check-note">待运行</span></div>
+              <div class="check-row" data-check="typeCheck"><span class="check-icon">·</span><span>对象类型与关系范围</span><span class="check-note">待运行</span></div>
+              <div class="check-row" data-check="temporalCheck"><span class="check-icon">·</span><span>时间顺序与历史保留</span><span class="check-note">待运行</span></div>
+              <div class="check-row" data-check="provenanceCheck"><span class="check-icon">·</span><span>证据来源完整</span><span class="check-note">待运行</span></div>
+              <div class="check-row" data-check="ruleReferenceCheck"><span class="check-icon">·</span><span>更新规则已登记</span><span class="check-note">待运行</span></div>
+            </div>
+            <div class="disclaimer" id="check-caption" style="padding:10px 0 0; border-top:0">复核工作由本体演化环节承担</div>
+          </div>
+        </section>
+        <section class="panel" aria-labelledby="evidence-heading">
+          <div class="panel-head"><h2 class="panel-title" id="evidence-heading">观测证据</h2><span class="panel-kicker" id="evidence-caption">尚未接收</span></div>
+          <div class="panel-body evidence-list" id="evidence-list">
+            <div class="evidence" data-evidence-index="1" hidden><span class="evidence-kind">AIS</span><div><div class="evidence-id">EV-AIS-1006</div><div class="evidence-time">10:06 · 航速 0.8 节</div></div><span class="confidence">0.95</span></div>
+            <div class="evidence" data-evidence-index="2" hidden><span class="evidence-kind">雷达</span><div><div class="evidence-id">EV-RADAR-1006</div><div class="evidence-time">10:06 · 低速回波</div></div><span class="confidence">0.90</span></div>
+            <div class="evidence" data-evidence-index="3" hidden><span class="evidence-kind">AIS</span><div><div class="evidence-id">EV-AIS-1012</div><div class="evidence-time">10:12 · 航速 0.6 节</div></div><span class="confidence">0.96</span></div>
+            <div class="evidence" data-evidence-index="4" hidden><span class="evidence-kind">雷达</span><div><div class="evidence-id">EV-RADAR-1012</div><div class="evidence-time">10:12 · 低速回波</div></div><span class="confidence">0.91</span></div>
+            <div class="evidence" data-evidence-index="5" hidden><span class="evidence-kind">AIS</span><div><div class="evidence-id">EV-AIS-1019</div><div class="evidence-time">10:19 · 航速 0.7 节</div></div><span class="confidence">0.95</span></div>
+            <div class="evidence" data-evidence-index="6" hidden><span class="evidence-kind">雷达</span><div><div class="evidence-id">EV-RADAR-1019</div><div class="evidence-time">10:19 · 低速回波</div></div><span class="confidence">0.92</span></div>
+          </div>
+        </section>
+      </div>
+      <section class="panel event-panel" id="event-panel" aria-labelledby="event-heading">
+        <div class="panel-head"><h2 class="panel-title" id="event-heading">识别结果</h2><span class="panel-kicker" id="event-version">等待计划执行</span></div>
+        <div class="panel-body event-content">
+          <div class="event-name"><div class="event-mark" id="event-mark" aria-hidden="true">·</div><div><div class="event-id" id="event-id">尚无事件</div><div class="event-title" id="event-title">候选事件将在规则命中并通过复核后生成</div></div></div>
+          <div class="event-facts"><span>目标 <strong>V-017</strong></span><span>区域 <strong>A-03</strong></span><span>时间 <strong>—</strong></span><span>置信度 <strong id="event-confidence">—</strong></span><span>证据 <strong id="event-evidence-count">0 条</strong></span></div>
+          <div class="rules" aria-label="命中规则"><span class="rule">低速徘徊</span><span class="rule">敏感区域</span><span class="rule">持续停留</span></div>
+          <div class="review-actions"><button class="button" id="confirm-button" type="button">确认</button><button class="button danger" id="reject-button" type="button">标为误报</button></div>
+        </div>
+      </section>
+    </div>
+    <section class="panel metrics-panel" aria-labelledby="metrics-heading">
+      <div class="panel-head"><h2 class="panel-title" id="metrics-heading">增量更新效果</h2><span class="panel-kicker">实际执行报告 · 全量重建为逻辑估算</span></div>
+      <div class="panel-body">
+        <div class="metrics-grid" aria-live="polite">
+          <div class="metric"><div class="metric-label">已提交逻辑写入</div><span class="metric-value" id="metric-incremental">—</span><span class="metric-unit">项</span></div>
+          <div class="metric"><div class="metric-label">全量重建估算</div><span class="metric-value" id="metric-full">—</span><span class="metric-unit">项</span></div>
+          <div class="metric"><div class="metric-label">估算避免写入</div><span class="metric-value" id="metric-avoided">—</span><span class="metric-unit">项</span></div>
+          <div class="metric"><div class="metric-label">端到端耗时</div><span class="metric-value" id="metric-duration">—</span></div>
+        </div>
+        <p class="metrics-note" id="metrics-note">本轮关闭旧状态、创建新状态和候选事件、登记证据及其来源关系；旧知识保留。</p>
+      </div>
+    </section>
+  </main>
+  <footer class="footer">固定案例回放 · 不接入实时船舶数据 · 运行及校验结果来自本地演示服务</footer>
+</div>
+<script>
+(() => {
+  const state = { result: null, step: 0, steps: [], timer: null, busy: false, mode: "standard" };
+  const $ = (selector) => document.querySelector(selector);
+  const $$ = (selector) => [...document.querySelectorAll(selector)];
+
+  async function post(url, body) {
+    const response = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.error || `服务错误 ${response.status}`);
+    return payload;
+  }
+
+  function setBusy(busy) {
+    state.busy = busy;
+    $("#dashboard").classList.toggle("loading", busy);
+    $("#run-button").disabled = busy;
+    $$(".mini-button").forEach(button => button.disabled = busy);
+    $("#prev-button").disabled = busy || !state.result || state.step === 0;
+    $("#next-button").disabled = busy || !state.result || state.step >= state.steps.length;
+    $("#auto-button").disabled = busy || !state.result;
+  }
+
+  function showAlert(message) {
+    const alert = $("#alert");
+    alert.textContent = message;
+    alert.classList.add("visible");
+  }
+
+  function clearAlert() { $("#alert").classList.remove("visible"); }
+
+  function setCheck(key, ok, note) {
+    const row = $(`[data-check="${key}"]`);
+    if (!row) return;
+    const icon = row.querySelector(".check-icon");
+    icon.textContent = ok === null ? "·" : ok ? "✓" : "×";
+    icon.classList.toggle("fail", ok === false);
+    icon.classList.toggle("pending", ok === null);
+    row.querySelector(".check-note").textContent = note;
+  }
+
+  function resetView() {
+    $("#headline").textContent = "V-017 敏感海域案例";
+    $("#result-sub").textContent = "尚未运行 · 点击“运行闭环”加载本案例";
+    $("#state-symbol").textContent = "○";
+    $("#state-symbol").style.background = "var(--surface-muted)";
+    $("#state-symbol").style.color = "var(--muted)";
+    $("#state-title").textContent = "案例起点";
+    $("#state-caption").textContent = "本体 00 · 正常航行状态 S-017-0";
+    $("#summary-speed").textContent = "等待观测";
+    $("#summary-distance").textContent = "待感知计算";
+    $("#summary-evidence").textContent = "0 / 6 条";
+    $("#version-summary").textContent = "00";
+    $("#old-state-node").classList.remove("inactive");
+    $("#old-state-label").textContent = "当前状态 · 正常航行";
+    $("#new-state-node").classList.remove("visible");
+    $("#event-map-node").classList.remove("visible");
+    $$(".map-marker, .map-link").forEach(mark => mark.classList.remove("visible"));
+    $("#event-mark").textContent = "·";
+    $("#event-id").textContent = "尚无事件";
+    $("#event-title").textContent = "候选事件将在规则命中并通过复核后生成";
+    $("#event-version").textContent = "等待计划执行";
+    $("#event-confidence").textContent = "—";
+    $("#event-evidence-count").textContent = "0 条";
+    $("#event-panel").style.opacity = "1";
+    $("#confirm-button").disabled = true;
+    $("#reject-button").disabled = true;
+    $$(".rules .rule").forEach(rule => rule.hidden = true);
+    $("#version-node").textContent = "01";
+    $("#version-node").classList.remove("current");
+    $("#version-caption").textContent = "尚未演化";
+    $("#change-title").textContent = "等待提案";
+    $("#ontology-changes").classList.add("pending-list");
+    $("#check-status").textContent = "等待检查";
+    $("#check-caption").textContent = "计划与本体检查均由本体演化智能体承担";
+    ["ontology", "typeCheck", "temporalCheck", "provenanceCheck", "ruleReferenceCheck"].forEach(key => setCheck(key, null, "待运行"));
+    $("#evidence-caption").textContent = "尚未接收";
+    $("#evidence-list").querySelectorAll(".evidence").forEach(item => { item.hidden = true; });
+    $("#step-label").textContent = "案例起点";
+    $("#step-count").textContent = "尚未运行";
+    $("#step-title").textContent = "V-017 位于敏感海域 A-03，当前状态为正常航行。";
+    $("#step-copy").textContent = "开始回放后，每一步都会显示该环节新产生的状态变化。";
+    $("#step-outcome").textContent = "";
+    $("#step-outcome").classList.remove("visible");
+    $("#flow-status").textContent = "等待回放";
+    $("#track").setAttribute("aria-valuenow", "0");
+    $("#track").setAttribute("aria-valuemax", "1");
+    $("#track-fill").style.width = "0%";
+    $("#metric-incremental").textContent = "—";
+    $("#metric-full").textContent = "—";
+    $("#metric-avoided").textContent = "—";
+    $("#metric-duration").textContent = "—";
+    $("#metrics-note").textContent = "等待本轮执行结果。";
+    $("#agent-list [data-agent='0'] .agent-summary").textContent = "等待 AIS 与雷达观测到达。";
+    $("#agent-list [data-agent='1'] .agent-summary").textContent = "等待新语义触发知识模型演化。";
+    $("#agent-list [data-agent='2'] .agent-summary").textContent = "等待语义状态与已发布知识版本。";
+    $("#agent-list [data-agent='3'] .agent-summary").textContent = "等待经本体演化智能体验证的更新计划。";
+    $$(".agent").forEach(agent => {
+      agent.classList.remove("done", "active", "error");
+      agent.querySelector(".agent-status").textContent = "待开始";
+    });
+  }
+
+  function buildSteps(report, mode) {
+    const observation1 = { id: "observation1", agent: 0, label: "10:06 · 第一组观测", title: "AIS 与雷达首次报告 V-017 低速活动。", copy: "第一组证据到达；轨迹从起始点开始显现。", outcome: "speed_1", error: false };
+    const observation2 = { id: "observation2", agent: 0, label: "10:12 · 第二组观测", title: "第二组观测显示船舶仍在敏感海域低速活动。", copy: "新增 AIS 与雷达证据，系统继续累积时间窗口。", outcome: "speed_2", error: false };
+    const perception = { id: "perception", agent: 0, label: "语义感知完成", title: "三组观测被归纳为一个持续低速小范围徘徊状态。", copy: "语义感知智能体计算最新航速、累计移动距离、持续时间与证据集合。", outcome: "perception", error: false };
+    const ontology = { id: "ontology", agent: 1, label: "本体演化提案", title: "现有知识模型缺少这类候选事件的概念与关系。", copy: "本体演化智能体提出新增事件类、区域风险关系和规则登记。", outcome: "ontology", error: false };
+    const ontologyValidated = { id: "ontologyValidated", agent: 1, label: "HermiT 本体校验", title: "候选本体通过逻辑一致性检查并发布为版本 01。", copy: "HermiT 校验由本体演化智能体负责；通过后规划器才会基于新版本生成计划。", outcome: "ontologyValidated", error: false };
+    const planning = { id: "planning", agent: 2, label: "规则匹配与计划", title: "业务规则把低速、敏感区域和持续时间组合起来。", copy: "规划器命中 R1、R2、R3，形成包含新状态、候选事件与证据关系的方案。", outcome: "planning", error: false };
+    const planValidation = { id: "planValidation", agent: 1, label: "计划一致性校验", title: "本体演化智能体逐项核验计划约束。", copy: "复核对象类型、关系范围、时间顺序、证据来源和规则引用；决策规划不负责校验。", outcome: "planValidation", error: false };
+    const execution = { id: "execution", agent: 3, label: "增量写入", title: "行动执行智能体只处理通过复核的局部变更。", copy: "旧状态结束时间被关闭但不删除；新状态、事件、关系与证据来源写入影响子图。", outcome: "execution", error: false };
+    const commit = { id: "commit", agent: 3, label: "提交与反馈", title: "本轮事务完成并记录提交结果。", copy: "生成提交编号，反馈候选事件、规则命中、知识版本和耗时指标。", outcome: "commit", error: false };
+
+    if (mode === "ontology_conflict") {
+      return [observation1, observation2, perception, ontology, {
+        id: "ontologyRejected", agent: 1, label: "HermiT 拒绝候选本体", title: "新增关系的值域与知识约束冲突，候选版本不发布。", copy: "逻辑一致性检查器发现关系值域和既有类别不能同时成立，因此拒绝演化；图谱保持原样。", outcome: "ontologyRejected", error: true
+      }];
+    }
+    if (mode === "plan_rejected") {
+      return [observation1, observation2, perception, ontology, ontologyValidated,
+        { ...planning, id: "planningFirst", label: "生成首版计划" },
+        { id: "planRejected", agent: 1, label: "首版计划被拦截", title: "本体演化智能体发现首版计划引用了未声明的事件类型。", copy: "非法计划没有进入行动执行；校验反馈返回规划环节。", outcome: "planRejected", error: true },
+        { id: "replanning", agent: 2, label: "依据反馈重新规划", title: "规划器修正事件类型并重新生成更新计划。", copy: "这是一次受控重规划，不会执行首版错误计划。", outcome: "replanning", error: false },
+        { ...planValidation, id: "planValidationRetry", label: "复核重规划结果" }, execution, commit];
+    }
+    if (mode === "execution_rollback") {
+      return [observation1, observation2, perception, ontology, ontologyValidated, planning, planValidation,
+        { id: "executionStaged", agent: 3, label: "事务暂存", title: "更新操作先进入事务暂存区，尚未提交。", copy: "在执行完成前，图谱不会暴露半成品状态。", outcome: "executionStaged", error: false },
+        { id: "rollback", agent: 3, label: "执行失败并回滚", title: "模拟写入工具失败，事务撤销全部暂存变更。", copy: "新增节点、关系与状态关闭均未提交；本体版本已发布，但图谱保持旧快照。", outcome: "rollback", error: true }];
+    }
+    return [observation1, observation2, perception, ontology, ontologyValidated, planning, planValidation, execution, commit];
+  }
+
+  function applyResult(payload) {
+    state.result = payload;
+    state.mode = payload.mode || payload.report.demoMode || "standard";
+    state.steps = buildSteps(payload.report, state.mode);
+    state.step = 0;
+    const total = state.steps.length;
+    $("#headline").textContent = state.mode === "standard" ? "正常闭环计算完成" : state.mode === "ontology_conflict" ? "本体冲突场景计算完成" : state.mode === "plan_rejected" ? "计划重规划场景计算完成" : "执行回滚场景计算完成";
+    $("#result-sub").textContent = "后端已按固定案例完成计算；现在从案例起点逐步回放结果。";
+    $("#state-symbol").textContent = "○";
+    $("#state-title").textContent = "等待逐步回放";
+    $("#state-caption").textContent = "计算结果不会自动展开";
+    $("#flow-status").textContent = "回放就绪";
+    $("#step-count").textContent = `0 / ${total}`;
+    $("#track").setAttribute("aria-valuemax", String(total));
+    $("#prev-button").disabled = true;
+    $("#next-button").disabled = false;
+    $("#auto-button").disabled = false;
+    $("#run-button").disabled = false;
+    $$(".mini-button").forEach(button => button.disabled = false);
+    $("#step-title").textContent = "V-017 位于敏感海域 A-03，当前状态为正常航行。";
+    $("#step-copy").textContent = `已准备 ${total} 个讲解步骤。点“下一步”逐步播放，或选择自动播放。`;
+    $("#connection").textContent = `本地服务 · ${payload.report.ontologyValidation?.engine || "HermiT"}`;
+    renderStep(0);
+  }
+
+  function revealOutcome(step, report) {
+    const delta = report.deltaSemantics || {};
+    const plan = report.updatePlan || {};
+    const validation = report.planValidation || {};
+    const execution = report.executionResult || {};
+    const ontology = report.ontologyValidation || {};
+    const comparison = report.comparison || {};
+    const showEvidence = count => {
+      $$(".evidence").forEach(item => { item.hidden = Number(item.dataset.evidenceIndex) > count; });
+      $("#summary-evidence").textContent = `${count} / ${(delta.evidence || []).length || 6} 条`;
+      $("#evidence-caption").textContent = count ? `${count} 条已到达` : "尚未接收";
+    };
+    const setMetricValues = () => {
+      $("#metric-incremental").textContent = String(report.status === "COMMITTED" ? comparison.incrementalWrites ?? 0 : 0);
+      $("#metric-full").textContent = String(comparison.fullRebuildWritesEstimate ?? "—");
+      $("#metric-avoided").textContent = String(report.status === "COMMITTED" ? comparison.avoidedWritesEstimate ?? 0 : comparison.fullRebuildWritesEstimate ?? 0);
+      $("#metric-duration").textContent = (report.metricsMs?.endToEnd || 0) >= 1000
+        ? `${(report.metricsMs.endToEnd / 1000).toFixed(1)} 秒`
+        : `${Math.round(report.metricsMs?.endToEnd || 0)} 毫秒`;
+      $("#metrics-note").textContent = report.status === "COMMITTED"
+        ? `本轮实际变更：关闭旧状态 ${execution.closedStates} 个、新增节点 ${execution.createdNodes} 个、关系 ${execution.createdRelations} 条、类型断言 ${execution.createdTypeAssertions} 条、证据来源记录 ${execution.attachedEvidence} 条。${comparison.note || ""}`
+        : report.status === "EXECUTION_FAILED"
+          ? `事务失败后回滚，已提交写入为 0；本体版本已发布，图谱变更未提交。${comparison.note || ""}`
+          : `本体提案未通过检查，图谱没有增量写入。${comparison.note || ""}`;
+    };
+    const setAgentSummaries = () => {
+      $("#agent-list [data-agent='0'] .agent-summary").textContent = `输出速度 ${delta.states?.[0]?.speed ?? "—"} 节、移动 ${delta.states?.[0]?.travelDistance ?? "—"} 海里、持续 ${delta.states?.[0]?.durationSeconds ?? "—"} 秒，聚合 ${(delta.evidence || []).length} 条证据。`;
+      $("#agent-list [data-agent='1'] .agent-summary").textContent = ontology.consistent
+        ? "新增候选事件类和区域风险关系；HermiT 检查通过并发布知识版本 01。"
+        : "候选关系值域与现有知识约束冲突；HermiT 拒绝发布，本体保持 00。";
+      $("#agent-list [data-agent='2'] .agent-summary").textContent = plan.replanAttempt > 1
+        ? `首版计划被拦截；收到本体演化智能体反馈后，重规划第 ${plan.replanAttempt} 次通过。`
+        : `命中规则 ${(plan.ruleHits || []).join(" / ") || "无"}，生成更新计划 ${plan.planId || "P1"}。`;
+      $("#agent-list [data-agent='3'] .agent-summary").textContent = execution.success
+        ? `关闭旧状态 ${execution.closedStates} 个、新增节点 ${execution.createdNodes} 个、关系 ${execution.createdRelations} 条、证据来源 ${execution.attachedEvidence} 条；提交 ${execution.commitId}。`
+        : report.status === "EXECUTION_FAILED"
+          ? `工具执行失败：${execution.failure || "写入失败"}。事务已回滚，没有半写状态。`
+          : "计划已由本体演化智能体复核，等待执行。";
+    };
+    const setPlanCheck = () => {
+      const checks = validation.checks || {};
+      setCheck("typeCheck", Boolean(checks.typeCheck && checks.domainRangeCheck), checks.typeCheck && checks.domainRangeCheck ? "通过" : "未通过");
+      setCheck("temporalCheck", Boolean(checks.temporalCheck), checks.temporalCheck ? "通过" : "未通过");
+      setCheck("provenanceCheck", Boolean(checks.provenanceCheck), checks.provenanceCheck ? "通过" : "未通过");
+      setCheck("ruleReferenceCheck", Boolean(checks.ruleReferenceCheck), checks.ruleReferenceCheck ? "通过" : "未通过");
+    };
+
+    switch (step.id) {
+      case "observation1":
+        $$("[data-observation='1']").forEach(mark => mark.classList.add("visible"));
+        $("#summary-speed").textContent = "0.8 节";
+        $("#agent-list [data-agent='0'] .agent-summary").textContent = "10:06 收到 AIS 航速与雷达低速回波，第一组 2 条证据进入窗口。";
+        showEvidence(2);
+        return "10:06 的 AIS 与雷达记录已进入案例回放。";
+      case "observation2":
+        $$("[data-observation='2'], [data-segment='2']").forEach(mark => mark.classList.add("visible"));
+        $("#summary-speed").textContent = "0.6 节";
+        $("#agent-list [data-agent='0'] .agent-summary").textContent = "10:06 与 10:12 两组观测到达，低速活动持续，累计 4 条证据。";
+        showEvidence(4);
+        return "10:12 第二组 AIS 与雷达记录到达，低速状态持续。";
+      case "perception":
+        $$("[data-observation='3'], [data-segment='3']").forEach(mark => mark.classList.add("visible"));
+        $("#summary-speed").textContent = `${delta.states?.[0]?.speed ?? "—"} 节`;
+        $("#summary-distance").textContent = `${delta.states?.[0]?.travelDistance ?? "—"} 海里`;
+        $("#agent-list [data-agent='0'] .agent-summary").textContent = `输出速度 ${delta.states?.[0]?.speed ?? "—"} 节、移动 ${delta.states?.[0]?.travelDistance ?? "—"} 海里、持续 ${delta.states?.[0]?.durationSeconds ?? "—"} 秒，聚合 ${(delta.evidence || []).length} 条证据。`;
+        showEvidence((delta.evidence || []).length);
+        return `形成 S-017-1：持续 ${delta.states?.[0]?.durationSeconds ?? "—"} 秒，移动 ${delta.states?.[0]?.travelDistance ?? "—"} 海里。`;
+      case "ontology":
+        $("#ontology-changes").classList.remove("pending-list");
+        $("#version-summary").textContent = "00 → 01";
+        $("#version-node").textContent = "01";
+        $("#version-node").classList.add("current");
+        $("#version-caption").textContent = "候选校验中";
+        $("#change-title").textContent = "候选提案 · 校验中";
+        $("#agent-list [data-agent='1'] .agent-summary").textContent = "已提出候选事件类、船舶潜在区域风险关系及低速徘徊规则；等待逻辑校验。";
+        return "提出新增概念、关系及规则；候选本体 01 等待 HermiT 逻辑一致性检查。";
+      case "ontologyValidated": {
+        const checkTime = ontology.durationMs > 0
+          ? `${Math.max(1, Math.round(ontology.durationMs))} ms`
+          : ontology.cacheHit
+            ? `缓存复用 · 原推理 ${Math.round(ontology.cachedDurationMs || 0)} ms`
+            : "结果已返回";
+        $("#check-status").textContent = "HermiT 校验通过";
+        $("#check-caption").textContent = `HermiT 逻辑一致性检查 · ${checkTime}`;
+        setCheck("ontology", Boolean(ontology.consistent), ontology.consistent ? "通过" : "未通过");
+        $("#version-caption").textContent = "已发布";
+        $("#change-title").textContent = "本体版本 01 · 已发布";
+        $("#agent-list [data-agent='1'] .agent-summary").textContent = "HermiT 检查通过；本体演化智能体发布版本 01，后续计划以此版本为依据。";
+        return "HermiT 推理确认候选本体一致；版本 01 已发布，允许进入决策规划。";
+      }
+      case "ontologyRejected":
+        $("#version-summary").textContent = "00";
+        $("#version-node").textContent = "×";
+        $("#version-node").classList.remove("current");
+        $("#version-caption").textContent = "被拒绝 · 未发布";
+        $("#change-title").textContent = "候选提案 · 已拒绝";
+        $("#check-status").textContent = "本体被拒";
+        $("#check-caption").textContent = `HermiT 逻辑一致性检查 · ${ontology.reason || "冲突"}`;
+        setCheck("ontology", false, "HermiT 拒绝");
+        $("#flow-status").textContent = "受控拒绝 · 回放结束";
+        $("#headline").textContent = "候选本体未发布";
+        $("#result-sub").textContent = "知识约束在写入前拦截冲突，原本体与图谱不变";
+        $("#state-symbol").textContent = "×";
+        $("#state-symbol").style.background = "var(--red-soft)";
+        $("#state-symbol").style.color = "var(--red)";
+        $("#state-title").textContent = "逻辑检查拒绝";
+        $("#state-caption").textContent = "HermiT 检查到候选本体与相关图谱断言不一致";
+        $("#event-title").textContent = "候选事件未写入";
+        $("#event-version").textContent = "本体版本 00";
+        $("#change-title").textContent = "候选提案 · 已拒绝";
+        $("#agent-list [data-agent='1'] .agent-status").textContent = "已拦截";
+        $("#agent-list [data-agent='1']").classList.add("error");
+        return "HermiT 已实际运行并判定不一致；版本停留在 00，图谱没有写入。";
+      case "planning":
+      case "planningFirst":
+        $$(".rules .rule").forEach(rule => rule.hidden = false);
+        $("#event-id").textContent = "E-017 · 计划候选";
+        $("#event-title").textContent = "疑似非法捕捞事件 · 尚未写入图谱";
+        $("#event-version").textContent = "计划 P1 · 本体版本 01";
+        $("#event-confidence").textContent = "0.90";
+        $("#event-evidence-count").textContent = `${(delta.evidence || []).length} 条`;
+        $("#agent-list [data-agent='2'] .agent-summary").textContent = `命中 ${(plan.ruleHits || []).join(" / ") || "业务规则"}，生成计划 ${plan.planId || "P1"}；尚未执行图谱写入。`;
+        return `规则命中 ${(plan.ruleHits || []).join(" / ") || "无"}，提出候选事件和局部更新计划。`;
+      case "planRejected": {
+        const traceItem = (report.trace || []).find(item => item.state === "PLAN_REJECTED");
+        $("#check-status").textContent = "首版计划被拒";
+        $("#check-caption").textContent = traceItem?.detail || "首版计划中存在未声明的事件类型";
+        $("#state-symbol").textContent = "×";
+        $("#state-symbol").style.background = "var(--red-soft)";
+        $("#state-symbol").style.color = "var(--red)";
+        $("#state-title").textContent = "首版计划被拦截";
+        $("#state-caption").textContent = "本体演化智能体已将反馈返回规划环节";
+        setCheck("typeCheck", false, "首版未通过");
+        $("#flow-status").textContent = "反馈返回规划环节";
+        $("#agent-list [data-agent='1'] .agent-status").textContent = "已拦截首版";
+        $("#agent-list [data-agent='1']").classList.add("error");
+        $("#agent-list [data-agent='2'] .agent-summary").textContent = "首版计划被拦截；根据本体演化智能体返回的错误反馈重新规划。";
+        $("#agent-list [data-agent='1'] .agent-summary").textContent = "本体演化智能体发现首版计划引用未声明事件类型，拒绝该计划并返回修正反馈。";
+        return "行动执行未被调用；只有修正后的方案才会进入下一轮计划复核。";
+      }
+      case "replanning":
+        $("#check-status").textContent = "重新复核";
+        $("#state-symbol").textContent = "↻";
+        $("#state-symbol").style.background = "var(--orange-soft)";
+        $("#state-symbol").style.color = "var(--orange)";
+        $("#state-title").textContent = "正在重新规划";
+        $("#state-caption").textContent = `重规划第 ${plan.replanAttempt} 次；错误首版未执行`;
+        setCheck("typeCheck", null, "等待修正计划");
+        $("#agent-list [data-agent='1']").classList.remove("error");
+        $("#agent-list [data-agent='1'] .agent-status").textContent = "反馈已返回";
+        $("#agent-list [data-agent='2'] .agent-summary").textContent = `规划器根据反馈生成修正计划，当前重规划次数 ${plan.replanAttempt}；等待重新复核。`;
+        $("#event-id").textContent = "E-017 · 修正后计划";
+        $("#event-title").textContent = "重新规划中 · 尚未执行";
+        $("#event-version").textContent = "计划 P2 · 本体版本 01";
+        return `规划器重生成方案，当前重规划次数 ${plan.replanAttempt}。`;
+      case "planValidation":
+      case "planValidationRetry":
+        setPlanCheck();
+        $("#check-status").textContent = "计划复核通过";
+        $("#agent-list [data-agent='1'] .agent-summary").textContent = "计划通过对象类型、关系范围、时间、证据来源与规则引用检查；本体演化智能体准许执行。";
+        $("#event-version").textContent = "候选本体版本 01";
+        return `类型、定义域/值域、时序、证据来源和规则引用检查${validation.passed ? "全部通过" : "未通过"}；校验归属：本体演化智能体。`;
+      case "executionStaged":
+        $("#agent-list [data-agent='3'] .agent-summary").textContent = "计划变更进入事务暂存区；图谱尚未提交，失败时可整体撤销。";
+        return "事务正在暂存变更；此时图谱仍保持执行前快照，尚无提交。";
+      case "execution":
+        $("#old-state-node").classList.add("inactive");
+        $("#old-state-label").textContent = "历史保留 · 已结束";
+        $("#new-state-node").classList.add("visible");
+        $("#event-map-node").classList.add("visible");
+        $("#event-mark").textContent = "!";
+        $("#event-id").textContent = "E-017";
+        $("#event-title").textContent = "疑似非法捕捞事件 · 待人工复核";
+        $("#event-version").textContent = "本体版本 01";
+        $("#event-confidence").textContent = "0.90";
+        $("#event-evidence-count").textContent = `${(delta.evidence || []).length} 条`;
+        $("#confirm-button").disabled = false;
+        $("#reject-button").disabled = false;
+        $("#agent-list [data-agent='3'] .agent-summary").textContent = `受控工具已生成 ${execution.createdNodes} 个节点、${execution.createdRelations} 条关系并挂接 ${(delta.evidence || []).length} 条证据；事务等待提交。`;
+        return `已关闭旧状态但保留历史；新增 ${execution.createdNodes} 个节点、${execution.createdRelations} 条关系并挂接 ${(delta.evidence || []).length} 条证据。`;
+      case "rollback":
+        $("#old-state-node").classList.remove("inactive");
+        $("#old-state-label").textContent = "当前状态 · 正常航行";
+        $("#new-state-node").classList.remove("visible");
+        $("#event-map-node").classList.remove("visible");
+        $("#event-mark").textContent = "·";
+        $("#event-id").textContent = "未提交";
+        $("#event-title").textContent = "事件写入随事务一并回滚";
+        $("#event-version").textContent = "本体版本 01 · 图谱未变";
+        $("#event-confidence").textContent = "—";
+        $("#event-evidence-count").textContent = "0 条";
+        $("#confirm-button").disabled = true;
+        $("#reject-button").disabled = true;
+        $("#headline").textContent = "执行失败，图谱已回滚";
+        $("#result-sub").textContent = "本体版本已发布；图谱事务未提交，恢复到操作前状态";
+        $("#state-symbol").textContent = "×";
+        $("#state-symbol").style.background = "var(--red-soft)";
+        $("#state-symbol").style.color = "var(--red)";
+        $("#state-title").textContent = "事务已回滚";
+        $("#state-caption").textContent = execution.failure || "执行失败";
+        $("#flow-status").textContent = "失败已回滚 · 回放结束";
+        $("#agent-list [data-agent='3'] .agent-summary").textContent = `工具失败：${execution.failure || "写入失败"}。暂存变更已撤销，没有半写状态。`;
+        setMetricValues();
+        return "事务未提交，图谱恢复为执行前状态；已提交逻辑写入为 0。";
+      case "commit":
+        $("#headline").textContent = "疑似非法捕捞事件已发现";
+        $("#result-sub").textContent = "V-017 在敏感海域持续低速移动，候选事件及证据链已进入图谱";
+        $("#state-symbol").textContent = "✓";
+        $("#state-symbol").style.background = "var(--green-soft)";
+        $("#state-symbol").style.color = "var(--green)";
+        $("#state-title").textContent = "增量更新已提交";
+        $("#state-caption").textContent = `提交 ${execution.commitId} · 旧状态保留`;
+        $("#flow-status").textContent = "闭环完成";
+        $("#agent-list [data-agent='3'] .agent-summary").textContent = `提交 ${execution.commitId} 完成；关闭旧状态并保留历史，事件与证据关系已写入。`;
+        setMetricValues();
+        return `提交 ${execution.commitId}；本轮耗时 ${$("#metric-duration").textContent}，图谱更新完成。`;
+      default:
+        return "";
+    }
+  }
+
+  function renderStep(nextStep) {
+    if (!state.result) return;
+    state.step = Math.max(0, Math.min(state.steps.length, nextStep));
+    const total = state.steps.length;
+    const spec = state.step > 0 ? state.steps[state.step - 1] : null;
+    resetView();
+    $("#step-label").textContent = spec?.label || "案例起点";
+    $("#step-count").textContent = `${state.step} / ${total}`;
+    $("#track").setAttribute("aria-valuenow", String(state.step));
+    $("#track-fill").style.width = `${total ? state.step / total * 100 : 0}%`;
+    $("#prev-button").disabled = state.step === 0;
+    $("#next-button").disabled = state.step >= total;
+    $("#auto-button").disabled = total === 0;
+    const outcome = $("#step-outcome");
+    if (!spec) {
+      $("#result-sub").textContent = "计算已完成 · 从案例起点开始逐步回放";
+      $("#state-title").textContent = "等待逐步回放";
+      $("#state-caption").textContent = "结果尚未展开";
+      $("#step-title").textContent = "V-017 位于敏感海域 A-03，当前状态为正常航行。";
+      $("#step-copy").textContent = `本场景共 ${total} 个步骤。点击“下一步”开始回放，或使用自动播放。`;
+      outcome.textContent = "";
+      outcome.classList.remove("visible");
+    } else {
+      $("#headline").textContent = state.mode === "standard" ? "正常闭环过程回放" : state.mode === "ontology_conflict" ? "本体冲突过程回放" : state.mode === "plan_rejected" ? "计划重规划过程回放" : "执行回滚过程回放";
+      $("#result-sub").textContent = "本案例已计算 · 正在逐步揭示当前环节，后续结果尚未展开";
+      $("#state-title").textContent = "过程回放中";
+      $("#state-caption").textContent = `${spec.label} · ${state.step} / ${total}`;
+      $("#flow-status").textContent = `回放中 · ${state.step} / ${total}`;
+      for (let index = 0; index < state.step - 1; index += 1) revealOutcome(state.steps[index], state.result.report);
+      $("#step-title").textContent = spec.title;
+      $("#step-copy").textContent = spec.copy;
+      outcome.textContent = revealOutcome(spec, state.result.report);
+      outcome.classList.toggle("visible", Boolean(outcome.textContent));
+    }
+    $("#summary-evidence").textContent = $("#evidence-list").querySelectorAll(".evidence:not([hidden])").length + " / 6 条";
+    $$(".agent").forEach(agent => {
+      const index = Number(agent.dataset.agent);
+      const prior = state.steps.slice(0, Math.max(state.step - 1, 0));
+      const previous = prior.some(item => item.agent === index);
+      const current = spec?.agent === index;
+      const failed = current && spec.error;
+      agent.classList.toggle("done", !failed && ((!current && previous) || (state.step >= total && state.step > 0)));
+      agent.classList.toggle("active", Boolean(current && !failed && state.step < total));
+      agent.classList.toggle("error", Boolean(failed));
+      const status = agent.querySelector(".agent-status");
+      status.textContent = failed ? "已拦截" : current ? "进行中" : previous ? "已完成" : "待开始";
+    });
+  }
+
+  async function run(mode = "standard") {
+    stopAuto();
+    clearAlert();
+    state.result = null;
+    state.steps = [];
+    resetView();
+    state.mode = mode;
+    setBusy(true);
+    $("#flow-status").textContent = "正在计算本轮结果";
+    $("#step-title").textContent = mode === "standard" ? "正在运行叙事案例闭环。" : "正在运行所选异常场景。";
+    $("#step-copy").textContent = "后台执行实际感知、逻辑校验、计划复核和事务操作；完成后按步骤回放。";
+    try {
+      const result = await post("/api/run", { mode });
+      applyResult(result);
+    } catch (error) {
+      showAlert(`演示未能运行：${error.message}。请确认本地服务和 Java 17 已启动。`);
+      $("#flow-status").textContent = "运行失败";
+    } finally { setBusy(false); }
+  }
+
+  function stopAuto() {
+    if (state.timer) window.clearInterval(state.timer);
+    state.timer = null;
+    $("#auto-button").innerHTML = "<span aria-hidden=\"true\">▷</span>自动播放";
+  }
+
+  $("#run-button").addEventListener("click", () => run("standard"));
+  $("#prev-button").addEventListener("click", () => { stopAuto(); renderStep(state.step - 1); });
+  $("#next-button").addEventListener("click", () => renderStep(state.step + 1));
+  $("#auto-button").addEventListener("click", () => {
+    if (state.timer) { stopAuto(); return; }
+    if (state.step >= state.steps.length) renderStep(0);
+    $("#auto-button").textContent = "暂停播放";
+    state.timer = window.setInterval(() => {
+      if (state.step >= state.steps.length) { stopAuto(); return; }
+      renderStep(state.step + 1);
+      if (state.steps[state.step - 1]?.error) stopAuto();
+    }, 2200);
+  });
+  $$(".mini-button").forEach(button => button.addEventListener("click", () => run(button.dataset.mode)));
+  $("#confirm-button").addEventListener("click", () => review("confirmed"));
+  $("#reject-button").addEventListener("click", () => review("rejected"));
+
+  async function review(status) {
+    clearAlert();
+    try {
+      const result = await post("/api/review", { eventId: "E-017", status, reason: status === "rejected" ? "演示复核：证据需要进一步核实" : "演示复核：确认该候选事件" });
+      $("#event-title").textContent = status === "confirmed" ? "疑似非法捕捞事件 · 人工已确认" : "疑似非法捕捞事件 · 人工标记误报";
+      $("#state-caption").textContent = `复核结果：${status === "confirmed" ? "已确认" : "误报；历史事件保留"}`;
+      $("#confirm-button").disabled = true;
+      $("#reject-button").disabled = true;
+    } catch (error) { showAlert(`复核未能保存：${error.message}`); }
+  }
+
+  resetView();
+  fetch("/api/health").then(response => response.json()).then(health => {
+    if (health.ok) $("#connection").textContent = "演示服务已就绪";
+    else showAlert("未检测到本地逻辑检查服务，请从演示目录启动服务。");
+  }).catch(() => showAlert("请从演示目录启动本地服务，再打开此页面。"));
+})();
+</script>
+</body>
+</html>

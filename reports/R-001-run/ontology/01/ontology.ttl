@@ -1,0 +1,90 @@
+@prefix maritime: <https://example.org/maritime#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<https://example.org/maritime/ontology/01> a owl:Ontology .
+
+maritime:Device a owl:Class .
+maritime:Env a owl:Class .
+maritime:Event a owl:Class ; rdfs:subClassOf maritime:TemporalEntity .
+maritime:FishingEvent a owl:Class ; rdfs:subClassOf maritime:Event .
+maritime:FishingVessel a owl:Class ; rdfs:subClassOf maritime:Plat .
+maritime:Image a owl:Class .
+maritime:Instant a owl:Class .
+maritime:LoiteringState a owl:Class ; rdfs:subClassOf maritime:State .
+maritime:Plat a owl:Class .
+maritime:SensitiveArea a owl:Class ; rdfs:subClassOf maritime:Env .
+maritime:State a owl:Class ; rdfs:subClassOf maritime:TemporalEntity .
+maritime:SuspectedIllegalFishingActivity a owl:Class ; rdfs:subClassOf maritime:FishingEvent .
+maritime:TemporalEntity a owl:Class .
+maritime:UnderWayState a owl:Class ; rdfs:subClassOf maritime:State .
+maritime:Video a owl:Class .
+maritime:State owl:disjointWith maritime:Env .
+
+maritime:dependsOn a owl:ObjectProperty ;
+    rdfs:domain maritime:State ;
+    rdfs:range maritime:Env .
+maritime:hasDevice a owl:ObjectProperty ;
+    rdfs:domain maritime:Plat ;
+    rdfs:range maritime:Device .
+maritime:hasImage a owl:ObjectProperty ;
+    rdfs:domain maritime:Event ;
+    rdfs:range maritime:Image .
+maritime:hasInstant a owl:ObjectProperty ;
+    rdfs:domain maritime:TemporalEntity ;
+    rdfs:range maritime:Instant .
+maritime:hasObject a owl:ObjectProperty ;
+    rdfs:domain maritime:Event ;
+    rdfs:range maritime:Env .
+maritime:hasPotentialIllegalActivity a owl:ObjectProperty ;
+    rdfs:domain maritime:Plat ;
+    rdfs:range maritime:SensitiveArea .
+maritime:hasState a owl:ObjectProperty ;
+    rdfs:domain maritime:Plat ;
+    rdfs:range maritime:State .
+maritime:hasSubject a owl:ObjectProperty ;
+    rdfs:domain maritime:Event ;
+    rdfs:range maritime:Plat .
+maritime:hasVideo a owl:ObjectProperty ;
+    rdfs:domain maritime:Event ;
+    rdfs:range maritime:Video .
+maritime:isEmitterOf a owl:ObjectProperty ;
+    rdfs:domain maritime:Device ;
+    rdfs:range maritime:Event .
+maritime:isReceiverOf a owl:ObjectProperty ;
+    rdfs:domain maritime:Device ;
+    rdfs:range maritime:Event .
+maritime:locatedIn a owl:ObjectProperty ;
+    rdfs:domain maritime:Plat ;
+    rdfs:range maritime:Env .
+
+maritime:coordinate a owl:DatatypeProperty ;
+    rdfs:domain maritime:Plat ;
+    rdfs:range xsd:string .
+maritime:deviceNumber a owl:DatatypeProperty ;
+    rdfs:domain maritime:Device ;
+    rdfs:range xsd:string .
+maritime:durationSeconds a owl:DatatypeProperty ;
+    rdfs:domain maritime:State ;
+    rdfs:range xsd:integer .
+maritime:speed a owl:DatatypeProperty ;
+    rdfs:domain maritime:State ;
+    rdfs:range xsd:decimal .
+maritime:timestamp a owl:DatatypeProperty ;
+    rdfs:domain maritime:Instant ;
+    rdfs:range xsd:dateTime .
+maritime:travelDistance a owl:DatatypeProperty ;
+    rdfs:domain maritime:State ;
+    rdfs:range xsd:decimal .
+maritime:vesselType a owl:DatatypeProperty ;
+    rdfs:domain maritime:Plat ;
+    rdfs:range xsd:string .
+maritime:weather a owl:DatatypeProperty ;
+    rdfs:domain maritime:Env ;
+    rdfs:range xsd:string .
+
+maritime:R1 a maritime:Rule ; rdfs:label "FishingVessel(?v) ^ hasState(?v, ?s) ^ speed(?s, ?x) ^ swrlb:lessThan(?x, 5) -> LoiteringState(?s)" .
+maritime:R2 a maritime:Rule ; rdfs:label "FishingVessel(?v) ^ hasState(?v, ?s) ^ LoiteringState(?s) ^ locatedIn(?v, ?a) ^ SensitiveArea(?a) -> hasPotentialIllegalActivity(?v, ?a)" .
+maritime:R3 a maritime:Rule ; rdfs:label "hasPotentialIllegalActivity(?v, ?a) ^ hasState(?v, ?s) ^ durationSeconds(?s, ?d) ^ swrlb:greaterThan(?d, 600) ^ travelDistance(?s, ?m) ^ swrlb:lessThan(?m, 0.5)" .

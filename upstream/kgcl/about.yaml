@@ -1,3 +1,0 @@
-name: kgcl
-description: Knowledge Graph Change Language.
-source_schema_path: src/kgcl_schema/schema/kgcl.yaml

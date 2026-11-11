@@ -1,0 +1,22 @@
+{
+  "rules": [
+    {
+      "id": "R1",
+      "swrl": "FishingVessel(?v) ^ hasState(?v, ?s) ^ speed(?s, ?x) ^ swrlb:lessThan(?x, 5) -> LoiteringState(?s)",
+      "condition": "speed < 5 kn",
+      "conclusion": "LoiteringState(s)"
+    },
+    {
+      "id": "R2",
+      "swrl": "FishingVessel(?v) ^ hasState(?v, ?s) ^ LoiteringState(?s) ^ locatedIn(?v, ?a) ^ SensitiveArea(?a) -> hasPotentialIllegalActivity(?v, ?a)",
+      "condition": "LoiteringState(s) and locatedIn(v, a) and SensitiveArea(a)",
+      "conclusion": "hasPotentialIllegalActivity(v, a)"
+    },
+    {
+      "id": "R3",
+      "swrlPattern": "hasPotentialIllegalActivity(?v, ?a) ^ hasState(?v, ?s) ^ durationSeconds(?s, ?d) ^ swrlb:greaterThan(?d, 600) ^ travelDistance(?s, ?m) ^ swrlb:lessThan(?m, 0.5)",
+      "condition": "durationSeconds > 600 s and travelDistance < 0.5 nm",
+      "plannerAction": "materialize SuspectedIllegalFishingActivity using a deterministic event ID"
+    }
+  ]
+}

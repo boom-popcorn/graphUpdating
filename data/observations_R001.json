@@ -1,0 +1,15 @@
+{
+  "roundId": "R-001",
+  "vesselId": "V-017",
+  "areaId": "A-03",
+  "areaSensitive": true,
+  "newStateId": "S-017-1",
+  "observations": [
+    {"id": "EV-AIS-1006", "source": "AIS", "subject": "V-017", "timestamp": "2026-11-11T10:06:00+08:00", "speedKn": 0.8, "segmentDistanceNm": 0.0, "confidence": 0.95},
+    {"id": "EV-RADAR-1006", "source": "Radar", "subject": "V-017", "timestamp": "2026-11-11T10:06:10+08:00", "speedKn": 0.8, "segmentDistanceNm": 0.0, "confidence": 0.90},
+    {"id": "EV-AIS-1012", "source": "AIS", "subject": "V-017", "timestamp": "2026-11-11T10:12:00+08:00", "speedKn": 0.6, "segmentDistanceNm": 0.12, "confidence": 0.96},
+    {"id": "EV-RADAR-1012", "source": "Radar", "subject": "V-017", "timestamp": "2026-11-11T10:12:10+08:00", "speedKn": 0.6, "segmentDistanceNm": 0.0, "confidence": 0.91},
+    {"id": "EV-AIS-1019", "source": "AIS", "subject": "V-017", "timestamp": "2026-11-11T10:19:00+08:00", "speedKn": 0.7, "segmentDistanceNm": 0.08, "confidence": 0.95},
+    {"id": "EV-RADAR-1019", "source": "Radar", "subject": "V-017", "timestamp": "2026-11-11T10:19:10+08:00", "speedKn": 0.7, "segmentDistanceNm": 0.0, "confidence": 0.92}
+  ]
+}

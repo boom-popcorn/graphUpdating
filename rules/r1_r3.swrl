@@ -1,0 +1,5 @@
+FishingVessel(?v) ^ hasState(?v, ?s) ^ speed(?s, ?x) ^ swrlb:lessThan(?x, 5) -> LoiteringState(?s)
+FishingVessel(?v) ^ hasState(?v, ?s) ^ LoiteringState(?s) ^ locatedIn(?v, ?a) ^ SensitiveArea(?a) -> hasPotentialIllegalActivity(?v, ?a)
+# R3 body is matched by the local planner. Standard SWRL does not create a fresh individual.
+# The planner materializes one SuspectedIllegalFishingActivity event with a deterministic ID.
+hasPotentialIllegalActivity(?v, ?a) ^ hasState(?v, ?s) ^ durationSeconds(?s, ?d) ^ swrlb:greaterThan(?d, 600) ^ travelDistance(?s, ?m) ^ swrlb:lessThan(?m, 0.5)
