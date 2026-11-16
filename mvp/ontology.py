@@ -389,13 +389,16 @@ class OntologyAgent:
 
         event_ids = {
             item["id"] for item in plan.get("createIndividuals", [])
-            if ontology.is_subclass(item.get("type", ""), "Event")
+            if "Event" in ontology.inferred_types(types_by_id.get(item["id"], set()))
         }
         evidence_by_id = {item["id"]: item for item in delta.get("evidence", [])}
+        registered_evidence = dict(graph.get("evidence", {}))
+        registered_evidence.update({item["id"]: item for item in plan.get("evidenceRecords", [])})
         evidence_for_event: dict[str, list[dict[str, Any]]] = {}
         for attachment in plan.get("attachEvidence", []):
             evidence = evidence_by_id.get(attachment["evidence"])
-            if attachment["event"] not in event_ids or evidence is None:
+            if (attachment["event"] not in event_ids or evidence is None
+                    or registered_evidence.get(attachment["evidence"]) != evidence):
                 started_checks["provenanceCheck"] = False
                 suggestions.append("attach existing evidence to a planned event")
                 continue

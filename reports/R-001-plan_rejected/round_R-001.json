@@ -6,10 +6,10 @@
     "semanticPerception": "semantic_perception_agent"
   },
   "comparison": {
-    "avoidedWritesEstimate": 15,
-    "fullRebuildWritesEstimate": 30,
-    "incrementalWrites": 15,
-    "note": "Logical write-count estimate from this fixture, not a database benchmark."
+    "avoidedWritesEstimate": 14,
+    "fullRebuildWritesEstimate": 36,
+    "incrementalWrites": 22,
+    "note": "按节点、关系、类型、证据来源记录及状态关闭计数；全量为本案例逻辑项估算，不代表数据库基准测试。"
   },
   "deltaSemantics": {
     "areaId": "A-03",
@@ -118,6 +118,7 @@
     "validTo": "2026-11-11T10:19:00+08:00",
     "vesselId": "V-017"
   },
+  "demoMode": "plan_rejected",
   "evolutionProposal": {
     "baseOntologyVersion": "00",
     "createdAt": "2026-11-11T10:19:10+08:00",
@@ -156,7 +157,8 @@
       {
         "id": "R3",
         "name": "suspected_illegal_fishing_candidate",
-        "swrl": "hasPotentialIllegalActivity(?v, ?a) ^ durationSeconds(?s, ?d) ^ swrlb:greaterThan(?d, 600) ^ travelDistance(?s, ?m) ^ swrlb:lessThan(?m, 0.5) -> SuspectedIllegalFishingActivity(?e)",
+        "plannerAction": "materialize SuspectedIllegalFishingActivity using the deterministic event ID",
+        "swrlPattern": "hasPotentialIllegalActivity(?v, ?a) ^ hasState(?v, ?s) ^ durationSeconds(?s, ?d) ^ swrlb:greaterThan(?d, 600) ^ travelDistance(?s, ?m) ^ swrlb:lessThan(?m, 0.5)",
         "then": {
           "eventType": "SuspectedIllegalFishingActivity"
         },
@@ -206,7 +208,7 @@
         "R2",
         "R3"
       ],
-      "validationEngine": "mvp_owl_constraint_checker"
+      "validationEngine": "HermiT"
     },
     "recommendation": "Keep the current thresholds; review the candidate event before treating it as confirmed.",
     "reviewStatus": "pending",
@@ -360,11 +362,11 @@
     }
   ],
   "metricsMs": {
-    "endToEnd": 3.547,
-    "execution": 0.23,
-    "ontologyEvolutionAndConsistency": 0.369,
-    "planValidation": 0.059,
-    "semanticPerception": 0.035
+    "endToEnd": 824.553,
+    "execution": 0.301,
+    "ontologyEvolutionAndConsistency": 787.924,
+    "planValidation": 0.403,
+    "semanticPerception": 0.038
   },
   "ontologyToolAudit": [
     {
@@ -390,6 +392,8 @@
     }
   ],
   "ontologyValidation": {
+    "cacheHit": false,
+    "cachedDurationMs": null,
     "checks": {
       "baseVersion": true,
       "classHierarchy": true,
@@ -398,8 +402,10 @@
       "ruleReferences": true
     },
     "consistent": true,
-    "engine": "mvp_owl_constraint_checker",
-    "hermitExecuted": false,
+    "durationMs": 778.586,
+    "engine": "HermiT",
+    "hermitExecuted": true,
+    "hermitResultUsed": true,
     "ontologyVersion": "01",
     "proposalId": "EP-001",
     "reason": null,
@@ -407,6 +413,384 @@
     "violatedConstraints": []
   },
   "ontologyVersion": "01",
+  "planHistory": [
+    {
+      "plan": {
+        "assertRelations": [
+          {
+            "o": "S-017-1",
+            "p": "hasState",
+            "s": "V-017"
+          },
+          {
+            "o": "A-03",
+            "p": "hasPotentialIllegalActivity",
+            "s": "V-017"
+          },
+          {
+            "o": "V-017",
+            "p": "hasSubject",
+            "s": "E-017"
+          },
+          {
+            "o": "A-03",
+            "p": "hasObject",
+            "s": "E-017"
+          },
+          {
+            "o": "T3",
+            "p": "hasInstant",
+            "s": "E-017"
+          }
+        ],
+        "assertTypes": [
+          {
+            "id": "S-017-1",
+            "type": "LoiteringState"
+          },
+          {
+            "id": "E-017",
+            "type": "SuspectedIllegalFishingActivity"
+          }
+        ],
+        "attachEvidence": [
+          {
+            "event": "E-017",
+            "evidence": "EV-AIS-1006"
+          },
+          {
+            "event": "E-017",
+            "evidence": "EV-RADAR-1006"
+          },
+          {
+            "event": "E-017",
+            "evidence": "EV-AIS-1012"
+          },
+          {
+            "event": "E-017",
+            "evidence": "EV-RADAR-1012"
+          },
+          {
+            "event": "E-017",
+            "evidence": "EV-AIS-1019"
+          },
+          {
+            "event": "E-017",
+            "evidence": "EV-RADAR-1019"
+          }
+        ],
+        "baseOntologyVersion": "01",
+        "closeStates": [
+          {
+            "id": "S-017-0",
+            "validTo": "2026-11-11T10:06:00+08:00"
+          }
+        ],
+        "createIndividuals": [
+          {
+            "id": "S-017-1",
+            "properties": {
+              "durationSeconds": 780,
+              "speed": 0.7,
+              "travelDistance": 0.2,
+              "validFrom": "2026-11-11T10:06:00+08:00",
+              "validTo": null
+            },
+            "type": "LoiteringState"
+          },
+          {
+            "id": "E-017",
+            "properties": {
+              "confidence": 0.9,
+              "reviewStatus": "pending"
+            },
+            "type": "UndeclaredEventType"
+          }
+        ],
+        "evidenceRecords": [
+          {
+            "confidence": 0.95,
+            "id": "EV-AIS-1006",
+            "source": "AIS",
+            "subject": "V-017",
+            "timestamp": "2026-11-11T10:06:00+08:00",
+            "type": "AIS"
+          },
+          {
+            "confidence": 0.9,
+            "id": "EV-RADAR-1006",
+            "source": "Radar",
+            "subject": "V-017",
+            "timestamp": "2026-11-11T10:06:10+08:00",
+            "type": "Radar"
+          },
+          {
+            "confidence": 0.96,
+            "id": "EV-AIS-1012",
+            "source": "AIS",
+            "subject": "V-017",
+            "timestamp": "2026-11-11T10:12:00+08:00",
+            "type": "AIS"
+          },
+          {
+            "confidence": 0.91,
+            "id": "EV-RADAR-1012",
+            "source": "Radar",
+            "subject": "V-017",
+            "timestamp": "2026-11-11T10:12:10+08:00",
+            "type": "Radar"
+          },
+          {
+            "confidence": 0.95,
+            "id": "EV-AIS-1019",
+            "source": "AIS",
+            "subject": "V-017",
+            "timestamp": "2026-11-11T10:19:00+08:00",
+            "type": "AIS"
+          },
+          {
+            "confidence": 0.92,
+            "id": "EV-RADAR-1019",
+            "source": "Radar",
+            "subject": "V-017",
+            "timestamp": "2026-11-11T10:19:10+08:00",
+            "type": "Radar"
+          }
+        ],
+        "expectedSubgraph": [
+          "V-017",
+          "A-03",
+          "S-017-0",
+          "S-017-1",
+          "E-017"
+        ],
+        "planId": "P1",
+        "replanAttempt": 1,
+        "replanFeedback": [],
+        "ruleHits": [
+          "R1",
+          "R2",
+          "R3"
+        ],
+        "temporalValues": [
+          {
+            "id": "T3",
+            "timestamp": "2026-11-11T10:19:00+08:00"
+          }
+        ]
+      },
+      "validation": {
+        "checks": {
+          "domainRangeCheck": true,
+          "impactSubgraphCheck": true,
+          "mutualExclusionCheck": true,
+          "provenanceCheck": true,
+          "ruleReferenceCheck": true,
+          "temporalCheck": true,
+          "typeCheck": false
+        },
+        "ontologyVersion": "01",
+        "passed": false,
+        "planId": "P1",
+        "suggestions": [
+          "use a declared class for E-017"
+        ],
+        "validatorAgent": "ontology_evolution_agent"
+      }
+    },
+    {
+      "plan": {
+        "assertRelations": [
+          {
+            "o": "S-017-1",
+            "p": "hasState",
+            "s": "V-017"
+          },
+          {
+            "o": "A-03",
+            "p": "hasPotentialIllegalActivity",
+            "s": "V-017"
+          },
+          {
+            "o": "V-017",
+            "p": "hasSubject",
+            "s": "E-017"
+          },
+          {
+            "o": "A-03",
+            "p": "hasObject",
+            "s": "E-017"
+          },
+          {
+            "o": "T3",
+            "p": "hasInstant",
+            "s": "E-017"
+          }
+        ],
+        "assertTypes": [
+          {
+            "id": "S-017-1",
+            "type": "LoiteringState"
+          },
+          {
+            "id": "E-017",
+            "type": "SuspectedIllegalFishingActivity"
+          }
+        ],
+        "attachEvidence": [
+          {
+            "event": "E-017",
+            "evidence": "EV-AIS-1006"
+          },
+          {
+            "event": "E-017",
+            "evidence": "EV-RADAR-1006"
+          },
+          {
+            "event": "E-017",
+            "evidence": "EV-AIS-1012"
+          },
+          {
+            "event": "E-017",
+            "evidence": "EV-RADAR-1012"
+          },
+          {
+            "event": "E-017",
+            "evidence": "EV-AIS-1019"
+          },
+          {
+            "event": "E-017",
+            "evidence": "EV-RADAR-1019"
+          }
+        ],
+        "baseOntologyVersion": "01",
+        "closeStates": [
+          {
+            "id": "S-017-0",
+            "validTo": "2026-11-11T10:06:00+08:00"
+          }
+        ],
+        "createIndividuals": [
+          {
+            "id": "S-017-1",
+            "properties": {
+              "durationSeconds": 780,
+              "speed": 0.7,
+              "travelDistance": 0.2,
+              "validFrom": "2026-11-11T10:06:00+08:00",
+              "validTo": null
+            },
+            "type": "LoiteringState"
+          },
+          {
+            "id": "E-017",
+            "properties": {
+              "confidence": 0.9,
+              "reviewStatus": "pending"
+            },
+            "type": "SuspectedIllegalFishingActivity"
+          }
+        ],
+        "evidenceRecords": [
+          {
+            "confidence": 0.95,
+            "id": "EV-AIS-1006",
+            "source": "AIS",
+            "subject": "V-017",
+            "timestamp": "2026-11-11T10:06:00+08:00",
+            "type": "AIS"
+          },
+          {
+            "confidence": 0.9,
+            "id": "EV-RADAR-1006",
+            "source": "Radar",
+            "subject": "V-017",
+            "timestamp": "2026-11-11T10:06:10+08:00",
+            "type": "Radar"
+          },
+          {
+            "confidence": 0.96,
+            "id": "EV-AIS-1012",
+            "source": "AIS",
+            "subject": "V-017",
+            "timestamp": "2026-11-11T10:12:00+08:00",
+            "type": "AIS"
+          },
+          {
+            "confidence": 0.91,
+            "id": "EV-RADAR-1012",
+            "source": "Radar",
+            "subject": "V-017",
+            "timestamp": "2026-11-11T10:12:10+08:00",
+            "type": "Radar"
+          },
+          {
+            "confidence": 0.95,
+            "id": "EV-AIS-1019",
+            "source": "AIS",
+            "subject": "V-017",
+            "timestamp": "2026-11-11T10:19:00+08:00",
+            "type": "AIS"
+          },
+          {
+            "confidence": 0.92,
+            "id": "EV-RADAR-1019",
+            "source": "Radar",
+            "subject": "V-017",
+            "timestamp": "2026-11-11T10:19:10+08:00",
+            "type": "Radar"
+          }
+        ],
+        "expectedSubgraph": [
+          "V-017",
+          "A-03",
+          "S-017-0",
+          "S-017-1",
+          "E-017"
+        ],
+        "planId": "P1",
+        "replanAttempt": 2,
+        "replanFeedback": [
+          "use a declared class for E-017"
+        ],
+        "replanRepairs": [
+          {
+            "action": "restoreEventType",
+            "id": "E-017",
+            "suggestion": "use a declared class for E-017",
+            "type": "SuspectedIllegalFishingActivity"
+          }
+        ],
+        "ruleHits": [
+          "R1",
+          "R2",
+          "R3"
+        ],
+        "temporalValues": [
+          {
+            "id": "T3",
+            "timestamp": "2026-11-11T10:19:00+08:00"
+          }
+        ]
+      },
+      "validation": {
+        "checks": {
+          "domainRangeCheck": true,
+          "impactSubgraphCheck": true,
+          "mutualExclusionCheck": true,
+          "provenanceCheck": true,
+          "ruleReferenceCheck": true,
+          "temporalCheck": true,
+          "typeCheck": true
+        },
+        "ontologyVersion": "01",
+        "passed": true,
+        "planId": "P1",
+        "suggestions": [],
+        "validatorAgent": "ontology_evolution_agent"
+      }
+    }
+  ],
   "planValidation": {
     "checks": {
       "domainRangeCheck": true,
@@ -445,6 +829,14 @@
     {
       "detail": "ontology_evolution_agent.validate_plan",
       "state": "PLAN_VALIDATING"
+    },
+    {
+      "detail": "use a declared class for E-017",
+      "state": "PLAN_REJECTED"
+    },
+    {
+      "detail": "attempt 2",
+      "state": "REPLANNING"
     },
     {
       "detail": "plan validation passed in ontology evolution agent",
@@ -613,8 +1005,18 @@
       "E-017"
     ],
     "planId": "P1",
-    "replanAttempt": 1,
-    "replanFeedback": [],
+    "replanAttempt": 2,
+    "replanFeedback": [
+      "use a declared class for E-017"
+    ],
+    "replanRepairs": [
+      {
+        "action": "restoreEventType",
+        "id": "E-017",
+        "suggestion": "use a declared class for E-017",
+        "type": "SuspectedIllegalFishingActivity"
+      }
+    ],
     "ruleHits": [
       "R1",
       "R2",

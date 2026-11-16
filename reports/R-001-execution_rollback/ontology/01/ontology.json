@@ -10,7 +10,7 @@
       "R2",
       "R3"
     ],
-    "validationEngine": "mvp_owl_constraint_checker"
+    "validationEngine": "HermiT"
   },
   "classes": {
     "Device": null,
@@ -152,7 +152,8 @@
     "R3": {
       "id": "R3",
       "name": "suspected_illegal_fishing_candidate",
-      "swrl": "hasPotentialIllegalActivity(?v, ?a) ^ durationSeconds(?s, ?d) ^ swrlb:greaterThan(?d, 600) ^ travelDistance(?s, ?m) ^ swrlb:lessThan(?m, 0.5) -> SuspectedIllegalFishingActivity(?e)",
+      "plannerAction": "materialize SuspectedIllegalFishingActivity using the deterministic event ID",
+      "swrlPattern": "hasPotentialIllegalActivity(?v, ?a) ^ hasState(?v, ?s) ^ durationSeconds(?s, ?d) ^ swrlb:greaterThan(?d, 600) ^ travelDistance(?s, ?m) ^ swrlb:lessThan(?m, 0.5)",
       "then": {
         "eventType": "SuspectedIllegalFishingActivity"
       },

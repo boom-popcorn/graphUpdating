@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from datetime import datetime
+from copy import deepcopy
+import re
 from typing import Any
 
 from .ontology import OntologyModel
@@ -167,11 +169,65 @@ class DecisionPlanningAgent:
         ontology: OntologyModel,
         graph: dict[str, Any],
     ) -> dict[str, Any]:
-        return self.plan(
-            delta,
-            ontology,
-            graph,
-            feedback=validation_report.get("suggestions", []),
-            attempt=int(previous_plan.get("replanAttempt", 1)) + 1,
-        )
+        # Patch the rejected plan, preserving unrelated decisions and its audit identity.
+        plan = deepcopy(previous_plan)
+        suggestions = list(validation_report.get("suggestions", []))
+        plan["replanAttempt"] = int(previous_plan.get("replanAttempt", 1)) + 1
+        plan["replanFeedback"] = suggestions
+        repairs = []
+        event_type = ontology.rules.get("R3", {}).get("then", {}).get("eventType")
+        for suggestion in suggestions:
+            match = re.fullmatch(r"use a declared class for (.+)", suggestion)
+            assertion_match = re.fullmatch(r"declare (.+) and its individual before asserting the type", suggestion)
+            targets = {match[1]} if match else set()
+            if assertion_match:
+                targets.update(item["id"] for item in plan.get("assertTypes", [])
+                               if item["type"] == assertion_match[1])
+            for individual in plan.get("createIndividuals", []):
+                if individual["id"] not in targets or event_type not in ontology.classes:
+                    continue
+                # Only restore an event justified by the matched rule; never invent a class.
+                if "R3" not in plan.get("ruleHits", []) or not ontology.is_subclass(event_type, "Event"):
+                    continue
+                individual["type"] = event_type
+                assertions = plan.setdefault("assertTypes", [])
+                found = False
+                for assertion in assertions:
+                    if assertion["id"] == individual["id"]:
+                        assertion["type"] = event_type
+                        found = True
+                if not found:
+                    assertions.append({"id": individual["id"], "type": event_type})
+                repairs.append({"suggestion": suggestion, "action": "restoreEventType", "id": individual["id"], "type": event_type})
+
+            if suggestion.startswith("attach "):
+                event_ids = {item["id"] for item in plan.get("createIndividuals", [])
+                             if ontology.is_subclass(item["type"], "Event")}
+                missing = re.fullmatch(r"attach at least one evidence record to (.+)", suggestion)
+                if missing:
+                    event_ids &= {missing[1]}
+                elif suggestion not in {"attach existing evidence to a planned event",
+                                        "attach evidence whose subject matches the event subject"}:
+                    continue
+                evidence = [item for item in delta.get("evidence", [])
+                            if item.get("subject") == delta["vesselId"]]
+                if not event_ids or not evidence:
+                    continue
+                planned_events = {item["id"] for item in plan.get("createIndividuals", [])
+                                  if ontology.is_subclass(item["type"], "Event")}
+                known = {item["id"] for item in evidence}
+                links = [item for item in plan.get("attachEvidence", [])
+                         if item["event"] in planned_events and item["evidence"] in known]
+                for event_id in sorted(event_ids):
+                    for item in evidence:
+                        link = {"event": event_id, "evidence": item["id"]}
+                        if link not in links:
+                            links.append(link)
+                plan["attachEvidence"] = links
+                records = {item["id"]: item for item in plan.get("evidenceRecords", [])}
+                records.update({item["id"]: deepcopy(item) for item in evidence})
+                plan["evidenceRecords"] = list(records.values())
+                repairs.append({"suggestion": suggestion, "action": "restoreEvidence", "events": sorted(event_ids), "evidence": sorted(known)})
+        plan["replanRepairs"] = repairs
+        return plan
 

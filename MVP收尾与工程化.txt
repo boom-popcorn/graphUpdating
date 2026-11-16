@@ -1,0 +1,7 @@
+先把已知边界补掉，否则后面扩展会踩坑。
+1. 修 replan()：当前只是原样重跑。改成真正读 validation_report["suggestions"]，至少能修“事件类型未声明”“证据缺失”两类问题，让 plan_rejected 演示路径能走到“重规划通过”。
+2. 修 record_review()：去掉硬编码 _inferred_types()，改读 OntologyModel.ancestors()。
+3. run_demo.py 加 --mode：支持三种异常模式，出对应报告。
+4. 补测试：web_server 的 /api/run、/api/review、/api/health；playback.py 的8步；io.py 的原子写入。
+5. 统一口径：createdRelations=5 vs 案例“7条断言”的表述，在README和材料里写清楚。
+验收：python -m unittest 全绿；run_demo.py --mode ontology_conflict 能出拒绝报告。

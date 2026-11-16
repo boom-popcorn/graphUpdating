@@ -2,6 +2,7 @@
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 <https://example.org/maritime/ontology/01> a owl:Ontology .
 
@@ -59,6 +60,31 @@ maritime:locatedIn a owl:ObjectProperty ;
     rdfs:domain maritime:Plat ;
     rdfs:range maritime:Env .
 
+maritime:coordinate a owl:DatatypeProperty ;
+    rdfs:domain maritime:Plat ;
+    rdfs:range xsd:string .
+maritime:deviceNumber a owl:DatatypeProperty ;
+    rdfs:domain maritime:Device ;
+    rdfs:range xsd:string .
+maritime:durationSeconds a owl:DatatypeProperty ;
+    rdfs:domain maritime:State ;
+    rdfs:range xsd:integer .
+maritime:speed a owl:DatatypeProperty ;
+    rdfs:domain maritime:State ;
+    rdfs:range xsd:decimal .
+maritime:timestamp a owl:DatatypeProperty ;
+    rdfs:domain maritime:Instant ;
+    rdfs:range xsd:dateTime .
+maritime:travelDistance a owl:DatatypeProperty ;
+    rdfs:domain maritime:State ;
+    rdfs:range xsd:decimal .
+maritime:vesselType a owl:DatatypeProperty ;
+    rdfs:domain maritime:Plat ;
+    rdfs:range xsd:string .
+maritime:weather a owl:DatatypeProperty ;
+    rdfs:domain maritime:Env ;
+    rdfs:range xsd:string .
+
 maritime:R1 a maritime:Rule ; rdfs:label "FishingVessel(?v) ^ hasState(?v, ?s) ^ speed(?s, ?x) ^ swrlb:lessThan(?x, 5) -> LoiteringState(?s)" .
 maritime:R2 a maritime:Rule ; rdfs:label "FishingVessel(?v) ^ hasState(?v, ?s) ^ LoiteringState(?s) ^ locatedIn(?v, ?a) ^ SensitiveArea(?a) -> hasPotentialIllegalActivity(?v, ?a)" .
-maritime:R3 a maritime:Rule ; rdfs:label "hasPotentialIllegalActivity(?v, ?a) ^ durationSeconds(?s, ?d) ^ swrlb:greaterThan(?d, 600) ^ travelDistance(?s, ?m) ^ swrlb:lessThan(?m, 0.5) -> SuspectedIllegalFishingActivity(?e)" .
+maritime:R3 a maritime:Rule ; rdfs:label "hasPotentialIllegalActivity(?v, ?a) ^ hasState(?v, ?s) ^ durationSeconds(?s, ?d) ^ swrlb:greaterThan(?d, 600) ^ travelDistance(?s, ?m) ^ swrlb:lessThan(?m, 0.5)" .

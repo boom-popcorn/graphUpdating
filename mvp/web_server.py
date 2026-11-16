@@ -10,7 +10,6 @@ from pathlib import Path
 from urllib.parse import urlparse
 from typing import Any
 
-from .graph import ActionExecutionAgent, GraphStore
 from .harness import Harness
 from .io import read_json
 
@@ -23,23 +22,27 @@ CURRENT: dict[str, Any] = {"harness": None, "report": None, "temp": None}
 
 def _run(mode: str = "standard") -> dict[str, Any]:
     with LOCK:
-        old_temp = CURRENT.get("temp")
-        if old_temp:
-            old_temp.cleanup()
         temp = tempfile.TemporaryDirectory(prefix="maritime_demo_ui_")
-        working = Path(temp.name)
-        (working / "ontology").mkdir()
-        shutil.copytree(ROOT / "ontology" / "00", working / "ontology" / "00")
-        graph = read_json(ROOT / "data" / "initial_graph.json")
-        harness = Harness(working, graph)
-        scenario = read_json(ROOT / "data" / "observations_R001.json")
-        report = harness.run_round(scenario, demo_mode=mode)
+        try:
+            working = Path(temp.name)
+            (working / "ontology").mkdir()
+            shutil.copytree(ROOT / "ontology" / "00", working / "ontology" / "00")
+            graph = read_json(ROOT / "data" / "initial_graph.json")
+            harness = Harness(working, graph)
+            scenario = read_json(ROOT / "data" / "observations_R001.json")
+            report = harness.run_round(scenario, demo_mode=mode)
+        except Exception:
+            temp.cleanup()
+            raise
+        old_temp = CURRENT.get("temp")
         CURRENT["harness"] = harness
         CURRENT["report"] = report
         CURRENT["temp"] = temp
+        if old_temp:
+            old_temp.cleanup()
         return {
             "report": report,
-            "graph": harness.graph.document,
+            "graph": harness.graph.snapshot(),
             "initialGraph": graph,
             "mode": mode,
         }
@@ -80,15 +83,19 @@ class Handler(BaseHTTPRequestHandler):
         path = urlparse(self.path).path
         try:
             if path == "/api/run":
-                body = self.rfile.read(int(self.headers.get("Content-Length", "0") or "0"))
-                mode = json.loads(body or b"{}").get("mode", "standard")
+                mode = self._read_body().get("mode", "standard")
+                if not isinstance(mode, str):
+                    raise ValueError("mode must be a string")
                 if mode not in {"standard", "ontology_conflict", "plan_rejected", "execution_rollback"}:
                     self._json(400, {"error": "unsupported demo mode"})
                     return
                 self._json(200, _run(mode))
                 return
             if path == "/api/review":
-                body = json.loads(self.rfile.read(int(self.headers.get("Content-Length", "0") or "0")) or b"{}")
+                body = self._read_body()
+                for field in ("eventId", "status", "reason"):
+                    if field in body and not isinstance(body[field], str):
+                        raise ValueError(f"{field} must be a string")
                 with LOCK:
                     harness = CURRENT.get("harness")
                     if harness is None:
@@ -102,8 +109,19 @@ class Handler(BaseHTTPRequestHandler):
                     self._json(200, {"review": result, "graph": harness.graph.document})
                 return
             self._json(404, {"error": "not found"})
+        except (ValueError, UnicodeDecodeError) as exc:
+            self._json(400, {"error": str(exc), "type": type(exc).__name__})
         except Exception as exc:
             self._json(500, {"error": str(exc), "type": type(exc).__name__})
+
+    def _read_body(self) -> dict[str, Any]:
+        length = int(self.headers.get("Content-Length", "0") or "0")
+        if not 0 <= length <= 1024 * 1024:
+            raise ValueError("request body must be at most 1 MiB")
+        body = json.loads(self.rfile.read(length) or b"{}")
+        if not isinstance(body, dict):
+            raise ValueError("request body must be a JSON object")
+        return body
 
 
 def main() -> None:

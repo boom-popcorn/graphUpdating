@@ -1,4 +1,6 @@
 {
+  "cacheHit": false,
+  "cachedDurationMs": null,
   "checks": {
     "baseVersion": true,
     "classHierarchy": true,
@@ -7,8 +9,10 @@
     "ruleReferences": true
   },
   "consistent": true,
-  "engine": "mvp_owl_constraint_checker",
-  "hermitExecuted": false,
+  "durationMs": 778.586,
+  "engine": "HermiT",
+  "hermitExecuted": true,
+  "hermitResultUsed": true,
   "ontologyVersion": "01",
   "proposalId": "EP-001",
   "reason": null,

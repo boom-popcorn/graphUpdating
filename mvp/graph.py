@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from .io import write_json
+from .ontology import OntologyModel
 
 
 class ToolExecutionError(RuntimeError):
@@ -171,8 +172,9 @@ class MCPToolbox:
 class ActionExecutionAgent:
     name = "action_execution_agent"
 
-    def __init__(self, graph: GraphStore):
+    def __init__(self, graph: GraphStore, ontology: OntologyModel | None = None):
         self.toolbox = MCPToolbox(graph)
+        self.ontology = ontology
 
     def execute(self, plan: dict[str, Any], fail_after_operations: int | None = None) -> dict[str, Any]:
         return self.toolbox.execute_plan(plan, fail_after_operations)
@@ -181,16 +183,14 @@ class ActionExecutionAgent:
         if status not in {"confirmed", "rejected"}:
             raise ValueError("review status must be 'confirmed' or 'rejected'")
         graph = self.toolbox.graph
+        if self.ontology is None:
+            raise ValueError("an ontology model is required for event review")
         node = graph.document.get("nodes", {}).get(event_id)
-        if node is None or "Event" not in self._inferred_types(node.get("types", []), graph.document):
+        if node is None or "Event" not in self.ontology.inferred_types(set(node.get("types", []))):
             raise ValueError(f"unknown event {event_id}")
-        node["properties"]["reviewStatus"] = status
+        node.setdefault("properties", {})["reviewStatus"] = status
         node["properties"]["reviewReason"] = reason
         graph.document.setdefault("feedback", []).append({"event": event_id, "status": status, "reason": reason})
         return {"event": event_id, "status": status, "reason": reason, "eventRetained": True}
 
-    @staticmethod
-    def _inferred_types(types: list[str], _graph: dict[str, Any]) -> set[str]:
-        # The review endpoint only needs the explicit event family for this MVP.
-        return set(types) | ({"Event", "FishingEvent"} if "SuspectedIllegalFishingActivity" in types else set())
 

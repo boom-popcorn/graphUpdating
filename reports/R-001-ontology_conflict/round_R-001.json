@@ -1,0 +1,221 @@
+{
+  "comparison": {
+    "avoidedWritesEstimate": 15,
+    "fullRebuildWritesEstimate": 15,
+    "incrementalWrites": 0,
+    "note": "按节点、关系、类型、证据来源记录及状态关闭计数；全量为本案例逻辑项估算，不代表数据库基准测试。"
+  },
+  "deltaSemantics": {
+    "areaId": "A-03",
+    "areaSensitive": true,
+    "entities": [
+      {
+        "id": "V-017",
+        "type": "FishingVessel"
+      },
+      {
+        "id": "A-03",
+        "type": "SensitiveArea"
+      },
+      {
+        "id": "S-017-1",
+        "type": "State"
+      }
+    ],
+    "evidence": [
+      {
+        "confidence": 0.95,
+        "id": "EV-AIS-1006",
+        "source": "AIS",
+        "subject": "V-017",
+        "timestamp": "2026-11-11T10:06:00+08:00",
+        "type": "AIS"
+      },
+      {
+        "confidence": 0.9,
+        "id": "EV-RADAR-1006",
+        "source": "Radar",
+        "subject": "V-017",
+        "timestamp": "2026-11-11T10:06:10+08:00",
+        "type": "Radar"
+      },
+      {
+        "confidence": 0.96,
+        "id": "EV-AIS-1012",
+        "source": "AIS",
+        "subject": "V-017",
+        "timestamp": "2026-11-11T10:12:00+08:00",
+        "type": "AIS"
+      },
+      {
+        "confidence": 0.91,
+        "id": "EV-RADAR-1012",
+        "source": "Radar",
+        "subject": "V-017",
+        "timestamp": "2026-11-11T10:12:10+08:00",
+        "type": "Radar"
+      },
+      {
+        "confidence": 0.95,
+        "id": "EV-AIS-1019",
+        "source": "AIS",
+        "subject": "V-017",
+        "timestamp": "2026-11-11T10:19:00+08:00",
+        "type": "AIS"
+      },
+      {
+        "confidence": 0.92,
+        "id": "EV-RADAR-1019",
+        "source": "Radar",
+        "subject": "V-017",
+        "timestamp": "2026-11-11T10:19:10+08:00",
+        "type": "Radar"
+      }
+    ],
+    "relations": [
+      {
+        "o": "A-03",
+        "p": "locatedIn",
+        "s": "V-017"
+      },
+      {
+        "o": "S-017-1",
+        "p": "hasState",
+        "s": "V-017"
+      }
+    ],
+    "roundId": "R-001",
+    "states": [
+      {
+        "distanceUnit": "nm",
+        "durationSeconds": 780,
+        "id": "S-017-1",
+        "of": "V-017",
+        "speed": 0.7,
+        "travelDistance": 0.2,
+        "unit": "kn",
+        "validFrom": "2026-11-11T10:06:00+08:00",
+        "validTo": null
+      }
+    ],
+    "temporalEntities": [
+      {
+        "id": "T3",
+        "timestamp": "2026-11-11T10:19:00+08:00"
+      }
+    ],
+    "timestamp": "2026-11-11T10:19:10+08:00",
+    "unknownSemantics": [
+      "敏感海域持续低速小范围徘徊"
+    ],
+    "validFrom": "2026-11-11T10:06:00+08:00",
+    "validTo": "2026-11-11T10:19:00+08:00",
+    "vesselId": "V-017"
+  },
+  "demoMode": "ontology_conflict",
+  "evolutionProposal": {
+    "baseOntologyVersion": "00",
+    "createdAt": "2026-11-11T10:19:10+08:00",
+    "newClasses": [
+      {
+        "id": "SuspectedIllegalFishingActivity",
+        "parent": "FishingEvent"
+      }
+    ],
+    "newObjectProperties": [
+      {
+        "domain": "Plat",
+        "id": "hasPotentialIllegalActivity",
+        "range": "State"
+      }
+    ],
+    "newRules": [
+      "R2",
+      "R3"
+    ],
+    "proposalId": "EP-001",
+    "rationale": "Add the event class, risk relation, and rules required by the newly observed behavior.",
+    "ruleDefinitions": [
+      {
+        "id": "R2",
+        "name": "sensitive_area_risk",
+        "swrl": "FishingVessel(?v) ^ hasState(?v, ?s) ^ LoiteringState(?s) ^ locatedIn(?v, ?a) ^ SensitiveArea(?a) -> hasPotentialIllegalActivity(?v, ?a)",
+        "then": {
+          "relation": "hasPotentialIllegalActivity"
+        },
+        "when": {
+          "inSensitiveArea": true,
+          "stateType": "LoiteringState"
+        }
+      },
+      {
+        "id": "R3",
+        "name": "suspected_illegal_fishing_candidate",
+        "plannerAction": "materialize SuspectedIllegalFishingActivity using the deterministic event ID",
+        "swrlPattern": "hasPotentialIllegalActivity(?v, ?a) ^ hasState(?v, ?s) ^ durationSeconds(?s, ?d) ^ swrlb:greaterThan(?d, 600) ^ travelDistance(?s, ?m) ^ swrlb:lessThan(?m, 0.5)",
+        "then": {
+          "eventType": "SuspectedIllegalFishingActivity"
+        },
+        "when": {
+          "durationSecondsGreaterThan": 600,
+          "travelDistanceLessThan": 0.5
+        }
+      }
+    ],
+    "validationFacts": [
+      {
+        "o": "A-03",
+        "p": "hasPotentialIllegalActivity",
+        "s": "V-017"
+      }
+    ]
+  },
+  "metricsMs": {
+    "endToEnd": 836.879,
+    "execution": 0,
+    "ontologyEvolutionAndConsistency": 836.823,
+    "planValidation": 0,
+    "semanticPerception": 0.041
+  },
+  "ontologyValidation": {
+    "cacheHit": false,
+    "cachedDurationMs": null,
+    "checks": {
+      "baseVersion": true,
+      "classHierarchy": true,
+      "disjointness": false,
+      "domainRangeDeclarations": true,
+      "ruleReferences": true
+    },
+    "consistent": false,
+    "durationMs": 840.62,
+    "engine": "HermiT",
+    "hermitExecuted": true,
+    "hermitResultUsed": true,
+    "proposalId": "EP-001",
+    "reason": "HermiT found the candidate ontology and graph assertions inconsistent",
+    "unsatisfiableClasses": [],
+    "violatedConstraints": [
+      "HermiT found the candidate ontology and graph assertions inconsistent"
+    ]
+  },
+  "ontologyVersion": "00",
+  "planValidation": null,
+  "roundId": "R-001",
+  "status": "REJECTED",
+  "trace": [
+    {
+      "detail": "semantic_perception_agent",
+      "state": "PERCEIVING"
+    },
+    {
+      "detail": "ontology_evolution_agent",
+      "state": "ONTOLOGY_EVOLVING"
+    },
+    {
+      "detail": "HermiT found the candidate ontology and graph assertions inconsistent",
+      "state": "ONTOLOGY_REJECTED"
+    }
+  ],
+  "updatePlan": null
+}

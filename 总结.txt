@@ -1,0 +1,50 @@
+一、四份代码怎么串起来（agents.py/ontology.py/graph.py/harness.py）
+harness.run_round(raw)
+  │
+  ├─ agents.SemanticPerceptionAgent.perceive(raw)
+  │     → delta {states, relations, evidence, temporalEntities}
+  │
+  ├─ ontology.OntologyAgent.propose(delta, current)
+  │     → proposal {newClasses, newProperties, newRules}
+  │
+  ├─ ontology.OntologyAgent.validate_ontology(...)
+  │     → checker.validate_proposal()
+  │         → 静态检查 + _abox_turtle() + _reason() 调 HermiT
+  │     → report {consistent, hermitExecuted, checks}
+  │     → 通过则 updated OntologyModel(01)
+  │
+  ├─ ontology.OntologyAgent.publish(updated, report)
+  │     → 写 01/ontology.json、ontology.ttl、validation_report.json、versions.json
+  │
+  ├─ agents.DecisionPlanningAgent.plan(delta, updated, graph)
+  │     → plan {closeStates, createIndividuals, assertRelations, attachEvidence}
+  │
+  ├─ ontology.OntologyAgent.validate_plan(plan, updated, graph, delta)
+  │     → 七项检查 → plan_report {passed, checks, suggestions}
+  │     → 失败则 agents.replan() 再来一次
+  │
+  ├─ graph.ActionExecutionAgent.execute(plan)
+  │     → MCPToolbox.execute_plan()
+  │         → 幂等检查 → staged 副本 → 六类操作 → commit/rollback
+  │     → result {commitId, createdNodes, createdRelations, ...}
+  │
+  └─ 组装 report + metrics + trace + comparison
+
+二、设计亮点与你要注意的边界
+（1）亮点：
+1. HermiT 是真调用，不是假校验；JAR 找不到就抛异常，不降级。
+2. 一致性校验确实归本体演化：validate_plan 在 OntologyAgent 里，决策规划只生成计划。
+3. 事务/幂等/回滚/审计四件套齐全：staged 副本、appliedPlans 幂等键、fail_after_operations 故障注入、audit 每步记录。
+4. 消息结构化：智能体之间只传字典，不传自然语言，可回放、可测试。
+5. 异常路径可演示：三种 demo_mode 都有代码支撑，不是界面假动画。
+6. 诚实标注边界：comparison.note 写明“逻辑项估算，不代表数据库基准”。
+（2）边界（演示/写材料时要主动说明）：
+1. 提案生成是硬编码模板，不是大模型；大模型生成是后续扩展，MVP 验证的是“提案→校验→发布”机制。
+2. SWRL 只登记为 rdfs:label 字符串，HermiT 不执行规则推理；规则匹配在 DecisionPlanningAgent.plan() 的 Python 里。
+3. 图存储是内存 JSON，不是图数据库；验证逻辑，不验证性能。
+4. replan() 读取 suggestions，在被拒计划副本上修复事件类型与证据问题，并记录 replanRepairs；Harness 保留 planHistory，修复后重新校验。当前是有限的确定性修复，不是大模型自主规划。
+5. record_review() 读取执行智能体持有的当前本体，经 OntologyModel.inferred_types()/ancestors() 判断事件类型；本体发布后同步更新引用。
+6. _comparison_metrics 是全量估算，不是真实数据库基准；写论文时不能当性能数据用。
+
+三、一句话总结
+agents.py 是感知和规划两个工人，ontology.py 是本体模型+真 HermiT 质检+计划七项校验+版本发布，graph.py 是内存仓库+MCP 工具的事务/幂等/回滚/审计，harness.py 是状态机主任按“感知→演化→校验→规划→计划校验→执行→反馈”串起一轮，任何一步失败都出可审计的拒绝报告。

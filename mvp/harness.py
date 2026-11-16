@@ -21,7 +21,7 @@ class Harness:
             graph_document = read_json(root / "data" / "initial_graph.json")
         self.initial_graph = deepcopy(graph_document)
         self.graph = GraphStore(graph_document)
-        self.execution_agent = ActionExecutionAgent(self.graph)
+        self.execution_agent = ActionExecutionAgent(self.graph, self.ontology_agent.load_current())
 
     def _comparison_metrics(self, execution: dict[str, Any] | None = None) -> dict[str, Any]:
         graph = self.graph.document
@@ -85,6 +85,7 @@ class Harness:
             return result
 
         self.ontology_agent.publish(updated, ontology_report)
+        self.execution_agent.ontology = updated
         transition("ONTOLOGY_VALIDATED", f"published ontology version {updated.version}")
 
         transition("PLANNING", self.planning_agent.name)
@@ -94,6 +95,7 @@ class Harness:
         transition("PLAN_VALIDATING", f"{self.ontology_agent.name}.validate_plan")
         t0 = perf_counter()
         plan_report = self.ontology_agent.validate_plan(plan, updated, self.graph.document, delta)
+        plan_history = [{"plan": deepcopy(plan), "validation": deepcopy(plan_report)}]
         plan_validation_ms = round((perf_counter() - t0) * 1000, 3)
         if not plan_report["passed"]:
             transition("PLAN_REJECTED", "; ".join(plan_report["suggestions"]))
@@ -101,12 +103,15 @@ class Harness:
             transition("REPLANNING", f"attempt {plan['replanAttempt']}")
             t0 = perf_counter()
             plan_report = self.ontology_agent.validate_plan(plan, updated, self.graph.document, delta)
+            plan_history.append({"plan": deepcopy(plan), "validation": deepcopy(plan_report)})
             plan_validation_ms += round((perf_counter() - t0) * 1000, 3)
             if not plan_report["passed"]:
                 transition("PLAN_REJECTED", "; ".join(plan_report["suggestions"]))
                 result = self._rejection_report(raw, delta, proposal, ontology_report, trace, started, perception_ms, ontology_ms, plan, plan_report, plan_validation_ms)
                 result["demoMode"] = demo_mode
                 result["comparison"] = self._comparison_metrics()
+                result["planHistory"] = plan_history
+                result["ontologyVersion"] = updated.version
                 return result
 
         transition("PLAN_VALIDATED", "plan validation passed in ontology evolution agent")
@@ -141,6 +146,7 @@ class Harness:
             "ontologyVersion": updated.version,
             "updatePlan": plan,
             "planValidation": plan_report,
+            "planHistory": plan_history,
             "executionResult": result,
             "mcpToolAudit": self.execution_agent.toolbox.audit,
             "feedback": {
@@ -178,6 +184,7 @@ class Harness:
         return {
             "roundId": raw["roundId"],
             "status": "REJECTED",
+            "ontologyVersion": ontology_report.get("ontologyVersion") if plan is not None else proposal["baseOntologyVersion"],
             "deltaSemantics": delta,
             "evolutionProposal": proposal,
             "ontologyValidation": ontology_report,

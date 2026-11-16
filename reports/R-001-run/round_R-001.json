@@ -362,11 +362,11 @@
     }
   ],
   "metricsMs": {
-    "endToEnd": 723.702,
-    "execution": 0.626,
-    "ontologyEvolutionAndConsistency": 704.835,
-    "planValidation": 0.158,
-    "semanticPerception": 0.031
+    "endToEnd": 1217.984,
+    "execution": 0.529,
+    "ontologyEvolutionAndConsistency": 1208.496,
+    "planValidation": 0.12,
+    "semanticPerception": 0.041
   },
   "ontologyToolAudit": [
     {
@@ -402,7 +402,7 @@
       "ruleReferences": true
     },
     "consistent": true,
-    "durationMs": 703.533,
+    "durationMs": 1204.069,
     "engine": "HermiT",
     "hermitExecuted": true,
     "hermitResultUsed": true,

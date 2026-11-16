@@ -103,6 +103,7 @@ class PlaybackSession:
             return
 
         self.harness.ontology_agent.publish(self.updated, self.ontology_report)
+        self.harness.execution_agent.ontology = self.updated
         self.status = "ONTOLOGY_VALIDATED"
         self.title = "本体演化通过逻辑检查"
         self.summary = "新增事件概念、区域风险关系和规则；HermiT 检查通过，知识版本 00 → 01。图谱仍未写入。"

@@ -10,7 +10,7 @@ from pathlib import Path
 from mvp.graph import ActionExecutionAgent, GraphStore
 from mvp.harness import Harness
 from mvp.io import read_json
-from mvp.ontology import OntologyModel
+from mvp.ontology import OntologyConsistencyChecker, OntologyModel
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -121,6 +121,8 @@ class MvpTests(unittest.TestCase):
         self.assertIsNone(candidate)
 
     def test_demo_branches_run_real_reasoner_replanning_and_rollback(self) -> None:
+        # This assertion requires a fresh Java execution, independent of test order.
+        OntologyConsistencyChecker._cache.clear()
         conflict = self.new_harness().run_round(self.scenario(), demo_mode="ontology_conflict")
         self.assertEqual(conflict["status"], "REJECTED")
         self.assertTrue(conflict["ontologyValidation"]["hermitResultUsed"])
