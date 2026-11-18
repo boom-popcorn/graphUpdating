@@ -1,0 +1,8 @@
+metric,value,unit
+semanticPerception,6.025,ms
+ontologyEvolutionAndConsistency,986.272,ms
+planValidation,1.281,ms
+execution,1.152,ms
+endToEnd,1016.652,ms
+incrementalWrites,128,logical_operations
+fullRebuildWritesEstimate,142,logical_operations

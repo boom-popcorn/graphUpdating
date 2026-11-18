@@ -277,6 +277,22 @@ class CLITests(ScenarioTest):
 
 
 class HTTPTests(unittest.TestCase):
+    def test_extended_scenario_and_ontology_review_api(self):
+        self.assertEqual(self.request("POST", "/api/ontology-review", {})[0], 409)
+        for scenario_name in ([], "unknown", True):
+            self.assertEqual(self.request("POST", "/api/run", {"scenario": scenario_name})[0], 400)
+        status, result = self.request("POST", "/api/run", {"scenario": "disguised"})
+        self.assertEqual(status, 200)
+        report = result["report"]
+        self.assertEqual(report["updatePlan"]["threatSummary"]["threatLevel"], "high")
+        body = {"version": report["ontologyVersion"], "status": "approved",
+                "reviewer": "API test reviewer", "reason": "Test record only"}
+        status, review = self.request("POST", "/api/ontology-review", body)
+        self.assertEqual(status, 200)
+        self.assertEqual(review["status"], "approved")
+        body["version"] = "../00"
+        self.assertEqual(self.request("POST", "/api/ontology-review", body)[0], 400)
+
     @classmethod
     def setUpClass(cls):
         cls.server = ThreadingHTTPServer(("127.0.0.1", 0), web_server.Handler)

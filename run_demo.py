@@ -87,6 +87,7 @@ def run(input_path: Path, output_dir: Path, mode: str = "standard", texts_path: 
         "createdTypeAssertions": execution.get("createdTypeAssertions"),
         "attachedEvidence": execution.get("attachedEvidence"),
         "textSummary": (report.get("updatePlan") or {}).get("textSummary", {}),
+        "threatSummary": (report.get("updatePlan") or {}).get("threatSummary", {}),
         "report": str(output_dir / f"round_{raw['roundId']}.json"),
     }, ensure_ascii=False, indent=2))
     return report
@@ -94,14 +95,21 @@ def run(input_path: Path, output_dir: Path, mode: str = "standard", texts_path: 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run the maritime KG update MVP demo.")
-    parser.add_argument("--input", type=Path, default=ROOT / "data" / "observations_R001.json")
+    parser.add_argument("--input", type=Path, default=None)
     parser.add_argument("--mode", choices=MODES, default="standard")
     parser.add_argument("--texts", type=Path, help="Optional text evidence JSON; e.g. data/texts_R001.json")
     parser.add_argument("--ontology-dir", type=Path, help="Start from published ontology versions in this directory")
     parser.add_argument("--output-dir", type=Path, default=None)
+    parser.add_argument("--scenario", choices=("disguised", "insufficient"), help="Run an extended threat scenario")
     args = parser.parse_args()
     name = "R-001-run" if args.mode == "standard" else f"R-001-{args.mode}"
     output_dir = args.output_dir or ROOT / "reports" / (name + ("-text" if args.texts else ""))
+    if args.scenario and args.input is not None:
+        parser.error("--scenario cannot be combined with --input")
+    if args.scenario:
+        args.input = ROOT / "data" / f"observations_{args.scenario}.json"
+        output_dir = args.output_dir or ROOT / "reports" / f"R-001-{args.scenario}-{args.mode}"
+    args.input = args.input or ROOT / "data" / "observations_R001.json"
     run(args.input, output_dir, args.mode, args.texts, args.ontology_dir)
 
 

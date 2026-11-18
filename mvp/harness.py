@@ -153,6 +153,7 @@ class Harness:
                 "ontologyChanges": updated.document["changeLog"],
                 "ruleHits": plan["ruleHits"],
                 "textSummary": plan.get("textSummary", {}),
+                "threatSummary": plan.get("threatSummary", {}),
                 "reviewStatus": "pending" if "E-017" in self.graph.document["nodes"] else None,
                 "recommendation": "Keep the current thresholds; review the candidate event before treating it as confirmed.",
             },

@@ -1,0 +1,109 @@
+test_concurrent_writers_use_unique_staging_files (test_engineering.AtomicIOTests) ... ok
+test_json_and_text_roundtrip_and_replace (test_engineering.AtomicIOTests) ... ok
+test_replace_and_fsync_failure_preserve_file_and_cleanup (test_engineering.AtomicIOTests) ... ok
+test_serialization_failure_preserves_existing_file (test_engineering.AtomicIOTests) ... ok
+test_all_modes_export_reports_and_only_published_versions (test_engineering.CLITests) ... ok
+test_incomplete_version_index_fails_before_export (test_engineering.CLITests) ... ok
+test_unpublished_directories_are_not_exported (test_engineering.CLITests) ... ok
+test_extended_scenario_and_ontology_review_api (test_engineering.HTTPTests) ... ok
+test_failed_run_keeps_previous_session_and_cleans_new_workspace (test_engineering.HTTPTests) ... Traceback (most recent call last):
+  File "D:\HZAU\KG\code\code0\mvp\web_server.py", line 108, in do_POST
+    self._json(200, _run(mode, include_text, scenario_name))
+  File "D:\HZAU\KG\code\code0\mvp\web_server.py", line 42, in _run
+    report = harness.run_round(scenario, demo_mode=mode)
+  File "D:\anaconda\Anaconda3\lib\unittest\mock.py", line 1092, in __call__
+    return self._mock_call(*args, **kwargs)
+  File "D:\anaconda\Anaconda3\lib\unittest\mock.py", line 1096, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+  File "D:\anaconda\Anaconda3\lib\unittest\mock.py", line 1151, in _execute_mock_call
+    raise effect
+RuntimeError: injected failure
+ok
+test_health_reports_jar_presence_without_starting_java (test_engineering.HTTPTests) ... ok
+test_invalid_run_requests_are_client_errors (test_engineering.HTTPTests) ... ok
+test_review_before_run_is_conflict (test_engineering.HTTPTests) ... ok
+test_review_confirm_reject_and_invalid_inputs (test_engineering.HTTPTests) ... ok
+test_run_all_modes_returns_real_reports (test_engineering.HTTPTests) ... ok
+test_text_input_is_default_and_can_be_disabled (test_engineering.HTTPTests) ... ok
+test_all_eight_stages_write_only_at_execution_and_finish_once (test_engineering.PlaybackTests) ... ok
+test_execution_failure_rolls_back_and_finishes (test_engineering.PlaybackTests) ... ok
+test_invalid_mode_is_rejected_before_advancing (test_engineering.PlaybackTests) ... ok
+test_ontology_rejection_stops_at_step_three (test_engineering.PlaybackTests) ... ok
+test_replanning_revalidates_at_step_six (test_engineering.PlaybackTests) ... ok
+test_missing_evidence_is_restored_from_matching_observations_only (test_engineering.ReplanningTests) ... ok
+test_missing_registration_and_combined_missing_links_are_repaired (test_engineering.ReplanningTests) ... ok
+test_no_suggestion_does_not_silently_repair_a_plan (test_engineering.ReplanningTests) ... ok
+test_report_retains_rejected_plan_and_its_feedback (test_engineering.ReplanningTests) ... ok
+test_type_and_evidence_repairs_preserve_unrelated_decisions (test_engineering.ReplanningTests) ... ok
+test_arbitrary_multilevel_event_subclass_uses_current_ontology (test_engineering.ReviewTests) ... ok
+test_demo_branches_run_real_reasoner_replanning_and_rollback (test_mvp.MvpTests) ... ok
+test_duplicate_plan_is_idempotent (test_mvp.MvpTests) ... ok
+test_duration_and_distance_thresholds_gate_event (test_mvp.MvpTests) ... ok
+test_failed_execution_rolls_back_every_staged_change (test_mvp.MvpTests) ... ok
+test_fast_vessel_does_not_hit_r1_or_create_event (test_mvp.MvpTests) ... ok
+test_full_case_publishes_ontology_and_commits_incremental_subgraph (test_mvp.MvpTests) ... ok
+test_outside_sensitive_area_does_not_match_r2 (test_mvp.MvpTests) ... ok
+test_plan_validator_rejects_type_range_and_missing_provenance (test_mvp.MvpTests) ... ok
+test_rejected_review_keeps_event_and_records_feedback (test_mvp.MvpTests) ... ok
+test_wrong_range_proposal_is_rejected_by_disjointness (test_mvp.MvpTests) ... ok
+test_duplicate_collision_and_malformed_records_fail (test_text.TextExtractionTests) ... ok
+test_llm_adapter_candidates_are_grounded_and_do_not_enter_rules (test_text.TextExtractionTests) ... ok
+test_sources_window_and_grounded_spans (test_text.TextExtractionTests) ... ok
+test_span_limits_extraction_and_negations_do_not_assert_positive_facts (test_text.TextExtractionTests) ... ok
+test_tolerance_boundaries_and_timezone_normalization (test_text.TextExtractionTests) ... ok
+test_wrong_subject_excluded_and_zero_tolerance_respected (test_text.TextExtractionTests) ... ok
+test_cli_exports_02_from_published_01_and_removes_stale_versions (test_text.TextIntegrationTests) ... ok
+test_cli_text_option_exports_report_and_evidence_snapshot (test_text.TextIntegrationTests) ... ok
+test_fused_round_reasoner_rules_events_and_eleven_main_evidence_links (test_text.TextIntegrationTests) ... ok
+test_minimal_declaration_and_visual_annotation_create_identity_conflict (test_text.TextIntegrationTests) ... ok
+test_missing_text_provenance_and_mutated_facts_are_rejected (test_text.TextIntegrationTests) ... ok
+test_negative_rule_conditions_and_source_scoping (test_text.TextIntegrationTests) ... ok
+test_playback_text_session_writes_only_at_step_seven (test_text.TextIntegrationTests) ... ok
+test_r5_thresholds_and_responded_calls_are_not_mixed (test_text.TextIntegrationTests) ... ok
+test_r6_requires_sensitive_loitering_and_candidate_and_caps_confidence (test_text.TextIntegrationTests) ... ok
+test_text_modes_reject_replan_and_roll_back_with_no_partial_writes (test_text.TextIntegrationTests) ... ok
+test_text_ontology_can_follow_existing_trajectory_version (test_text.TextIntegrationTests) ... ok
+test_expert_review_is_separate_versioned_history (test_threat.ThreatTests) ... ok
+test_full_cluster_real_reasoner_and_provenance (test_threat.ThreatTests) ... ok
+test_identity_only_no_high_threat (test_threat.ThreatTests) ... ok
+test_low_confidence_and_outside_area_block_alert (test_threat.ThreatTests) ... ok
+test_r7_patterns_are_grounded_annotations (test_threat.ThreatTests) ... ok
+test_r9_requires_explicit_silence_outbound_and_no_response (test_threat.ThreatTests) ... ok
+test_tampered_cluster_or_alert_is_rejected (test_threat.ThreatTests) ... ok
+test_threat_transaction_failure_removes_alert_and_cluster (test_threat.ThreatTests) ... ok
+test_web_scenarios_and_disabled_text (test_threat.ThreatTests) ... ok
+
+----------------------------------------------------------------------
+Ran 62 tests in 18.930s
+
+OK
+[demo] "POST /api/ontology-review HTTP/1.1" 409 -
+[demo] "POST /api/run HTTP/1.1" 400 -
+[demo] "POST /api/run HTTP/1.1" 400 -
+[demo] "POST /api/run HTTP/1.1" 400 -
+[demo] "POST /api/run HTTP/1.1" 200 -
+[demo] "POST /api/ontology-review HTTP/1.1" 200 -
+[demo] "POST /api/ontology-review HTTP/1.1" 400 -
+[demo] "POST /api/run HTTP/1.1" 200 -
+[demo] "POST /api/run HTTP/1.1" 500 -
+[demo] "GET /api/health HTTP/1.1" 200 -
+[demo] "POST /api/run HTTP/1.1" 400 -
+[demo] "POST /api/run HTTP/1.1" 400 -
+[demo] "POST /api/run HTTP/1.1" 400 -
+[demo] "POST /api/run HTTP/1.1" 400 -
+[demo] "POST /api/run HTTP/1.1" 400 -
+[demo] "POST /api/review HTTP/1.1" 409 -
+[demo] "POST /api/run HTTP/1.1" 200 -
+[demo] "POST /api/review HTTP/1.1" 200 -
+[demo] "POST /api/review HTTP/1.1" 200 -
+[demo] "POST /api/review HTTP/1.1" 400 -
+[demo] "POST /api/review HTTP/1.1" 400 -
+[demo] "POST /api/review HTTP/1.1" 400 -
+[demo] "POST /api/review HTTP/1.1" 400 -
+[demo] "POST /api/run HTTP/1.1" 200 -
+[demo] "POST /api/run HTTP/1.1" 200 -
+[demo] "POST /api/run HTTP/1.1" 200 -
+[demo] "POST /api/run HTTP/1.1" 200 -
+[demo] "POST /api/run HTTP/1.1" 200 -
+[demo] "POST /api/run HTTP/1.1" 200 -
+[demo] "POST /api/run HTTP/1.1" 400 -

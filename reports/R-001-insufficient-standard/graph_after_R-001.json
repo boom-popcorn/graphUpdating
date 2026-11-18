@@ -1,0 +1,695 @@
+{
+  "appliedPlans": {
+    "P1": {
+      "attachedEvidence": 18,
+      "changedSubgraph": [
+        "V-017",
+        "A-03",
+        "S-017-0",
+        "S-017-1",
+        "E-017",
+        "TX-AIS-017",
+        "TX-EO-017",
+        "V-017-IDENTITY-R-001",
+        "V-017-R-001-ASSESSMENT"
+      ],
+      "closedStates": 1,
+      "commitId": "C-0001",
+      "createdNodes": 6,
+      "createdRelations": 17,
+      "createdTypeAssertions": 6,
+      "failure": null,
+      "idempotentReplay": false,
+      "planId": "P1",
+      "registeredEvidence": 8,
+      "success": true,
+      "toolCalls": 58
+    }
+  },
+  "commits": [
+    {
+      "commitId": "C-0001",
+      "planId": "P1",
+      "summary": {
+        "attachedEvidence": 18,
+        "changedSubgraph": [
+          "V-017",
+          "A-03",
+          "S-017-0",
+          "S-017-1",
+          "E-017",
+          "TX-AIS-017",
+          "TX-EO-017",
+          "V-017-IDENTITY-R-001",
+          "V-017-R-001-ASSESSMENT"
+        ],
+        "closedStates": 1,
+        "commitId": "C-0001",
+        "createdNodes": 6,
+        "createdRelations": 17,
+        "createdTypeAssertions": 6,
+        "failure": null,
+        "idempotentReplay": false,
+        "planId": "P1",
+        "registeredEvidence": 8,
+        "success": true,
+        "toolCalls": 58
+      }
+    }
+  ],
+  "evidence": {
+    "EV-AIS-1006": {
+      "confidence": 0.95,
+      "id": "EV-AIS-1006",
+      "source": "AIS",
+      "subject": "V-017",
+      "timestamp": "2026-11-11T10:06:00+08:00",
+      "type": "AIS"
+    },
+    "EV-AIS-1012": {
+      "confidence": 0.96,
+      "id": "EV-AIS-1012",
+      "source": "AIS",
+      "subject": "V-017",
+      "timestamp": "2026-11-11T10:12:00+08:00",
+      "type": "AIS"
+    },
+    "EV-AIS-1019": {
+      "confidence": 0.95,
+      "id": "EV-AIS-1019",
+      "source": "AIS",
+      "subject": "V-017",
+      "timestamp": "2026-11-11T10:19:00+08:00",
+      "type": "AIS"
+    },
+    "EV-RADAR-1006": {
+      "confidence": 0.9,
+      "id": "EV-RADAR-1006",
+      "source": "Radar",
+      "subject": "V-017",
+      "timestamp": "2026-11-11T10:06:10+08:00",
+      "type": "Radar"
+    },
+    "EV-RADAR-1012": {
+      "confidence": 0.91,
+      "id": "EV-RADAR-1012",
+      "source": "Radar",
+      "subject": "V-017",
+      "timestamp": "2026-11-11T10:12:10+08:00",
+      "type": "Radar"
+    },
+    "EV-RADAR-1019": {
+      "confidence": 0.92,
+      "id": "EV-RADAR-1019",
+      "source": "Radar",
+      "subject": "V-017",
+      "timestamp": "2026-11-11T10:19:10+08:00",
+      "type": "Radar"
+    },
+    "TX-AIS-017": {
+      "confidence": 0.95,
+      "id": "TX-AIS-017",
+      "modality": "text",
+      "rawText": "船名：海研017；呼号：BXYZ7；申报船型：捕捞船；申报渔具：拖网。",
+      "source": "AISStatic",
+      "span": [
+        0,
+        35
+      ],
+      "subject": "V-017",
+      "timestamp": "2026-11-11T10:05:00+08:00",
+      "type": "TextEvidence"
+    },
+    "TX-EO-017": {
+      "confidence": 0.92,
+      "id": "TX-EO-017",
+      "modality": "text",
+      "rawText": "标注：无渔具；发现定向天线。",
+      "source": "EOAnnotation",
+      "span": [
+        0,
+        14
+      ],
+      "subject": "V-017",
+      "timestamp": "2026-11-11T10:12:30+08:00",
+      "type": "TextEvidence"
+    }
+  },
+  "nodes": {
+    "A-03": {
+      "properties": {
+        "name": "A-03"
+      },
+      "types": [
+        "SensitiveArea"
+      ]
+    },
+    "AIS-017": {
+      "properties": {
+        "deviceNumber": "AIS-017"
+      },
+      "types": [
+        "Device"
+      ]
+    },
+    "E-017": {
+      "evidence": [
+        "EV-AIS-1006",
+        "EV-RADAR-1006",
+        "EV-AIS-1012",
+        "EV-RADAR-1012",
+        "EV-AIS-1019",
+        "EV-RADAR-1019",
+        "TX-AIS-017",
+        "TX-EO-017"
+      ],
+      "properties": {
+        "confidence": 0.9,
+        "labels": [
+          "身份矛盾"
+        ],
+        "reviewStatus": "pending",
+        "ruleHits": [
+          "R1",
+          "R2",
+          "R3",
+          "R4"
+        ]
+      },
+      "types": [
+        "SuspectedIllegalFishingActivity"
+      ]
+    },
+    "Radar-017": {
+      "properties": {
+        "deviceNumber": "Radar-017"
+      },
+      "types": [
+        "Device"
+      ]
+    },
+    "S-017-0": {
+      "properties": {
+        "speed": 8.2
+      },
+      "types": [
+        "UnderWayState"
+      ],
+      "validFrom": "2026-11-11T09:00:00+08:00",
+      "validTo": "2026-11-11T10:06:00+08:00"
+    },
+    "S-017-1": {
+      "properties": {
+        "durationSeconds": 780,
+        "speed": 0.7,
+        "travelDistance": 0.2,
+        "validFrom": "2026-11-11T10:06:00+08:00",
+        "validTo": null
+      },
+      "types": [
+        "LoiteringState"
+      ]
+    },
+    "TX-AIS-017": {
+      "properties": {
+        "callSign": "BXYZ7",
+        "declaredGearType": "拖网",
+        "declaredVesselType": "捕捞船",
+        "rawText": "船名：海研017；呼号：BXYZ7；申报船型：捕捞船；申报渔具：拖网。",
+        "rawTextSpan": "[0, 35]",
+        "textSource": "AISStatic",
+        "timestamp": "2026-11-11T10:05:00+08:00",
+        "vesselName": "海研017"
+      },
+      "types": [
+        "DeclarationStatement"
+      ]
+    },
+    "TX-EO-017": {
+      "properties": {
+        "hasDirectionalAntenna": true,
+        "hasFishingGear": false,
+        "rawText": "标注：无渔具；发现定向天线。",
+        "rawTextSpan": "[0, 14]",
+        "textSource": "EOAnnotation",
+        "timestamp": "2026-11-11T10:12:30+08:00"
+      },
+      "types": [
+        "InspectionObservation"
+      ]
+    },
+    "V-017": {
+      "properties": {
+        "vesselType": "fishing"
+      },
+      "types": [
+        "FishingVessel"
+      ]
+    },
+    "V-017-IDENTITY-R-001": {
+      "evidence": [
+        "TX-AIS-017",
+        "TX-EO-017"
+      ],
+      "properties": {
+        "confidence": 0.92,
+        "reviewStatus": "pending",
+        "rule": "R4"
+      },
+      "types": [
+        "IdentityConflict"
+      ]
+    },
+    "V-017-R-001-ASSESSMENT": {
+      "evidence": [
+        "EV-AIS-1006",
+        "EV-AIS-1012",
+        "EV-AIS-1019",
+        "EV-RADAR-1006",
+        "EV-RADAR-1012",
+        "EV-RADAR-1019",
+        "TX-AIS-017",
+        "TX-EO-017"
+      ],
+      "properties": {
+        "blockedReasons": [
+          "missing_CommunicationAnomaly",
+          "missing_AbnormalTrajectory"
+        ],
+        "confidence": 0.9,
+        "confidenceMethod": "minimum_child_and_evidence_confidence",
+        "reviewStatus": "pending",
+        "threatLevel": "low"
+      },
+      "types": [
+        "ThreatAssessment"
+      ]
+    }
+  },
+  "provenance": [
+    {
+      "event": "E-017",
+      "evidence": "EV-AIS-1006",
+      "relation": "used"
+    },
+    {
+      "event": "E-017",
+      "evidence": "EV-RADAR-1006",
+      "relation": "used"
+    },
+    {
+      "event": "E-017",
+      "evidence": "EV-AIS-1012",
+      "relation": "used"
+    },
+    {
+      "event": "E-017",
+      "evidence": "EV-RADAR-1012",
+      "relation": "used"
+    },
+    {
+      "event": "E-017",
+      "evidence": "EV-AIS-1019",
+      "relation": "used"
+    },
+    {
+      "event": "E-017",
+      "evidence": "EV-RADAR-1019",
+      "relation": "used"
+    },
+    {
+      "event": "E-017",
+      "evidence": "TX-AIS-017",
+      "factSpans": [
+        {
+          "predicate": "vesselName",
+          "quote": "船名：海研017",
+          "span": [
+            0,
+            8
+          ]
+        },
+        {
+          "predicate": "callSign",
+          "quote": "呼号：BXYZ7",
+          "span": [
+            9,
+            17
+          ]
+        },
+        {
+          "predicate": "declaredVesselType",
+          "quote": "申报船型：捕捞船",
+          "span": [
+            18,
+            26
+          ]
+        },
+        {
+          "predicate": "declaredGearType",
+          "quote": "申报渔具：拖网",
+          "span": [
+            27,
+            34
+          ]
+        }
+      ],
+      "rawText": "船名：海研017；呼号：BXYZ7；申报船型：捕捞船；申报渔具：拖网。",
+      "relation": "used",
+      "source": "AISStatic",
+      "span": [
+        0,
+        35
+      ],
+      "timestamp": "2026-11-11T10:05:00+08:00"
+    },
+    {
+      "event": "E-017",
+      "evidence": "TX-EO-017",
+      "factSpans": [
+        {
+          "predicate": "hasFishingGear",
+          "quote": "无渔具",
+          "span": [
+            3,
+            6
+          ]
+        },
+        {
+          "predicate": "hasDirectionalAntenna",
+          "quote": "发现定向天线",
+          "span": [
+            7,
+            13
+          ]
+        }
+      ],
+      "rawText": "标注：无渔具；发现定向天线。",
+      "relation": "used",
+      "source": "EOAnnotation",
+      "span": [
+        0,
+        14
+      ],
+      "timestamp": "2026-11-11T10:12:30+08:00"
+    },
+    {
+      "event": "V-017-IDENTITY-R-001",
+      "evidence": "TX-AIS-017",
+      "factSpans": [
+        {
+          "predicate": "vesselName",
+          "quote": "船名：海研017",
+          "span": [
+            0,
+            8
+          ]
+        },
+        {
+          "predicate": "callSign",
+          "quote": "呼号：BXYZ7",
+          "span": [
+            9,
+            17
+          ]
+        },
+        {
+          "predicate": "declaredVesselType",
+          "quote": "申报船型：捕捞船",
+          "span": [
+            18,
+            26
+          ]
+        },
+        {
+          "predicate": "declaredGearType",
+          "quote": "申报渔具：拖网",
+          "span": [
+            27,
+            34
+          ]
+        }
+      ],
+      "rawText": "船名：海研017；呼号：BXYZ7；申报船型：捕捞船；申报渔具：拖网。",
+      "relation": "used",
+      "source": "AISStatic",
+      "span": [
+        0,
+        35
+      ],
+      "timestamp": "2026-11-11T10:05:00+08:00"
+    },
+    {
+      "event": "V-017-IDENTITY-R-001",
+      "evidence": "TX-EO-017",
+      "factSpans": [
+        {
+          "predicate": "hasFishingGear",
+          "quote": "无渔具",
+          "span": [
+            3,
+            6
+          ]
+        },
+        {
+          "predicate": "hasDirectionalAntenna",
+          "quote": "发现定向天线",
+          "span": [
+            7,
+            13
+          ]
+        }
+      ],
+      "rawText": "标注：无渔具；发现定向天线。",
+      "relation": "used",
+      "source": "EOAnnotation",
+      "span": [
+        0,
+        14
+      ],
+      "timestamp": "2026-11-11T10:12:30+08:00"
+    },
+    {
+      "event": "V-017-R-001-ASSESSMENT",
+      "evidence": "EV-AIS-1006",
+      "relation": "used"
+    },
+    {
+      "event": "V-017-R-001-ASSESSMENT",
+      "evidence": "EV-AIS-1012",
+      "relation": "used"
+    },
+    {
+      "event": "V-017-R-001-ASSESSMENT",
+      "evidence": "EV-AIS-1019",
+      "relation": "used"
+    },
+    {
+      "event": "V-017-R-001-ASSESSMENT",
+      "evidence": "EV-RADAR-1006",
+      "relation": "used"
+    },
+    {
+      "event": "V-017-R-001-ASSESSMENT",
+      "evidence": "EV-RADAR-1012",
+      "relation": "used"
+    },
+    {
+      "event": "V-017-R-001-ASSESSMENT",
+      "evidence": "EV-RADAR-1019",
+      "relation": "used"
+    },
+    {
+      "event": "V-017-R-001-ASSESSMENT",
+      "evidence": "TX-AIS-017",
+      "factSpans": [
+        {
+          "predicate": "vesselName",
+          "quote": "船名：海研017",
+          "span": [
+            0,
+            8
+          ]
+        },
+        {
+          "predicate": "callSign",
+          "quote": "呼号：BXYZ7",
+          "span": [
+            9,
+            17
+          ]
+        },
+        {
+          "predicate": "declaredVesselType",
+          "quote": "申报船型：捕捞船",
+          "span": [
+            18,
+            26
+          ]
+        },
+        {
+          "predicate": "declaredGearType",
+          "quote": "申报渔具：拖网",
+          "span": [
+            27,
+            34
+          ]
+        }
+      ],
+      "rawText": "船名：海研017；呼号：BXYZ7；申报船型：捕捞船；申报渔具：拖网。",
+      "relation": "used",
+      "source": "AISStatic",
+      "span": [
+        0,
+        35
+      ],
+      "timestamp": "2026-11-11T10:05:00+08:00"
+    },
+    {
+      "event": "V-017-R-001-ASSESSMENT",
+      "evidence": "TX-EO-017",
+      "factSpans": [
+        {
+          "predicate": "hasFishingGear",
+          "quote": "无渔具",
+          "span": [
+            3,
+            6
+          ]
+        },
+        {
+          "predicate": "hasDirectionalAntenna",
+          "quote": "发现定向天线",
+          "span": [
+            7,
+            13
+          ]
+        }
+      ],
+      "rawText": "标注：无渔具；发现定向天线。",
+      "relation": "used",
+      "source": "EOAnnotation",
+      "span": [
+        0,
+        14
+      ],
+      "timestamp": "2026-11-11T10:12:30+08:00"
+    }
+  ],
+  "relations": [
+    {
+      "o": "A-03",
+      "p": "locatedIn",
+      "s": "V-017"
+    },
+    {
+      "o": "S-017-0",
+      "p": "hasState",
+      "s": "V-017"
+    },
+    {
+      "o": "T0",
+      "p": "hasInstant",
+      "s": "S-017-0"
+    },
+    {
+      "o": "AIS-017",
+      "p": "hasDevice",
+      "s": "V-017"
+    },
+    {
+      "o": "Radar-017",
+      "p": "hasDevice",
+      "s": "V-017"
+    },
+    {
+      "o": "S-017-1",
+      "p": "hasState",
+      "s": "V-017"
+    },
+    {
+      "o": "A-03",
+      "p": "hasPotentialIllegalActivity",
+      "s": "V-017"
+    },
+    {
+      "o": "V-017",
+      "p": "hasSubject",
+      "s": "E-017"
+    },
+    {
+      "o": "A-03",
+      "p": "hasObject",
+      "s": "E-017"
+    },
+    {
+      "o": "T3",
+      "p": "hasInstant",
+      "s": "E-017"
+    },
+    {
+      "o": "TX-AIS-017",
+      "p": "declaredAs",
+      "s": "V-017"
+    },
+    {
+      "o": "TX-AIS-017",
+      "p": "hasTextEvidence",
+      "s": "E-017"
+    },
+    {
+      "o": "TX-EO-017",
+      "p": "hasTextEvidence",
+      "s": "E-017"
+    },
+    {
+      "o": "TX-AIS-017",
+      "p": "hasTextEvidence",
+      "s": "V-017-IDENTITY-R-001"
+    },
+    {
+      "o": "TX-EO-017",
+      "p": "hasTextEvidence",
+      "s": "V-017-IDENTITY-R-001"
+    },
+    {
+      "o": "V-017",
+      "p": "hasSubject",
+      "s": "V-017-IDENTITY-R-001"
+    },
+    {
+      "o": "TX-EO-017",
+      "p": "contradicts",
+      "s": "TX-AIS-017"
+    },
+    {
+      "o": "V-017",
+      "p": "hasSubject",
+      "s": "V-017-R-001-ASSESSMENT"
+    },
+    {
+      "o": "A-03",
+      "p": "hasObject",
+      "s": "V-017-R-001-ASSESSMENT"
+    },
+    {
+      "o": "T3",
+      "p": "hasInstant",
+      "s": "V-017-R-001-ASSESSMENT"
+    },
+    {
+      "o": "E-017",
+      "p": "hasSubEvent",
+      "s": "V-017-R-001-ASSESSMENT"
+    },
+    {
+      "o": "V-017-IDENTITY-R-001",
+      "p": "hasSubEvent",
+      "s": "V-017-R-001-ASSESSMENT"
+    }
+  ],
+  "temporalValues": {
+    "T0": "2026-11-11T09:00:00+08:00",
+    "T3": "2026-11-11T10:19:00+08:00"
+  }
+}

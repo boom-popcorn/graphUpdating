@@ -1,0 +1,21 @@
+一、规则扩展：
+1. R7：绕舰/Z字形/定点悬停 → AbnormalTrajectory；
+2. R8：多矛盾证据+敏感区 → ThreatLevel=high，生成告警；
+3. R9：通信静默+呼叫无应答+高频外发 → HighRiskBehaviorSubgraph。
+
+二、事件聚合：
+1. 一个目标可能同时有 SuspectedIllegalFishingActivity、IdentityConflict、CommunicationAnomaly、AbnormalTrajectory；
+2. 引入“事件簇”概念：ThreatAssessment 节点聚合多个子事件，hasSubEvent 关联；
+3. 置信度按证据加权/取短板，威胁等级按规则组合。
+
+三、本体演化：
+1. 新增 ThreatAssessment、AbnormalTrajectory、HighRiskBehavior 类；
+2. 新增 hasSubEvent、triggersAlert、threatLevel 属性；
+3. 走一次演化，HermiT校验，专家复审。
+
+四、演示：
+1. 事件卡从“单事件”变成“事件簇+威胁等级”；
+2. 地图上多一个“绕舰轨迹”示意；
+3. 异常演示增加“身份矛盾但证据不足→不升级威胁”的反例。
+
+五、验收：伪装渔船场景下，能同时生成“疑似非法捕捞+身份矛盾+通信异常”，威胁等级提升，证据链完整可追溯。

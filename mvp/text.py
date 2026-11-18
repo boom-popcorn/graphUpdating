@@ -34,7 +34,7 @@ class TextPerceptionAgent:
                "EOAnnotation", "CommunicationMonitor", "PublicReport"}
     predicates = {"vesselName", "callSign", "declaredVesselType", "declaredGearType",
                   "hasFishingGear", "hasDirectionalAntenna", "callAttempts", "responseStatus",
-                  "encryptedMessageCount", "foreignAddress", "reportedSuspicion"}
+                  "encryptedMessageCount", "foreignAddress", "reportedSuspicion", "communicationSilence", "outboundEncrypted"}
 
     def __init__(self, llm_extractor: LLMTextExtractor | None = None):
         self.llm_extractor = llm_extractor
@@ -99,6 +99,9 @@ class TextPerceptionAgent:
         offset = record["span"][0]
         result = []
         patterns = [
+            ("communicationSilence", r"(?:无线电静默|通信静默)", lambda m: "radio_silence"),
+            ("communicationSilence", r"(?:恢复通信|正常通信)", lambda m: "responded"),
+            ("outboundEncrypted", r"(?:向境外高频发送加密短报文|加密短报文外发)", lambda m: True),
             ("vesselName", r"船名[：:]\s*([^，。；;\s]+)", lambda m: m[1]),
             ("callSign", r"呼号[：:]\s*([A-Za-z0-9-]+)", lambda m: m[1]),
             ("declaredVesselType", r"(?:申报船型[：:]|登记船型[：:]|申报为)\s*(捕捞船|渔船|货船|客船)", lambda m: m[1]),
@@ -119,7 +122,7 @@ class TextPerceptionAgent:
             "EOAnnotation": {"hasFishingGear", "hasDirectionalAntenna"},
             "DutyLog": {"hasFishingGear", "hasDirectionalAntenna", "callAttempts", "responseStatus"},
             "VHFTranscript": {"callAttempts", "responseStatus", "callSign"},
-            "CommunicationMonitor": {"encryptedMessageCount", "foreignAddress"},
+            "CommunicationMonitor": {"encryptedMessageCount", "foreignAddress", "communicationSilence", "outboundEncrypted"},
             "PublicReport": {"reportedSuspicion"},
         }[record["source"]]
         for predicate, pattern, value in patterns:

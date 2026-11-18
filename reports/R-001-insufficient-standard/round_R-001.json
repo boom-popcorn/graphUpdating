@@ -1,0 +1,2278 @@
+{
+  "agents": {
+    "actionExecution": "action_execution_agent",
+    "decisionPlanning": "decision_planning_agent",
+    "ontologyEvolutionAndValidation": "ontology_evolution_agent",
+    "semanticPerception": "semantic_perception_agent"
+  },
+  "comparison": {
+    "avoidedWritesEstimate": 14,
+    "fullRebuildWritesEstimate": 70,
+    "incrementalWrites": 56,
+    "note": "按节点、关系、类型、证据来源记录及状态关闭计数；全量为本案例逻辑项估算，不代表数据库基准测试。"
+  },
+  "deltaSemantics": {
+    "areaId": "A-03",
+    "areaSensitive": true,
+    "enableThreatAssessment": true,
+    "entities": [
+      {
+        "id": "V-017",
+        "type": "FishingVessel"
+      },
+      {
+        "id": "A-03",
+        "type": "SensitiveArea"
+      },
+      {
+        "id": "S-017-1",
+        "type": "State"
+      }
+    ],
+    "evidence": [
+      {
+        "confidence": 0.95,
+        "id": "EV-AIS-1006",
+        "source": "AIS",
+        "subject": "V-017",
+        "timestamp": "2026-11-11T10:06:00+08:00",
+        "type": "AIS"
+      },
+      {
+        "confidence": 0.9,
+        "id": "EV-RADAR-1006",
+        "source": "Radar",
+        "subject": "V-017",
+        "timestamp": "2026-11-11T10:06:10+08:00",
+        "type": "Radar"
+      },
+      {
+        "confidence": 0.96,
+        "id": "EV-AIS-1012",
+        "source": "AIS",
+        "subject": "V-017",
+        "timestamp": "2026-11-11T10:12:00+08:00",
+        "type": "AIS"
+      },
+      {
+        "confidence": 0.91,
+        "id": "EV-RADAR-1012",
+        "source": "Radar",
+        "subject": "V-017",
+        "timestamp": "2026-11-11T10:12:10+08:00",
+        "type": "Radar"
+      },
+      {
+        "confidence": 0.95,
+        "id": "EV-AIS-1019",
+        "source": "AIS",
+        "subject": "V-017",
+        "timestamp": "2026-11-11T10:19:00+08:00",
+        "type": "AIS"
+      },
+      {
+        "confidence": 0.92,
+        "id": "EV-RADAR-1019",
+        "source": "Radar",
+        "subject": "V-017",
+        "timestamp": "2026-11-11T10:19:10+08:00",
+        "type": "Radar"
+      },
+      {
+        "confidence": 0.95,
+        "id": "TX-AIS-017",
+        "modality": "text",
+        "rawText": "船名：海研017；呼号：BXYZ7；申报船型：捕捞船；申报渔具：拖网。",
+        "source": "AISStatic",
+        "span": [
+          0,
+          35
+        ],
+        "subject": "V-017",
+        "timestamp": "2026-11-11T10:05:00+08:00",
+        "type": "TextEvidence"
+      },
+      {
+        "confidence": 0.92,
+        "id": "TX-EO-017",
+        "modality": "text",
+        "rawText": "标注：无渔具；发现定向天线。",
+        "source": "EOAnnotation",
+        "span": [
+          0,
+          14
+        ],
+        "subject": "V-017",
+        "timestamp": "2026-11-11T10:12:30+08:00",
+        "type": "TextEvidence"
+      }
+    ],
+    "excludedTexts": [],
+    "modalities": [
+      "trajectory",
+      "text"
+    ],
+    "relations": [
+      {
+        "o": "A-03",
+        "p": "locatedIn",
+        "s": "V-017"
+      },
+      {
+        "o": "S-017-1",
+        "p": "hasState",
+        "s": "V-017"
+      }
+    ],
+    "roundId": "R-001",
+    "states": [
+      {
+        "distanceUnit": "nm",
+        "durationSeconds": 780,
+        "id": "S-017-1",
+        "of": "V-017",
+        "speed": 0.7,
+        "travelDistance": 0.2,
+        "unit": "kn",
+        "validFrom": "2026-11-11T10:06:00+08:00",
+        "validTo": null
+      }
+    ],
+    "temporalEntities": [
+      {
+        "id": "T3",
+        "timestamp": "2026-11-11T10:19:00+08:00"
+      }
+    ],
+    "textCandidates": [],
+    "textFacts": [
+      {
+        "confidence": 0.95,
+        "evidence": "TX-AIS-017",
+        "extractor": "regex",
+        "predicate": "vesselName",
+        "quote": "船名：海研017",
+        "source": "AISStatic",
+        "span": [
+          0,
+          8
+        ],
+        "subject": "V-017",
+        "value": "海研017"
+      },
+      {
+        "confidence": 0.95,
+        "evidence": "TX-AIS-017",
+        "extractor": "regex",
+        "predicate": "callSign",
+        "quote": "呼号：BXYZ7",
+        "source": "AISStatic",
+        "span": [
+          9,
+          17
+        ],
+        "subject": "V-017",
+        "value": "BXYZ7"
+      },
+      {
+        "confidence": 0.95,
+        "evidence": "TX-AIS-017",
+        "extractor": "regex",
+        "predicate": "declaredVesselType",
+        "quote": "申报船型：捕捞船",
+        "source": "AISStatic",
+        "span": [
+          18,
+          26
+        ],
+        "subject": "V-017",
+        "value": "捕捞船"
+      },
+      {
+        "confidence": 0.95,
+        "evidence": "TX-AIS-017",
+        "extractor": "regex",
+        "predicate": "declaredGearType",
+        "quote": "申报渔具：拖网",
+        "source": "AISStatic",
+        "span": [
+          27,
+          34
+        ],
+        "subject": "V-017",
+        "value": "拖网"
+      },
+      {
+        "confidence": 0.92,
+        "evidence": "TX-EO-017",
+        "extractor": "regex",
+        "predicate": "hasFishingGear",
+        "quote": "无渔具",
+        "source": "EOAnnotation",
+        "span": [
+          3,
+          6
+        ],
+        "subject": "V-017",
+        "value": false
+      },
+      {
+        "confidence": 0.92,
+        "evidence": "TX-EO-017",
+        "extractor": "regex",
+        "predicate": "hasDirectionalAntenna",
+        "quote": "发现定向天线",
+        "source": "EOAnnotation",
+        "span": [
+          7,
+          13
+        ],
+        "subject": "V-017",
+        "value": true
+      }
+    ],
+    "textWindow": {
+      "from": "2026-11-11T10:04:00+08:00",
+      "to": "2026-11-11T10:21:00+08:00",
+      "toleranceSeconds": 120
+    },
+    "timestamp": "2026-11-11T10:19:10+08:00",
+    "trajectoryFacts": [],
+    "unknownSemantics": [
+      "敏感海域持续低速小范围徘徊"
+    ],
+    "validFrom": "2026-11-11T10:06:00+08:00",
+    "validTo": "2026-11-11T10:19:00+08:00",
+    "vesselId": "V-017"
+  },
+  "demoMode": "standard",
+  "evolutionProposal": {
+    "baseOntologyVersion": "00",
+    "createdAt": "2026-11-11T10:19:10+08:00",
+    "newClasses": [
+      {
+        "id": "SuspectedIllegalFishingActivity",
+        "parent": "FishingEvent"
+      },
+      {
+        "id": "TextEvidence",
+        "parent": "TemporalEntity"
+      },
+      {
+        "id": "DeclarationStatement",
+        "parent": "TextEvidence"
+      },
+      {
+        "id": "VHFCallEvent",
+        "parent": "Event"
+      },
+      {
+        "id": "CommunicationEvent",
+        "parent": "Event"
+      },
+      {
+        "id": "InspectionObservation",
+        "parent": "TextEvidence"
+      },
+      {
+        "id": "IdentityConflict",
+        "parent": "Event"
+      },
+      {
+        "id": "CommunicationAnomaly",
+        "parent": "Event"
+      },
+      {
+        "id": "CommunicationEndpoint",
+        "parent": "TemporalEntity"
+      },
+      {
+        "id": "ThreatAssessment",
+        "parent": "Event"
+      },
+      {
+        "id": "AbnormalTrajectory",
+        "parent": "Event"
+      },
+      {
+        "id": "HighRiskBehavior",
+        "parent": "Event"
+      },
+      {
+        "id": "ThreatAlert",
+        "parent": "Event"
+      }
+    ],
+    "newDataProperties": [
+      {
+        "datatype": "string",
+        "domain": "TextEvidence",
+        "id": "callSign"
+      },
+      {
+        "datatype": "string",
+        "domain": "DeclarationStatement",
+        "id": "declaredVesselType"
+      },
+      {
+        "datatype": "string",
+        "domain": "DeclarationStatement",
+        "id": "declaredGearType"
+      },
+      {
+        "datatype": "integer",
+        "domain": "VHFCallEvent",
+        "id": "callAttempts"
+      },
+      {
+        "datatype": "string",
+        "domain": "VHFCallEvent",
+        "id": "responseStatus"
+      },
+      {
+        "datatype": "integer",
+        "domain": "CommunicationEvent",
+        "id": "encryptedMessageCount"
+      },
+      {
+        "datatype": "string",
+        "domain": "TextEvidence",
+        "id": "textSource"
+      },
+      {
+        "datatype": "string",
+        "domain": "TextEvidence",
+        "id": "rawTextSpan"
+      },
+      {
+        "datatype": "string",
+        "domain": "Event",
+        "id": "threatLevel"
+      },
+      {
+        "datatype": "string",
+        "domain": "AbnormalTrajectory",
+        "id": "trajectoryPattern"
+      },
+      {
+        "datatype": "string",
+        "domain": "CommunicationEvent",
+        "id": "communicationSilence"
+      }
+    ],
+    "newObjectProperties": [
+      {
+        "domain": "Plat",
+        "id": "hasPotentialIllegalActivity",
+        "range": "SensitiveArea"
+      },
+      {
+        "domain": "Event",
+        "id": "hasTextEvidence",
+        "range": "TextEvidence"
+      },
+      {
+        "domain": "Plat",
+        "id": "declaredAs",
+        "range": "DeclarationStatement"
+      },
+      {
+        "domain": "Plat",
+        "id": "calledBy",
+        "range": "VHFCallEvent"
+      },
+      {
+        "domain": "CommunicationEvent",
+        "id": "sentTo",
+        "range": "CommunicationEndpoint"
+      },
+      {
+        "domain": "DeclarationStatement",
+        "id": "contradicts",
+        "range": "InspectionObservation"
+      },
+      {
+        "domain": "Event",
+        "id": "reportedBy",
+        "range": "TextEvidence"
+      },
+      {
+        "domain": "Event",
+        "id": "hasSubEvent",
+        "range": "Event"
+      },
+      {
+        "domain": "ThreatAssessment",
+        "id": "triggersAlert",
+        "range": "ThreatAlert"
+      }
+    ],
+    "newRules": [
+      "R2",
+      "R3",
+      "R4",
+      "R5",
+      "R6",
+      "R7",
+      "R8",
+      "R9"
+    ],
+    "proposalId": "EP-001",
+    "rationale": "Add the event class, risk relation, and rules required by the newly observed behavior.",
+    "ruleDefinitions": [
+      {
+        "id": "R2",
+        "name": "sensitive_area_risk",
+        "swrl": "FishingVessel(?v) ^ hasState(?v, ?s) ^ LoiteringState(?s) ^ locatedIn(?v, ?a) ^ SensitiveArea(?a) -> hasPotentialIllegalActivity(?v, ?a)",
+        "then": {
+          "relation": "hasPotentialIllegalActivity"
+        },
+        "when": {
+          "inSensitiveArea": true,
+          "stateType": "LoiteringState"
+        }
+      },
+      {
+        "id": "R3",
+        "name": "suspected_illegal_fishing_candidate",
+        "plannerAction": "materialize SuspectedIllegalFishingActivity using the deterministic event ID",
+        "swrlPattern": "hasPotentialIllegalActivity(?v, ?a) ^ hasState(?v, ?s) ^ durationSeconds(?s, ?d) ^ swrlb:greaterThan(?d, 600) ^ travelDistance(?s, ?m) ^ swrlb:lessThan(?m, 0.5)",
+        "then": {
+          "eventType": "SuspectedIllegalFishingActivity"
+        },
+        "when": {
+          "durationSecondsGreaterThan": 600,
+          "travelDistanceLessThan": 0.5
+        }
+      },
+      {
+        "id": "R4",
+        "name": "identity_conflict",
+        "plannerAction": "materialize identity conflict from declaration and inspection evidence",
+        "then": {
+          "eventType": "IdentityConflict"
+        },
+        "when": {
+          "declaredTypes": [
+            "捕捞船",
+            "渔船"
+          ]
+        }
+      },
+      {
+        "id": "R5",
+        "name": "communication_anomaly",
+        "plannerAction": "materialize anomaly from unanswered calls and encrypted message count in round window",
+        "then": {
+          "eventType": "CommunicationAnomaly"
+        },
+        "when": {
+          "callAttemptsAtLeast": 3,
+          "encryptedMessageCountAtLeast": 20
+        }
+      },
+      {
+        "id": "R6",
+        "name": "report_corroboration",
+        "plannerAction": "raise candidate confidence and threat level using report, loitering and sensitive area",
+        "then": {
+          "confidenceBonus": 0.05,
+          "confidenceCap": 0.99,
+          "threatLevel": "elevated"
+        },
+        "when": {
+          "inSensitiveArea": true,
+          "requiresRule": "R1"
+        }
+      },
+      {
+        "id": "R7",
+        "name": "abnormal_trajectory",
+        "plannerAction": "materialize supplied AIS/Radar trajectory annotations with source evidence",
+        "then": {
+          "eventType": "AbnormalTrajectory"
+        },
+        "when": {
+          "patterns": [
+            "circling",
+            "zigzag",
+            "stationary"
+          ]
+        }
+      },
+      {
+        "id": "R8",
+        "name": "combined_threat",
+        "plannerAction": "aggregate independent anomaly categories; create a local reviewable alert",
+        "then": {
+          "eventType": "ThreatAlert",
+          "threatLevel": "high"
+        },
+        "when": {
+          "inSensitiveArea": true,
+          "minimumConfidence": 0.8,
+          "requiredEventTypes": [
+            "IdentityConflict",
+            "CommunicationAnomaly",
+            "AbnormalTrajectory"
+          ]
+        }
+      },
+      {
+        "id": "R9",
+        "name": "high_risk_communication",
+        "plannerAction": "combine explicit radio silence, unanswered VHF calls and frequent encrypted outbound messages",
+        "then": {
+          "eventType": "HighRiskBehavior"
+        },
+        "when": {
+          "callAttemptsAtLeast": 3,
+          "encryptedMessageCountAtLeast": 20
+        }
+      }
+    ],
+    "validationFacts": [
+      {
+        "o": "A-03",
+        "p": "hasPotentialIllegalActivity",
+        "s": "V-017"
+      }
+    ]
+  },
+  "executionResult": {
+    "attachedEvidence": 18,
+    "changedSubgraph": [
+      "V-017",
+      "A-03",
+      "S-017-0",
+      "S-017-1",
+      "E-017",
+      "TX-AIS-017",
+      "TX-EO-017",
+      "V-017-IDENTITY-R-001",
+      "V-017-R-001-ASSESSMENT"
+    ],
+    "closedStates": 1,
+    "commitId": "C-0001",
+    "createdNodes": 6,
+    "createdRelations": 17,
+    "createdTypeAssertions": 6,
+    "failure": null,
+    "idempotentReplay": false,
+    "planId": "P1",
+    "registeredEvidence": 8,
+    "success": true,
+    "toolCalls": 58
+  },
+  "feedback": {
+    "ontologyChanges": {
+      "newClasses": [
+        "SuspectedIllegalFishingActivity",
+        "TextEvidence",
+        "DeclarationStatement",
+        "VHFCallEvent",
+        "CommunicationEvent",
+        "InspectionObservation",
+        "IdentityConflict",
+        "CommunicationAnomaly",
+        "CommunicationEndpoint",
+        "ThreatAssessment",
+        "AbnormalTrajectory",
+        "HighRiskBehavior",
+        "ThreatAlert"
+      ],
+      "newDataProperties": [
+        "callSign",
+        "declaredVesselType",
+        "declaredGearType",
+        "callAttempts",
+        "responseStatus",
+        "encryptedMessageCount",
+        "textSource",
+        "rawTextSpan",
+        "threatLevel",
+        "trajectoryPattern",
+        "communicationSilence"
+      ],
+      "newObjectProperties": [
+        "hasPotentialIllegalActivity",
+        "hasTextEvidence",
+        "declaredAs",
+        "calledBy",
+        "sentTo",
+        "contradicts",
+        "reportedBy",
+        "hasSubEvent",
+        "triggersAlert"
+      ],
+      "newRules": [
+        "R2",
+        "R3",
+        "R4",
+        "R5",
+        "R6",
+        "R7",
+        "R8",
+        "R9"
+      ],
+      "validationEngine": "HermiT"
+    },
+    "recommendation": "Keep the current thresholds; review the candidate event before treating it as confirmed.",
+    "reviewStatus": "pending",
+    "ruleHits": [
+      "R1",
+      "R2",
+      "R3",
+      "R4"
+    ],
+    "textSummary": {
+      "events": [
+        "V-017-IDENTITY-R-001"
+      ],
+      "labels": [
+        "身份矛盾"
+      ],
+      "textEvidenceCount": 2,
+      "trajectoryEvidenceCount": 6
+    },
+    "threatSummary": {
+      "alertId": null,
+      "assessmentId": "V-017-R-001-ASSESSMENT",
+      "blockedReasons": [
+        "missing_CommunicationAnomaly",
+        "missing_AbnormalTrajectory"
+      ],
+      "confidence": 0.9,
+      "confidenceMethod": "minimum_child_and_evidence_confidence",
+      "subEvents": [
+        "E-017",
+        "V-017-IDENTITY-R-001"
+      ],
+      "threatLevel": "low",
+      "trajectoryPatterns": []
+    }
+  },
+  "mcpToolAudit": [
+    {
+      "operationId": "P1-OP-001",
+      "planId": "P1",
+      "tool": "beginTransaction"
+    },
+    {
+      "evidenceId": "EV-AIS-1006",
+      "operationId": "P1-OP-002",
+      "tool": "registerEvidence"
+    },
+    {
+      "evidenceId": "EV-RADAR-1006",
+      "operationId": "P1-OP-003",
+      "tool": "registerEvidence"
+    },
+    {
+      "evidenceId": "EV-AIS-1012",
+      "operationId": "P1-OP-004",
+      "tool": "registerEvidence"
+    },
+    {
+      "evidenceId": "EV-RADAR-1012",
+      "operationId": "P1-OP-005",
+      "tool": "registerEvidence"
+    },
+    {
+      "evidenceId": "EV-AIS-1019",
+      "operationId": "P1-OP-006",
+      "tool": "registerEvidence"
+    },
+    {
+      "evidenceId": "EV-RADAR-1019",
+      "operationId": "P1-OP-007",
+      "tool": "registerEvidence"
+    },
+    {
+      "evidenceId": "TX-AIS-017",
+      "operationId": "P1-OP-008",
+      "tool": "registerEvidence"
+    },
+    {
+      "evidenceId": "TX-EO-017",
+      "operationId": "P1-OP-009",
+      "tool": "registerEvidence"
+    },
+    {
+      "instantId": "T3",
+      "operationId": "P1-OP-010",
+      "tool": "registerInstant"
+    },
+    {
+      "operationId": "P1-OP-011",
+      "stateId": "S-017-0",
+      "tool": "closeState",
+      "validTo": "2026-11-11T10:06:00+08:00"
+    },
+    {
+      "id": "S-017-1",
+      "operationId": "P1-OP-012",
+      "tool": "createIndividual",
+      "type": "LoiteringState"
+    },
+    {
+      "id": "E-017",
+      "operationId": "P1-OP-013",
+      "tool": "createIndividual",
+      "type": "SuspectedIllegalFishingActivity"
+    },
+    {
+      "id": "TX-AIS-017",
+      "operationId": "P1-OP-014",
+      "tool": "createIndividual",
+      "type": "DeclarationStatement"
+    },
+    {
+      "id": "TX-EO-017",
+      "operationId": "P1-OP-015",
+      "tool": "createIndividual",
+      "type": "InspectionObservation"
+    },
+    {
+      "id": "V-017-IDENTITY-R-001",
+      "operationId": "P1-OP-016",
+      "tool": "createIndividual",
+      "type": "IdentityConflict"
+    },
+    {
+      "id": "V-017-R-001-ASSESSMENT",
+      "operationId": "P1-OP-017",
+      "tool": "createIndividual",
+      "type": "ThreatAssessment"
+    },
+    {
+      "id": "S-017-1",
+      "operationId": "P1-OP-018",
+      "tool": "assertType",
+      "type": "LoiteringState"
+    },
+    {
+      "id": "E-017",
+      "operationId": "P1-OP-019",
+      "tool": "assertType",
+      "type": "SuspectedIllegalFishingActivity"
+    },
+    {
+      "id": "TX-AIS-017",
+      "operationId": "P1-OP-020",
+      "tool": "assertType",
+      "type": "DeclarationStatement"
+    },
+    {
+      "id": "TX-EO-017",
+      "operationId": "P1-OP-021",
+      "tool": "assertType",
+      "type": "InspectionObservation"
+    },
+    {
+      "id": "V-017-IDENTITY-R-001",
+      "operationId": "P1-OP-022",
+      "tool": "assertType",
+      "type": "IdentityConflict"
+    },
+    {
+      "id": "V-017-R-001-ASSESSMENT",
+      "operationId": "P1-OP-023",
+      "tool": "assertType",
+      "type": "ThreatAssessment"
+    },
+    {
+      "o": "S-017-1",
+      "operationId": "P1-OP-024",
+      "p": "hasState",
+      "s": "V-017",
+      "tool": "assertRelation"
+    },
+    {
+      "o": "A-03",
+      "operationId": "P1-OP-025",
+      "p": "hasPotentialIllegalActivity",
+      "s": "V-017",
+      "tool": "assertRelation"
+    },
+    {
+      "o": "V-017",
+      "operationId": "P1-OP-026",
+      "p": "hasSubject",
+      "s": "E-017",
+      "tool": "assertRelation"
+    },
+    {
+      "o": "A-03",
+      "operationId": "P1-OP-027",
+      "p": "hasObject",
+      "s": "E-017",
+      "tool": "assertRelation"
+    },
+    {
+      "o": "T3",
+      "operationId": "P1-OP-028",
+      "p": "hasInstant",
+      "s": "E-017",
+      "tool": "assertRelation"
+    },
+    {
+      "o": "TX-AIS-017",
+      "operationId": "P1-OP-029",
+      "p": "declaredAs",
+      "s": "V-017",
+      "tool": "assertRelation"
+    },
+    {
+      "o": "TX-AIS-017",
+      "operationId": "P1-OP-030",
+      "p": "hasTextEvidence",
+      "s": "E-017",
+      "tool": "assertRelation"
+    },
+    {
+      "o": "TX-EO-017",
+      "operationId": "P1-OP-031",
+      "p": "hasTextEvidence",
+      "s": "E-017",
+      "tool": "assertRelation"
+    },
+    {
+      "o": "TX-AIS-017",
+      "operationId": "P1-OP-032",
+      "p": "hasTextEvidence",
+      "s": "V-017-IDENTITY-R-001",
+      "tool": "assertRelation"
+    },
+    {
+      "o": "TX-EO-017",
+      "operationId": "P1-OP-033",
+      "p": "hasTextEvidence",
+      "s": "V-017-IDENTITY-R-001",
+      "tool": "assertRelation"
+    },
+    {
+      "o": "V-017",
+      "operationId": "P1-OP-034",
+      "p": "hasSubject",
+      "s": "V-017-IDENTITY-R-001",
+      "tool": "assertRelation"
+    },
+    {
+      "o": "TX-EO-017",
+      "operationId": "P1-OP-035",
+      "p": "contradicts",
+      "s": "TX-AIS-017",
+      "tool": "assertRelation"
+    },
+    {
+      "o": "V-017",
+      "operationId": "P1-OP-036",
+      "p": "hasSubject",
+      "s": "V-017-R-001-ASSESSMENT",
+      "tool": "assertRelation"
+    },
+    {
+      "o": "A-03",
+      "operationId": "P1-OP-037",
+      "p": "hasObject",
+      "s": "V-017-R-001-ASSESSMENT",
+      "tool": "assertRelation"
+    },
+    {
+      "o": "T3",
+      "operationId": "P1-OP-038",
+      "p": "hasInstant",
+      "s": "V-017-R-001-ASSESSMENT",
+      "tool": "assertRelation"
+    },
+    {
+      "o": "E-017",
+      "operationId": "P1-OP-039",
+      "p": "hasSubEvent",
+      "s": "V-017-R-001-ASSESSMENT",
+      "tool": "assertRelation"
+    },
+    {
+      "o": "V-017-IDENTITY-R-001",
+      "operationId": "P1-OP-040",
+      "p": "hasSubEvent",
+      "s": "V-017-R-001-ASSESSMENT",
+      "tool": "assertRelation"
+    },
+    {
+      "event": "E-017",
+      "evidence": "EV-AIS-1006",
+      "operationId": "P1-OP-041",
+      "tool": "attachEvidence"
+    },
+    {
+      "event": "E-017",
+      "evidence": "EV-RADAR-1006",
+      "operationId": "P1-OP-042",
+      "tool": "attachEvidence"
+    },
+    {
+      "event": "E-017",
+      "evidence": "EV-AIS-1012",
+      "operationId": "P1-OP-043",
+      "tool": "attachEvidence"
+    },
+    {
+      "event": "E-017",
+      "evidence": "EV-RADAR-1012",
+      "operationId": "P1-OP-044",
+      "tool": "attachEvidence"
+    },
+    {
+      "event": "E-017",
+      "evidence": "EV-AIS-1019",
+      "operationId": "P1-OP-045",
+      "tool": "attachEvidence"
+    },
+    {
+      "event": "E-017",
+      "evidence": "EV-RADAR-1019",
+      "operationId": "P1-OP-046",
+      "tool": "attachEvidence"
+    },
+    {
+      "event": "E-017",
+      "evidence": "TX-AIS-017",
+      "operationId": "P1-OP-047",
+      "tool": "attachEvidence"
+    },
+    {
+      "event": "E-017",
+      "evidence": "TX-EO-017",
+      "operationId": "P1-OP-048",
+      "tool": "attachEvidence"
+    },
+    {
+      "event": "V-017-IDENTITY-R-001",
+      "evidence": "TX-AIS-017",
+      "operationId": "P1-OP-049",
+      "tool": "attachEvidence"
+    },
+    {
+      "event": "V-017-IDENTITY-R-001",
+      "evidence": "TX-EO-017",
+      "operationId": "P1-OP-050",
+      "tool": "attachEvidence"
+    },
+    {
+      "event": "V-017-R-001-ASSESSMENT",
+      "evidence": "EV-AIS-1006",
+      "operationId": "P1-OP-051",
+      "tool": "attachEvidence"
+    },
+    {
+      "event": "V-017-R-001-ASSESSMENT",
+      "evidence": "EV-AIS-1012",
+      "operationId": "P1-OP-052",
+      "tool": "attachEvidence"
+    },
+    {
+      "event": "V-017-R-001-ASSESSMENT",
+      "evidence": "EV-AIS-1019",
+      "operationId": "P1-OP-053",
+      "tool": "attachEvidence"
+    },
+    {
+      "event": "V-017-R-001-ASSESSMENT",
+      "evidence": "EV-RADAR-1006",
+      "operationId": "P1-OP-054",
+      "tool": "attachEvidence"
+    },
+    {
+      "event": "V-017-R-001-ASSESSMENT",
+      "evidence": "EV-RADAR-1012",
+      "operationId": "P1-OP-055",
+      "tool": "attachEvidence"
+    },
+    {
+      "event": "V-017-R-001-ASSESSMENT",
+      "evidence": "EV-RADAR-1019",
+      "operationId": "P1-OP-056",
+      "tool": "attachEvidence"
+    },
+    {
+      "event": "V-017-R-001-ASSESSMENT",
+      "evidence": "TX-AIS-017",
+      "operationId": "P1-OP-057",
+      "tool": "attachEvidence"
+    },
+    {
+      "event": "V-017-R-001-ASSESSMENT",
+      "evidence": "TX-EO-017",
+      "operationId": "P1-OP-058",
+      "tool": "attachEvidence"
+    }
+  ],
+  "metricsMs": {
+    "endToEnd": 23.944,
+    "execution": 0.572,
+    "ontologyEvolutionAndConsistency": 0.979,
+    "planValidation": 0.64,
+    "semanticPerception": 0.182
+  },
+  "ontologyToolAudit": [
+    {
+      "classId": "SuspectedIllegalFishingActivity",
+      "tool": "createClass"
+    },
+    {
+      "classId": "TextEvidence",
+      "tool": "createClass"
+    },
+    {
+      "classId": "DeclarationStatement",
+      "tool": "createClass"
+    },
+    {
+      "classId": "VHFCallEvent",
+      "tool": "createClass"
+    },
+    {
+      "classId": "CommunicationEvent",
+      "tool": "createClass"
+    },
+    {
+      "classId": "InspectionObservation",
+      "tool": "createClass"
+    },
+    {
+      "classId": "IdentityConflict",
+      "tool": "createClass"
+    },
+    {
+      "classId": "CommunicationAnomaly",
+      "tool": "createClass"
+    },
+    {
+      "classId": "CommunicationEndpoint",
+      "tool": "createClass"
+    },
+    {
+      "classId": "ThreatAssessment",
+      "tool": "createClass"
+    },
+    {
+      "classId": "AbnormalTrajectory",
+      "tool": "createClass"
+    },
+    {
+      "classId": "HighRiskBehavior",
+      "tool": "createClass"
+    },
+    {
+      "classId": "ThreatAlert",
+      "tool": "createClass"
+    },
+    {
+      "propertyId": "hasPotentialIllegalActivity",
+      "tool": "createObjectProperty"
+    },
+    {
+      "propertyId": "hasTextEvidence",
+      "tool": "createObjectProperty"
+    },
+    {
+      "propertyId": "declaredAs",
+      "tool": "createObjectProperty"
+    },
+    {
+      "propertyId": "calledBy",
+      "tool": "createObjectProperty"
+    },
+    {
+      "propertyId": "sentTo",
+      "tool": "createObjectProperty"
+    },
+    {
+      "propertyId": "contradicts",
+      "tool": "createObjectProperty"
+    },
+    {
+      "propertyId": "reportedBy",
+      "tool": "createObjectProperty"
+    },
+    {
+      "propertyId": "hasSubEvent",
+      "tool": "createObjectProperty"
+    },
+    {
+      "propertyId": "triggersAlert",
+      "tool": "createObjectProperty"
+    },
+    {
+      "propertyId": "callSign",
+      "tool": "createDataProperty"
+    },
+    {
+      "propertyId": "declaredVesselType",
+      "tool": "createDataProperty"
+    },
+    {
+      "propertyId": "declaredGearType",
+      "tool": "createDataProperty"
+    },
+    {
+      "propertyId": "callAttempts",
+      "tool": "createDataProperty"
+    },
+    {
+      "propertyId": "responseStatus",
+      "tool": "createDataProperty"
+    },
+    {
+      "propertyId": "encryptedMessageCount",
+      "tool": "createDataProperty"
+    },
+    {
+      "propertyId": "textSource",
+      "tool": "createDataProperty"
+    },
+    {
+      "propertyId": "rawTextSpan",
+      "tool": "createDataProperty"
+    },
+    {
+      "propertyId": "threatLevel",
+      "tool": "createDataProperty"
+    },
+    {
+      "propertyId": "trajectoryPattern",
+      "tool": "createDataProperty"
+    },
+    {
+      "propertyId": "communicationSilence",
+      "tool": "createDataProperty"
+    },
+    {
+      "ruleId": "R2",
+      "tool": "addSWRLRule"
+    },
+    {
+      "ruleId": "R3",
+      "tool": "addSWRLRule"
+    },
+    {
+      "ruleId": "R4",
+      "tool": "addSWRLRule"
+    },
+    {
+      "ruleId": "R5",
+      "tool": "addSWRLRule"
+    },
+    {
+      "ruleId": "R6",
+      "tool": "addSWRLRule"
+    },
+    {
+      "ruleId": "R7",
+      "tool": "addSWRLRule"
+    },
+    {
+      "ruleId": "R8",
+      "tool": "addSWRLRule"
+    },
+    {
+      "ruleId": "R9",
+      "tool": "addSWRLRule"
+    },
+    {
+      "baseVersion": "00",
+      "newVersion": "01",
+      "tool": "publishOntologyVersion"
+    }
+  ],
+  "ontologyValidation": {
+    "cacheHit": true,
+    "cachedDurationMs": 981.454,
+    "checks": {
+      "baseVersion": true,
+      "classHierarchy": true,
+      "disjointness": true,
+      "domainRangeDeclarations": true,
+      "ruleReferences": true
+    },
+    "consistent": true,
+    "durationMs": 0.0,
+    "engine": "HermiT",
+    "expertReview": {
+      "note": "HermiT consistency is not expert approval",
+      "scope": "ontology",
+      "status": "pending",
+      "version": "01"
+    },
+    "hermitExecuted": false,
+    "hermitResultUsed": true,
+    "ontologyVersion": "01",
+    "proposalId": "EP-001",
+    "reason": null,
+    "unsatisfiableClasses": [],
+    "violatedConstraints": []
+  },
+  "ontologyVersion": "01",
+  "planHistory": [
+    {
+      "plan": {
+        "assertRelations": [
+          {
+            "o": "S-017-1",
+            "p": "hasState",
+            "s": "V-017"
+          },
+          {
+            "o": "A-03",
+            "p": "hasPotentialIllegalActivity",
+            "s": "V-017"
+          },
+          {
+            "o": "V-017",
+            "p": "hasSubject",
+            "s": "E-017"
+          },
+          {
+            "o": "A-03",
+            "p": "hasObject",
+            "s": "E-017"
+          },
+          {
+            "o": "T3",
+            "p": "hasInstant",
+            "s": "E-017"
+          },
+          {
+            "o": "TX-AIS-017",
+            "p": "declaredAs",
+            "s": "V-017"
+          },
+          {
+            "o": "TX-AIS-017",
+            "p": "hasTextEvidence",
+            "s": "E-017"
+          },
+          {
+            "o": "TX-EO-017",
+            "p": "hasTextEvidence",
+            "s": "E-017"
+          },
+          {
+            "o": "TX-AIS-017",
+            "p": "hasTextEvidence",
+            "s": "V-017-IDENTITY-R-001"
+          },
+          {
+            "o": "TX-EO-017",
+            "p": "hasTextEvidence",
+            "s": "V-017-IDENTITY-R-001"
+          },
+          {
+            "o": "V-017",
+            "p": "hasSubject",
+            "s": "V-017-IDENTITY-R-001"
+          },
+          {
+            "o": "TX-EO-017",
+            "p": "contradicts",
+            "s": "TX-AIS-017"
+          },
+          {
+            "o": "V-017",
+            "p": "hasSubject",
+            "s": "V-017-R-001-ASSESSMENT"
+          },
+          {
+            "o": "A-03",
+            "p": "hasObject",
+            "s": "V-017-R-001-ASSESSMENT"
+          },
+          {
+            "o": "T3",
+            "p": "hasInstant",
+            "s": "V-017-R-001-ASSESSMENT"
+          },
+          {
+            "o": "E-017",
+            "p": "hasSubEvent",
+            "s": "V-017-R-001-ASSESSMENT"
+          },
+          {
+            "o": "V-017-IDENTITY-R-001",
+            "p": "hasSubEvent",
+            "s": "V-017-R-001-ASSESSMENT"
+          }
+        ],
+        "assertTypes": [
+          {
+            "id": "S-017-1",
+            "type": "LoiteringState"
+          },
+          {
+            "id": "E-017",
+            "type": "SuspectedIllegalFishingActivity"
+          },
+          {
+            "id": "TX-AIS-017",
+            "type": "DeclarationStatement"
+          },
+          {
+            "id": "TX-EO-017",
+            "type": "InspectionObservation"
+          },
+          {
+            "id": "V-017-IDENTITY-R-001",
+            "type": "IdentityConflict"
+          },
+          {
+            "id": "V-017-R-001-ASSESSMENT",
+            "type": "ThreatAssessment"
+          }
+        ],
+        "attachEvidence": [
+          {
+            "event": "E-017",
+            "evidence": "EV-AIS-1006"
+          },
+          {
+            "event": "E-017",
+            "evidence": "EV-RADAR-1006"
+          },
+          {
+            "event": "E-017",
+            "evidence": "EV-AIS-1012"
+          },
+          {
+            "event": "E-017",
+            "evidence": "EV-RADAR-1012"
+          },
+          {
+            "event": "E-017",
+            "evidence": "EV-AIS-1019"
+          },
+          {
+            "event": "E-017",
+            "evidence": "EV-RADAR-1019"
+          },
+          {
+            "event": "E-017",
+            "evidence": "TX-AIS-017"
+          },
+          {
+            "event": "E-017",
+            "evidence": "TX-EO-017"
+          },
+          {
+            "event": "V-017-IDENTITY-R-001",
+            "evidence": "TX-AIS-017"
+          },
+          {
+            "event": "V-017-IDENTITY-R-001",
+            "evidence": "TX-EO-017"
+          },
+          {
+            "event": "V-017-R-001-ASSESSMENT",
+            "evidence": "EV-AIS-1006"
+          },
+          {
+            "event": "V-017-R-001-ASSESSMENT",
+            "evidence": "EV-AIS-1012"
+          },
+          {
+            "event": "V-017-R-001-ASSESSMENT",
+            "evidence": "EV-AIS-1019"
+          },
+          {
+            "event": "V-017-R-001-ASSESSMENT",
+            "evidence": "EV-RADAR-1006"
+          },
+          {
+            "event": "V-017-R-001-ASSESSMENT",
+            "evidence": "EV-RADAR-1012"
+          },
+          {
+            "event": "V-017-R-001-ASSESSMENT",
+            "evidence": "EV-RADAR-1019"
+          },
+          {
+            "event": "V-017-R-001-ASSESSMENT",
+            "evidence": "TX-AIS-017"
+          },
+          {
+            "event": "V-017-R-001-ASSESSMENT",
+            "evidence": "TX-EO-017"
+          }
+        ],
+        "baseOntologyVersion": "01",
+        "closeStates": [
+          {
+            "id": "S-017-0",
+            "validTo": "2026-11-11T10:06:00+08:00"
+          }
+        ],
+        "createIndividuals": [
+          {
+            "id": "S-017-1",
+            "properties": {
+              "durationSeconds": 780,
+              "speed": 0.7,
+              "travelDistance": 0.2,
+              "validFrom": "2026-11-11T10:06:00+08:00",
+              "validTo": null
+            },
+            "type": "LoiteringState"
+          },
+          {
+            "id": "E-017",
+            "properties": {
+              "confidence": 0.9,
+              "labels": [
+                "身份矛盾"
+              ],
+              "reviewStatus": "pending",
+              "ruleHits": [
+                "R1",
+                "R2",
+                "R3",
+                "R4"
+              ]
+            },
+            "type": "SuspectedIllegalFishingActivity"
+          },
+          {
+            "id": "TX-AIS-017",
+            "properties": {
+              "callSign": "BXYZ7",
+              "declaredGearType": "拖网",
+              "declaredVesselType": "捕捞船",
+              "rawText": "船名：海研017；呼号：BXYZ7；申报船型：捕捞船；申报渔具：拖网。",
+              "rawTextSpan": "[0, 35]",
+              "textSource": "AISStatic",
+              "timestamp": "2026-11-11T10:05:00+08:00",
+              "vesselName": "海研017"
+            },
+            "type": "DeclarationStatement"
+          },
+          {
+            "id": "TX-EO-017",
+            "properties": {
+              "hasDirectionalAntenna": true,
+              "hasFishingGear": false,
+              "rawText": "标注：无渔具；发现定向天线。",
+              "rawTextSpan": "[0, 14]",
+              "textSource": "EOAnnotation",
+              "timestamp": "2026-11-11T10:12:30+08:00"
+            },
+            "type": "InspectionObservation"
+          },
+          {
+            "id": "V-017-IDENTITY-R-001",
+            "properties": {
+              "confidence": 0.92,
+              "reviewStatus": "pending",
+              "rule": "R4"
+            },
+            "type": "IdentityConflict"
+          },
+          {
+            "id": "V-017-R-001-ASSESSMENT",
+            "properties": {
+              "blockedReasons": [
+                "missing_CommunicationAnomaly",
+                "missing_AbnormalTrajectory"
+              ],
+              "confidence": 0.9,
+              "confidenceMethod": "minimum_child_and_evidence_confidence",
+              "reviewStatus": "pending",
+              "threatLevel": "low"
+            },
+            "type": "ThreatAssessment"
+          }
+        ],
+        "evidenceRecords": [
+          {
+            "confidence": 0.95,
+            "id": "EV-AIS-1006",
+            "source": "AIS",
+            "subject": "V-017",
+            "timestamp": "2026-11-11T10:06:00+08:00",
+            "type": "AIS"
+          },
+          {
+            "confidence": 0.9,
+            "id": "EV-RADAR-1006",
+            "source": "Radar",
+            "subject": "V-017",
+            "timestamp": "2026-11-11T10:06:10+08:00",
+            "type": "Radar"
+          },
+          {
+            "confidence": 0.96,
+            "id": "EV-AIS-1012",
+            "source": "AIS",
+            "subject": "V-017",
+            "timestamp": "2026-11-11T10:12:00+08:00",
+            "type": "AIS"
+          },
+          {
+            "confidence": 0.91,
+            "id": "EV-RADAR-1012",
+            "source": "Radar",
+            "subject": "V-017",
+            "timestamp": "2026-11-11T10:12:10+08:00",
+            "type": "Radar"
+          },
+          {
+            "confidence": 0.95,
+            "id": "EV-AIS-1019",
+            "source": "AIS",
+            "subject": "V-017",
+            "timestamp": "2026-11-11T10:19:00+08:00",
+            "type": "AIS"
+          },
+          {
+            "confidence": 0.92,
+            "id": "EV-RADAR-1019",
+            "source": "Radar",
+            "subject": "V-017",
+            "timestamp": "2026-11-11T10:19:10+08:00",
+            "type": "Radar"
+          },
+          {
+            "confidence": 0.95,
+            "id": "TX-AIS-017",
+            "modality": "text",
+            "rawText": "船名：海研017；呼号：BXYZ7；申报船型：捕捞船；申报渔具：拖网。",
+            "source": "AISStatic",
+            "span": [
+              0,
+              35
+            ],
+            "subject": "V-017",
+            "timestamp": "2026-11-11T10:05:00+08:00",
+            "type": "TextEvidence"
+          },
+          {
+            "confidence": 0.92,
+            "id": "TX-EO-017",
+            "modality": "text",
+            "rawText": "标注：无渔具；发现定向天线。",
+            "source": "EOAnnotation",
+            "span": [
+              0,
+              14
+            ],
+            "subject": "V-017",
+            "timestamp": "2026-11-11T10:12:30+08:00",
+            "type": "TextEvidence"
+          }
+        ],
+        "expectedSubgraph": [
+          "V-017",
+          "A-03",
+          "S-017-0",
+          "S-017-1",
+          "E-017",
+          "TX-AIS-017",
+          "TX-EO-017",
+          "V-017-IDENTITY-R-001",
+          "V-017-R-001-ASSESSMENT"
+        ],
+        "planId": "P1",
+        "replanAttempt": 1,
+        "replanFeedback": [],
+        "ruleHits": [
+          "R1",
+          "R2",
+          "R3",
+          "R4"
+        ],
+        "temporalValues": [
+          {
+            "id": "T3",
+            "timestamp": "2026-11-11T10:19:00+08:00"
+          }
+        ],
+        "textFacts": [
+          {
+            "confidence": 0.95,
+            "evidence": "TX-AIS-017",
+            "extractor": "regex",
+            "predicate": "vesselName",
+            "quote": "船名：海研017",
+            "source": "AISStatic",
+            "span": [
+              0,
+              8
+            ],
+            "subject": "V-017",
+            "value": "海研017"
+          },
+          {
+            "confidence": 0.95,
+            "evidence": "TX-AIS-017",
+            "extractor": "regex",
+            "predicate": "callSign",
+            "quote": "呼号：BXYZ7",
+            "source": "AISStatic",
+            "span": [
+              9,
+              17
+            ],
+            "subject": "V-017",
+            "value": "BXYZ7"
+          },
+          {
+            "confidence": 0.95,
+            "evidence": "TX-AIS-017",
+            "extractor": "regex",
+            "predicate": "declaredVesselType",
+            "quote": "申报船型：捕捞船",
+            "source": "AISStatic",
+            "span": [
+              18,
+              26
+            ],
+            "subject": "V-017",
+            "value": "捕捞船"
+          },
+          {
+            "confidence": 0.95,
+            "evidence": "TX-AIS-017",
+            "extractor": "regex",
+            "predicate": "declaredGearType",
+            "quote": "申报渔具：拖网",
+            "source": "AISStatic",
+            "span": [
+              27,
+              34
+            ],
+            "subject": "V-017",
+            "value": "拖网"
+          },
+          {
+            "confidence": 0.92,
+            "evidence": "TX-EO-017",
+            "extractor": "regex",
+            "predicate": "hasFishingGear",
+            "quote": "无渔具",
+            "source": "EOAnnotation",
+            "span": [
+              3,
+              6
+            ],
+            "subject": "V-017",
+            "value": false
+          },
+          {
+            "confidence": 0.92,
+            "evidence": "TX-EO-017",
+            "extractor": "regex",
+            "predicate": "hasDirectionalAntenna",
+            "quote": "发现定向天线",
+            "source": "EOAnnotation",
+            "span": [
+              7,
+              13
+            ],
+            "subject": "V-017",
+            "value": true
+          }
+        ],
+        "textSummary": {
+          "events": [
+            "V-017-IDENTITY-R-001"
+          ],
+          "labels": [
+            "身份矛盾"
+          ],
+          "textEvidenceCount": 2,
+          "trajectoryEvidenceCount": 6
+        },
+        "threatSummary": {
+          "alertId": null,
+          "assessmentId": "V-017-R-001-ASSESSMENT",
+          "blockedReasons": [
+            "missing_CommunicationAnomaly",
+            "missing_AbnormalTrajectory"
+          ],
+          "confidence": 0.9,
+          "confidenceMethod": "minimum_child_and_evidence_confidence",
+          "subEvents": [
+            "E-017",
+            "V-017-IDENTITY-R-001"
+          ],
+          "threatLevel": "low",
+          "trajectoryPatterns": []
+        }
+      },
+      "validation": {
+        "checks": {
+          "domainRangeCheck": true,
+          "impactSubgraphCheck": true,
+          "mutualExclusionCheck": true,
+          "provenanceCheck": true,
+          "ruleReferenceCheck": true,
+          "temporalCheck": true,
+          "threatEvidenceCheck": true,
+          "typeCheck": true
+        },
+        "ontologyVersion": "01",
+        "passed": true,
+        "planId": "P1",
+        "suggestions": [],
+        "validatorAgent": "ontology_evolution_agent"
+      }
+    }
+  ],
+  "planValidation": {
+    "checks": {
+      "domainRangeCheck": true,
+      "impactSubgraphCheck": true,
+      "mutualExclusionCheck": true,
+      "provenanceCheck": true,
+      "ruleReferenceCheck": true,
+      "temporalCheck": true,
+      "threatEvidenceCheck": true,
+      "typeCheck": true
+    },
+    "ontologyVersion": "01",
+    "passed": true,
+    "planId": "P1",
+    "suggestions": [],
+    "validatorAgent": "ontology_evolution_agent"
+  },
+  "roundId": "R-001",
+  "status": "COMMITTED",
+  "trace": [
+    {
+      "detail": "semantic_perception_agent",
+      "state": "PERCEIVING"
+    },
+    {
+      "detail": "ontology_evolution_agent",
+      "state": "ONTOLOGY_EVOLVING"
+    },
+    {
+      "detail": "published ontology version 01",
+      "state": "ONTOLOGY_VALIDATED"
+    },
+    {
+      "detail": "decision_planning_agent",
+      "state": "PLANNING"
+    },
+    {
+      "detail": "ontology_evolution_agent.validate_plan",
+      "state": "PLAN_VALIDATING"
+    },
+    {
+      "detail": "plan validation passed in ontology evolution agent",
+      "state": "PLAN_VALIDATED"
+    },
+    {
+      "detail": "action_execution_agent",
+      "state": "EXECUTING"
+    },
+    {
+      "detail": "C-0001",
+      "state": "COMMITTED"
+    },
+    {
+      "detail": "record update summary and round metrics",
+      "state": "FEEDBACK"
+    }
+  ],
+  "updatePlan": {
+    "assertRelations": [
+      {
+        "o": "S-017-1",
+        "p": "hasState",
+        "s": "V-017"
+      },
+      {
+        "o": "A-03",
+        "p": "hasPotentialIllegalActivity",
+        "s": "V-017"
+      },
+      {
+        "o": "V-017",
+        "p": "hasSubject",
+        "s": "E-017"
+      },
+      {
+        "o": "A-03",
+        "p": "hasObject",
+        "s": "E-017"
+      },
+      {
+        "o": "T3",
+        "p": "hasInstant",
+        "s": "E-017"
+      },
+      {
+        "o": "TX-AIS-017",
+        "p": "declaredAs",
+        "s": "V-017"
+      },
+      {
+        "o": "TX-AIS-017",
+        "p": "hasTextEvidence",
+        "s": "E-017"
+      },
+      {
+        "o": "TX-EO-017",
+        "p": "hasTextEvidence",
+        "s": "E-017"
+      },
+      {
+        "o": "TX-AIS-017",
+        "p": "hasTextEvidence",
+        "s": "V-017-IDENTITY-R-001"
+      },
+      {
+        "o": "TX-EO-017",
+        "p": "hasTextEvidence",
+        "s": "V-017-IDENTITY-R-001"
+      },
+      {
+        "o": "V-017",
+        "p": "hasSubject",
+        "s": "V-017-IDENTITY-R-001"
+      },
+      {
+        "o": "TX-EO-017",
+        "p": "contradicts",
+        "s": "TX-AIS-017"
+      },
+      {
+        "o": "V-017",
+        "p": "hasSubject",
+        "s": "V-017-R-001-ASSESSMENT"
+      },
+      {
+        "o": "A-03",
+        "p": "hasObject",
+        "s": "V-017-R-001-ASSESSMENT"
+      },
+      {
+        "o": "T3",
+        "p": "hasInstant",
+        "s": "V-017-R-001-ASSESSMENT"
+      },
+      {
+        "o": "E-017",
+        "p": "hasSubEvent",
+        "s": "V-017-R-001-ASSESSMENT"
+      },
+      {
+        "o": "V-017-IDENTITY-R-001",
+        "p": "hasSubEvent",
+        "s": "V-017-R-001-ASSESSMENT"
+      }
+    ],
+    "assertTypes": [
+      {
+        "id": "S-017-1",
+        "type": "LoiteringState"
+      },
+      {
+        "id": "E-017",
+        "type": "SuspectedIllegalFishingActivity"
+      },
+      {
+        "id": "TX-AIS-017",
+        "type": "DeclarationStatement"
+      },
+      {
+        "id": "TX-EO-017",
+        "type": "InspectionObservation"
+      },
+      {
+        "id": "V-017-IDENTITY-R-001",
+        "type": "IdentityConflict"
+      },
+      {
+        "id": "V-017-R-001-ASSESSMENT",
+        "type": "ThreatAssessment"
+      }
+    ],
+    "attachEvidence": [
+      {
+        "event": "E-017",
+        "evidence": "EV-AIS-1006"
+      },
+      {
+        "event": "E-017",
+        "evidence": "EV-RADAR-1006"
+      },
+      {
+        "event": "E-017",
+        "evidence": "EV-AIS-1012"
+      },
+      {
+        "event": "E-017",
+        "evidence": "EV-RADAR-1012"
+      },
+      {
+        "event": "E-017",
+        "evidence": "EV-AIS-1019"
+      },
+      {
+        "event": "E-017",
+        "evidence": "EV-RADAR-1019"
+      },
+      {
+        "event": "E-017",
+        "evidence": "TX-AIS-017"
+      },
+      {
+        "event": "E-017",
+        "evidence": "TX-EO-017"
+      },
+      {
+        "event": "V-017-IDENTITY-R-001",
+        "evidence": "TX-AIS-017"
+      },
+      {
+        "event": "V-017-IDENTITY-R-001",
+        "evidence": "TX-EO-017"
+      },
+      {
+        "event": "V-017-R-001-ASSESSMENT",
+        "evidence": "EV-AIS-1006"
+      },
+      {
+        "event": "V-017-R-001-ASSESSMENT",
+        "evidence": "EV-AIS-1012"
+      },
+      {
+        "event": "V-017-R-001-ASSESSMENT",
+        "evidence": "EV-AIS-1019"
+      },
+      {
+        "event": "V-017-R-001-ASSESSMENT",
+        "evidence": "EV-RADAR-1006"
+      },
+      {
+        "event": "V-017-R-001-ASSESSMENT",
+        "evidence": "EV-RADAR-1012"
+      },
+      {
+        "event": "V-017-R-001-ASSESSMENT",
+        "evidence": "EV-RADAR-1019"
+      },
+      {
+        "event": "V-017-R-001-ASSESSMENT",
+        "evidence": "TX-AIS-017"
+      },
+      {
+        "event": "V-017-R-001-ASSESSMENT",
+        "evidence": "TX-EO-017"
+      }
+    ],
+    "baseOntologyVersion": "01",
+    "closeStates": [
+      {
+        "id": "S-017-0",
+        "validTo": "2026-11-11T10:06:00+08:00"
+      }
+    ],
+    "createIndividuals": [
+      {
+        "id": "S-017-1",
+        "properties": {
+          "durationSeconds": 780,
+          "speed": 0.7,
+          "travelDistance": 0.2,
+          "validFrom": "2026-11-11T10:06:00+08:00",
+          "validTo": null
+        },
+        "type": "LoiteringState"
+      },
+      {
+        "id": "E-017",
+        "properties": {
+          "confidence": 0.9,
+          "labels": [
+            "身份矛盾"
+          ],
+          "reviewStatus": "pending",
+          "ruleHits": [
+            "R1",
+            "R2",
+            "R3",
+            "R4"
+          ]
+        },
+        "type": "SuspectedIllegalFishingActivity"
+      },
+      {
+        "id": "TX-AIS-017",
+        "properties": {
+          "callSign": "BXYZ7",
+          "declaredGearType": "拖网",
+          "declaredVesselType": "捕捞船",
+          "rawText": "船名：海研017；呼号：BXYZ7；申报船型：捕捞船；申报渔具：拖网。",
+          "rawTextSpan": "[0, 35]",
+          "textSource": "AISStatic",
+          "timestamp": "2026-11-11T10:05:00+08:00",
+          "vesselName": "海研017"
+        },
+        "type": "DeclarationStatement"
+      },
+      {
+        "id": "TX-EO-017",
+        "properties": {
+          "hasDirectionalAntenna": true,
+          "hasFishingGear": false,
+          "rawText": "标注：无渔具；发现定向天线。",
+          "rawTextSpan": "[0, 14]",
+          "textSource": "EOAnnotation",
+          "timestamp": "2026-11-11T10:12:30+08:00"
+        },
+        "type": "InspectionObservation"
+      },
+      {
+        "id": "V-017-IDENTITY-R-001",
+        "properties": {
+          "confidence": 0.92,
+          "reviewStatus": "pending",
+          "rule": "R4"
+        },
+        "type": "IdentityConflict"
+      },
+      {
+        "id": "V-017-R-001-ASSESSMENT",
+        "properties": {
+          "blockedReasons": [
+            "missing_CommunicationAnomaly",
+            "missing_AbnormalTrajectory"
+          ],
+          "confidence": 0.9,
+          "confidenceMethod": "minimum_child_and_evidence_confidence",
+          "reviewStatus": "pending",
+          "threatLevel": "low"
+        },
+        "type": "ThreatAssessment"
+      }
+    ],
+    "evidenceRecords": [
+      {
+        "confidence": 0.95,
+        "id": "EV-AIS-1006",
+        "source": "AIS",
+        "subject": "V-017",
+        "timestamp": "2026-11-11T10:06:00+08:00",
+        "type": "AIS"
+      },
+      {
+        "confidence": 0.9,
+        "id": "EV-RADAR-1006",
+        "source": "Radar",
+        "subject": "V-017",
+        "timestamp": "2026-11-11T10:06:10+08:00",
+        "type": "Radar"
+      },
+      {
+        "confidence": 0.96,
+        "id": "EV-AIS-1012",
+        "source": "AIS",
+        "subject": "V-017",
+        "timestamp": "2026-11-11T10:12:00+08:00",
+        "type": "AIS"
+      },
+      {
+        "confidence": 0.91,
+        "id": "EV-RADAR-1012",
+        "source": "Radar",
+        "subject": "V-017",
+        "timestamp": "2026-11-11T10:12:10+08:00",
+        "type": "Radar"
+      },
+      {
+        "confidence": 0.95,
+        "id": "EV-AIS-1019",
+        "source": "AIS",
+        "subject": "V-017",
+        "timestamp": "2026-11-11T10:19:00+08:00",
+        "type": "AIS"
+      },
+      {
+        "confidence": 0.92,
+        "id": "EV-RADAR-1019",
+        "source": "Radar",
+        "subject": "V-017",
+        "timestamp": "2026-11-11T10:19:10+08:00",
+        "type": "Radar"
+      },
+      {
+        "confidence": 0.95,
+        "id": "TX-AIS-017",
+        "modality": "text",
+        "rawText": "船名：海研017；呼号：BXYZ7；申报船型：捕捞船；申报渔具：拖网。",
+        "source": "AISStatic",
+        "span": [
+          0,
+          35
+        ],
+        "subject": "V-017",
+        "timestamp": "2026-11-11T10:05:00+08:00",
+        "type": "TextEvidence"
+      },
+      {
+        "confidence": 0.92,
+        "id": "TX-EO-017",
+        "modality": "text",
+        "rawText": "标注：无渔具；发现定向天线。",
+        "source": "EOAnnotation",
+        "span": [
+          0,
+          14
+        ],
+        "subject": "V-017",
+        "timestamp": "2026-11-11T10:12:30+08:00",
+        "type": "TextEvidence"
+      }
+    ],
+    "expectedSubgraph": [
+      "V-017",
+      "A-03",
+      "S-017-0",
+      "S-017-1",
+      "E-017",
+      "TX-AIS-017",
+      "TX-EO-017",
+      "V-017-IDENTITY-R-001",
+      "V-017-R-001-ASSESSMENT"
+    ],
+    "planId": "P1",
+    "replanAttempt": 1,
+    "replanFeedback": [],
+    "ruleHits": [
+      "R1",
+      "R2",
+      "R3",
+      "R4"
+    ],
+    "temporalValues": [
+      {
+        "id": "T3",
+        "timestamp": "2026-11-11T10:19:00+08:00"
+      }
+    ],
+    "textFacts": [
+      {
+        "confidence": 0.95,
+        "evidence": "TX-AIS-017",
+        "extractor": "regex",
+        "predicate": "vesselName",
+        "quote": "船名：海研017",
+        "source": "AISStatic",
+        "span": [
+          0,
+          8
+        ],
+        "subject": "V-017",
+        "value": "海研017"
+      },
+      {
+        "confidence": 0.95,
+        "evidence": "TX-AIS-017",
+        "extractor": "regex",
+        "predicate": "callSign",
+        "quote": "呼号：BXYZ7",
+        "source": "AISStatic",
+        "span": [
+          9,
+          17
+        ],
+        "subject": "V-017",
+        "value": "BXYZ7"
+      },
+      {
+        "confidence": 0.95,
+        "evidence": "TX-AIS-017",
+        "extractor": "regex",
+        "predicate": "declaredVesselType",
+        "quote": "申报船型：捕捞船",
+        "source": "AISStatic",
+        "span": [
+          18,
+          26
+        ],
+        "subject": "V-017",
+        "value": "捕捞船"
+      },
+      {
+        "confidence": 0.95,
+        "evidence": "TX-AIS-017",
+        "extractor": "regex",
+        "predicate": "declaredGearType",
+        "quote": "申报渔具：拖网",
+        "source": "AISStatic",
+        "span": [
+          27,
+          34
+        ],
+        "subject": "V-017",
+        "value": "拖网"
+      },
+      {
+        "confidence": 0.92,
+        "evidence": "TX-EO-017",
+        "extractor": "regex",
+        "predicate": "hasFishingGear",
+        "quote": "无渔具",
+        "source": "EOAnnotation",
+        "span": [
+          3,
+          6
+        ],
+        "subject": "V-017",
+        "value": false
+      },
+      {
+        "confidence": 0.92,
+        "evidence": "TX-EO-017",
+        "extractor": "regex",
+        "predicate": "hasDirectionalAntenna",
+        "quote": "发现定向天线",
+        "source": "EOAnnotation",
+        "span": [
+          7,
+          13
+        ],
+        "subject": "V-017",
+        "value": true
+      }
+    ],
+    "textSummary": {
+      "events": [
+        "V-017-IDENTITY-R-001"
+      ],
+      "labels": [
+        "身份矛盾"
+      ],
+      "textEvidenceCount": 2,
+      "trajectoryEvidenceCount": 6
+    },
+    "threatSummary": {
+      "alertId": null,
+      "assessmentId": "V-017-R-001-ASSESSMENT",
+      "blockedReasons": [
+        "missing_CommunicationAnomaly",
+        "missing_AbnormalTrajectory"
+      ],
+      "confidence": 0.9,
+      "confidenceMethod": "minimum_child_and_evidence_confidence",
+      "subEvents": [
+        "E-017",
+        "V-017-IDENTITY-R-001"
+      ],
+      "threatLevel": "low",
+      "trajectoryPatterns": []
+    }
+  }
+}

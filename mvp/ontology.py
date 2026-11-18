@@ -298,6 +298,17 @@ class OntologyAgent:
                 if name not in current.rules:
                     new_rules.append(name)
                     definitions.append(deepcopy(rule))
+        if delta.get("enableThreatAssessment"):
+            from .threat import CLASSES, RELATIONS, DATA_PROPERTIES, RULES
+            new_classes.extend({"id": n, "parent": v} for n, v in CLASSES.items() if n not in current.classes)
+            new_properties.extend({"id": n, **v} for n, v in RELATIONS.items() if n not in current.object_properties)
+            new_data_properties.extend({"id": n, **v} for n, v in DATA_PROPERTIES.items()
+                                       if n not in current.document.get("dataProperties", {})
+                                       and v["domain"] in (set(current.classes) | {c["id"] for c in new_classes}))
+            for n, rule in RULES.items():
+                if n not in current.rules:
+                    new_rules.append(n)
+                    definitions.append(deepcopy(rule))
         return {
             "proposalId": "EP-001",
             "baseOntologyVersion": current.version,
@@ -334,6 +345,9 @@ class OntologyAgent:
             "newRules": proposal["newRules"],
             "validationEngine": report["engine"],
         }
+        if "ThreatAssessment" in candidate["classes"]:
+            report["expertReview"] = {"status": "pending", "scope": "ontology", "version": version,
+                                      "note": "HermiT consistency is not expert approval"}
         report["ontologyVersion"] = version
         return report, OntologyModel(candidate)
 
@@ -464,6 +478,10 @@ class OntologyAgent:
                 started_checks["impactSubgraphCheck"] = False
                 suggestions.append("limit relationships to the declared affected subgraph")
 
+        from .threat import validate_threat_plan
+        started_checks["threatEvidenceCheck"] = validate_threat_plan(plan, delta, ontology)
+        if not started_checks["threatEvidenceCheck"]:
+            suggestions.append("rebuild threat assessment from grounded evidence and declared rules")
         return {
             "planId": plan.get("planId"),
             "ontologyVersion": ontology.version,
@@ -472,6 +490,20 @@ class OntologyAgent:
             "checks": started_checks,
             "suggestions": list(dict.fromkeys(suggestions)),
         }
+
+    def record_expert_review(self, version, status, reviewer, reason):
+        if not all(isinstance(v, str) and v.strip() for v in (version, status, reviewer, reason)):
+            raise ValueError("version, status, reviewer and reason must be nonempty strings")
+        if status not in {"approved", "rejected"} or version != self.load_current().version:
+            raise ValueError("review the current ontology version with approved or rejected status")
+        path = self.ontology_root / version / "validation_report.json"
+        report = read_json(path)
+        review = {"version": version, "status": status, "reviewer": reviewer, "reason": reason,
+                  "timestamp": datetime.now().astimezone().isoformat(), "scope": "ontology"}
+        report.setdefault("expertReviewHistory", []).append(review)
+        report["expertReview"] = review
+        write_json(path, report)
+        return review
 
     def publish(self, ontology: OntologyModel, report: dict[str, Any]) -> None:
         self.tool_audit = []

@@ -84,6 +84,8 @@ class SemanticPerceptionAgent:
             delta.update(text_delta)
             delta["evidence"].extend(text_evidence)
             delta["modalities"] = ["trajectory"] + (["text"] if text_evidence else [])
+        from .threat import perceive_threat
+        perceive_threat(raw, delta)
         return delta
 
 
@@ -162,7 +164,10 @@ class DecisionPlanningAgent:
         text_summary = self._plan_text(delta, ontology, created, assert_types, relations, evidence,
                                        expected, rule_hits, event_id, state_type)
 
+        from .threat import extend_plan
+        threat_summary = extend_plan(delta, ontology, created, assert_types, relations, evidence, expected, rule_hits)
         return {
+            "threatSummary": threat_summary,
             "planId": "P1",
             "baseOntologyVersion": ontology.version,
             "replanAttempt": attempt,

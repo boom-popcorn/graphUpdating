@@ -1,0 +1,27 @@
+{
+  "cacheHit": true,
+  "cachedDurationMs": 981.454,
+  "checks": {
+    "baseVersion": true,
+    "classHierarchy": true,
+    "disjointness": true,
+    "domainRangeDeclarations": true,
+    "ruleReferences": true
+  },
+  "consistent": true,
+  "durationMs": 0.0,
+  "engine": "HermiT",
+  "expertReview": {
+    "note": "HermiT consistency is not expert approval",
+    "scope": "ontology",
+    "status": "pending",
+    "version": "01"
+  },
+  "hermitExecuted": false,
+  "hermitResultUsed": true,
+  "ontologyVersion": "01",
+  "proposalId": "EP-001",
+  "reason": null,
+  "unsatisfiableClasses": [],
+  "violatedConstraints": []
+}

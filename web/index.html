@@ -164,6 +164,23 @@
     .rules { display: flex; flex-wrap: wrap; gap: 5px; }
     .rule { padding: 4px 6px; color: #46665c; background: #edf5f1; font-size: 9px; white-space: nowrap; }
     .review-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+    .threat-details { grid-column: 1 / -1; min-width: 0; border-top: 1px solid var(--line); padding-top: 16px; }
+    .threat-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
+    .threat-heading h3 { margin: 0; font-size: 13px; }
+    .threat-badge { padding: 5px 9px; font-size: 11px; background: var(--green-soft); color: var(--green); }
+    .threat-badge[data-level="high"] { background: var(--red-soft); color: var(--red); }
+    .threat-badge[data-level="elevated"] { background: #fff4df; color: #885c17; }
+    .subevent-grid { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 10px; }
+    .subevent-card { min-width: 0; border: 1px solid var(--line); border-top: 3px solid #76a895; padding: 12px; background: #fafcfb; }
+    .subevent-title { margin: 0 0 5px; font-size: 13px; }
+    .subevent-id { color: var(--muted); font-size: 10px; overflow-wrap: anywhere; }
+    .subevent-meta { display: flex; flex-wrap: wrap; gap: 6px 12px; margin: 10px 0; font-size: 11px; color: #46665c; }
+    .subevent-evidence summary { cursor: pointer; font-size: 11px; color: var(--blue); }
+    .subevent-evidence summary:focus-visible { outline: 2px solid #34826a; outline-offset: 3px; }
+    .subevent-evidence ul { list-style: none; padding: 0; margin: 8px 0 0; display: grid; gap: 5px; }
+    .subevent-evidence li { padding: 5px 7px; background: #edf3f0; font-size: 10px; overflow-wrap: anywhere; }
+    .threat-notice { margin: 12px 0 0; padding: 10px 12px; border-left: 3px solid #76a895; background: #f2f7f5; font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+    .threat-notice[data-alert="true"] { border-color: var(--red); background: var(--red-soft); }
     .footer { padding: 8px 24px; color: #82908d; text-align: right; font-size: 10px; }
     .alert { display: none; margin-bottom: 12px; padding: 10px 12px; color: var(--red); background: var(--red-soft); border-left: 3px solid var(--red); font-size: 12px; }
     .alert.visible { display: block; }
@@ -193,6 +210,7 @@
       .right-col { grid-column: auto; grid-template-columns: minmax(0, 1fr); }
       .event-panel { grid-column: auto; }
       .event-content { grid-template-columns: minmax(0, 1fr); }
+      .subevent-grid { grid-template-columns: minmax(0, 1fr); }
       .metrics-panel { margin-top: 14px; }
       .event-facts { gap: 6px 10px; }
       .footer { text-align: left; padding: 9px 13px; }
@@ -226,6 +244,12 @@
       </div>
     </div>
     <div class="alert" id="alert" role="alert"></div>
+    <label style="display:block;margin:12px 0">演示场景
+      <select id="scenario-select" class="button" aria-label="演示场景">
+        <option value="narrative">原叙事案例</option><option value="disguised">伪装渔船 · 多证据融合</option>
+        <option value="insufficient">反例 · 身份矛盾但证据不足</option>
+      </select>
+    </label>
     <section class="summary-strip" aria-label="案例摘要">
       <div class="summary"><div class="summary-label">观测时间</div><div class="summary-value">10:06–10:19</div></div>
       <div class="summary"><div class="summary-label">最新航速</div><div class="summary-value" id="summary-speed">等待观测</div></div>
@@ -257,6 +281,11 @@
               <text class="map-marker" data-observation="1" x="143" y="91" text-anchor="end" fill="#33515b" font-size="10">10:06 · 0.8 节</text>
               <text class="map-marker" data-observation="2" x="247" y="133" fill="#33515b" font-size="10">10:12 · 0.6 节</text>
               <text class="map-marker" data-observation="3" x="261" y="171" fill="#33515b" font-size="10">10:19 · 0.7 节</text>
+              <g id="circling-track" style="display:none">
+                <path d="M260 110 C325 55 362 145 294 172 C233 195 207 125 255 110 C300 92 326 150 281 155" fill="none" stroke="#b45332" stroke-width="3" stroke-dasharray="5 4"/>
+                <text x="300" y="94" fill="#934022" font-size="10">绕舰航迹标注示意</text>
+                <path d="M278 126 L299 139 L278 147 Z" fill="#365b74"/>
+              </g>
               <g id="old-state-node" class="map-node visible">
                 <rect x="15" y="51" width="103" height="42" fill="#fff" stroke="#c8d0ce"/>
                 <circle cx="29" cy="67" r="5" fill="#9ba6a3"/>
@@ -371,6 +400,14 @@
           <div class="event-name"><div class="event-mark" id="event-mark" aria-hidden="true">·</div><div><div class="event-id" id="event-id">尚无事件</div><div class="event-title" id="event-title">候选事件将在规则命中并通过复核后生成</div></div></div>
           <div class="event-facts"><span>目标 <strong>V-017</strong></span><span>区域 <strong>A-03</strong></span><span>时间 <strong>—</strong></span><span>置信度 <strong id="event-confidence">—</strong></span><span>证据 <strong id="event-evidence-count">0 条</strong></span></div>
           <div class="rules" id="event-rules" aria-label="命中规则"></div>
+          <section id="threat-details" class="threat-details" aria-label="事件簇详情" style="display:none"></section>
+          <div id="ontology-review-box" style="grid-column:1 / -1;display:none;line-height:1.8">
+            <div id="ontology-review-status">本体专家复审：待复审</div>
+            <input id="ontology-reviewer" class="button" aria-label="复审人" placeholder="复审人姓名" maxlength="80">
+            <input id="ontology-review-reason" class="button" aria-label="复审意见" placeholder="复审意见" maxlength="500">
+            <button type="button" class="button" data-ontology-review="approved">本体复审通过</button>
+            <button type="button" class="button danger" data-ontology-review="rejected">本体复审驳回</button>
+          </div>
           <div class="review-actions"><button class="button" id="confirm-button" type="button">确认</button><button class="button danger" id="reject-button" type="button">标为误报</button></div>
         </div>
       </section>
@@ -507,6 +544,9 @@
     const { base, candidate } = versionsFor(state.result?.report);
     state.arrivedEvidence = 0;
     $("#event-rules").replaceChildren();
+    $("#threat-details").style.display = "none";
+    $("#ontology-review-box").style.display = "none";
+    $("#circling-track").style.display = "none";
     $("#headline").textContent = "V-017 敏感海域案例";
     $("#result-sub").textContent = "尚未运行 · 点击“运行闭环”加载本案例";
     $("#state-symbol").textContent = "○";
@@ -649,7 +689,7 @@
         ? `${(report.metricsMs.endToEnd / 1000).toFixed(1)} 秒`
         : `${Math.round(report.metricsMs?.endToEnd || 0)} 毫秒`;
       $("#metrics-note").textContent = report.status === "COMMITTED"
-        ? `本轮实际变更：关闭旧状态 ${execution.closedStates} 个、新增节点 ${execution.createdNodes} 个、关系 ${execution.createdRelations} 条、类型断言 ${execution.createdTypeAssertions} 条、证据来源记录 ${execution.attachedEvidence} 条。${comparison.note || ""}`
+        ? `本轮实际变更：关闭旧状态 ${execution.closedStates} 个、新增节点 ${execution.createdNodes} 个、关系 ${execution.createdRelations} 条、类型断言 ${execution.createdTypeAssertions} 条、证据来源记录 ${execution.registeredEvidence} 条。${comparison.note || ""}`
         : report.status === "EXECUTION_FAILED"
           ? `事务失败后回滚，已提交写入为 0；本体版本已发布，图谱变更未提交。${comparison.note || ""}`
           : `本体提案未通过检查，图谱没有增量写入。${comparison.note || ""}`;
@@ -663,7 +703,7 @@
         ? `首版计划被拦截；收到本体演化智能体反馈后，重规划第 ${plan.replanAttempt} 次通过。`
         : `命中规则 ${(plan.ruleHits || []).join(" / ") || "无"}，生成更新计划 ${plan.planId || "P1"}。`;
       $("#agent-list [data-agent='3'] .agent-summary").textContent = execution.success
-        ? `关闭旧状态 ${execution.closedStates} 个、新增节点 ${execution.createdNodes} 个、关系 ${execution.createdRelations} 条、证据来源 ${execution.attachedEvidence} 条；提交 ${execution.commitId}。`
+        ? `关闭旧状态 ${execution.closedStates} 个、新增节点 ${execution.createdNodes} 个、关系 ${execution.createdRelations} 条、证据挂接 ${execution.attachedEvidence} 条；提交 ${execution.commitId}。`
         : report.status === "EXECUTION_FAILED"
           ? `工具执行失败：${execution.failure || "写入失败"}。事务已回滚，没有半写状态。`
           : "计划已由本体演化智能体复核，等待执行。";
@@ -851,7 +891,8 @@
         setMetricValues();
         return "事务未提交，图谱恢复为执行前状态；已提交逻辑写入为 0。";
       case "commit":
-        $("#headline").textContent = "疑似非法捕捞事件已发现";
+        showThreat(plan);
+        $("#headline").textContent = plan.threatSummary?.assessmentId ? `事件簇已更新 · 威胁等级 ${plan.threatSummary.threatLevel}` : "疑似非法捕捞事件已发现";
         $("#result-sub").textContent = "V-017 在敏感海域持续低速移动，候选事件及证据链已进入图谱";
         $("#state-symbol").textContent = "✓";
         $("#state-symbol").style.background = "var(--green-soft)";
@@ -865,6 +906,73 @@
       default:
         return "";
     }
+  }
+
+  function showThreat(plan) {
+    const summary = plan.threatSummary;
+    if (!summary?.assessmentId) return;
+    const box = $("#threat-details");
+    box.style.display = "block";
+    box.replaceChildren();
+    const labels = {SuspectedIllegalFishingActivity:"疑似非法捕捞", IdentityConflict:"身份矛盾", CommunicationAnomaly:"通信异常", AbnormalTrajectory:"异常轨迹", HighRiskBehavior:"高风险行为"};
+    const levels = {high:"高", elevated:"中", low:"低"};
+    const statuses = {pending:"待人工复核", confirmed:"人工已确认", rejected:"人工标记误报"};
+    const score = value => Number.isFinite(value) ? value.toFixed(2) : "—";
+    const element = (tag, className, text) => {
+      const el = document.createElement(tag);
+      if (className) el.className = className;
+      if (text !== undefined) el.textContent = text;
+      return el;
+    };
+    // Follow only direct hasSubEvent edges from this assessment, excluding nested events and alerts.
+    const ids = [...new Set((plan.assertRelations || []).filter(r => r.s === summary.assessmentId && r.p === "hasSubEvent").map(r => r.o))];
+    const nodes = new Map((plan.createIndividuals || []).map(n => [n.id, n]));
+    const order = Object.keys(labels);
+    ids.sort((a, b) => {
+      const rank = id => { const i = order.indexOf(nodes.get(id)?.type); return i < 0 ? order.length : i; };
+      return rank(a) - rank(b) || a.localeCompare(b);
+    });
+    const heading = element("div", "threat-heading");
+    heading.appendChild(element("h3", "", `关联子事件 · ${ids.length} 项`));
+    const badge = element("span", "threat-badge", `威胁${levels[summary.threatLevel] || summary.threatLevel} · 簇置信度 ${score(summary.confidence)}`);
+    badge.dataset.level = summary.threatLevel;
+    heading.appendChild(badge);
+    box.appendChild(heading);
+    const list = element("ul", "subevent-grid");
+    list.setAttribute("aria-label", "关联子事件");
+    for (const id of ids) {
+      const node = nodes.get(id);
+      const props = node?.properties || {};
+      const evidence = [...new Set((plan.attachEvidence || []).filter(a => a.event === id).map(a => a.evidence))];
+      const card = element("li", "subevent-card");
+      card.appendChild(element("h4", "subevent-title", labels[node?.type] || node?.type || "未找到事件节点"));
+      card.appendChild(element("div", "subevent-id", id));
+      const meta = element("div", "subevent-meta");
+      meta.append(element("span", "", `置信度 ${score(props.confidence)}`),
+                  element("span", "", statuses[props.reviewStatus] || props.reviewStatus || "状态待核实"));
+      card.appendChild(meta);
+      const details = element("details", "subevent-evidence");
+      details.appendChild(element("summary", "", `来源证据 · ${evidence.length} 条`));
+      const sources = element("ul", "");
+      for (const evidenceId of evidence) sources.appendChild(element("li", "", evidenceId));
+      if (!evidence.length) sources.appendChild(element("li", "", "暂无关联证据"));
+      details.appendChild(sources);
+      card.appendChild(details);
+      list.appendChild(card);
+    }
+    box.appendChild(list);
+    if (!ids.length) box.appendChild(element("p", "", "暂无关联子事件"));
+    const reasons = {outside_sensitive_area:"目标不在敏感区域", missing_IdentityConflict:"缺少身份矛盾证据", missing_CommunicationAnomaly:"缺少通信异常证据", missing_AbnormalTrajectory:"缺少异常轨迹证据", insufficient_confidence:"证据置信度不足", R8_not_declared:"威胁评估规则尚未登记"};
+    const notice = element("p", "threat-notice", summary.alertId ? `本地告警 ${summary.alertId} · 待人工复核` : `未触发高威胁告警：${(summary.blockedReasons || []).map(r => reasons[r] || r).join("、") || "未满足升级条件"}`);
+    notice.dataset.alert = String(Boolean(summary.alertId));
+    box.appendChild(notice);
+    $("#circling-track").style.display = summary.trajectoryPatterns.includes("circling") ? "block" : "none";
+    $("#event-id").textContent = summary.assessmentId;
+    $("#event-title").textContent = `事件簇 · ${summary.threatLevel} · 待人工复核`;
+    $("#event-confidence").textContent = summary.confidence.toFixed(2);
+    $("#ontology-review-box").style.display = "block";
+    const review = state.result.report.ontologyValidation.expertReview;
+    $("#ontology-review-status").textContent = `本体专家复审：${review?.status || "pending"}（HermiT 校验与专家复审分别记录）`;
   }
 
   function renderStep(nextStep) {
@@ -928,7 +1036,7 @@
     $("#step-title").textContent = mode === "standard" ? "正在运行叙事案例闭环。" : "正在运行所选异常场景。";
     $("#step-copy").textContent = "后台执行实际感知、逻辑校验、计划复核和事务操作；完成后按步骤回放。";
     try {
-      const result = await post("/api/run", { mode });
+      const result = await post("/api/run", { mode, scenario: $("#scenario-select").value });
       applyResult(result);
     } catch (error) {
       showAlert(`演示未能运行：${error.message}。请查看启动终端中的错误详情；修改后端代码后需重启服务再重试。`);
@@ -963,14 +1071,23 @@
   async function review(status) {
     clearAlert();
     try {
-      const result = await post("/api/review", { eventId: "E-017", status, reason: status === "rejected" ? "演示复核：证据需要进一步核实" : "演示复核：确认该候选事件" });
-      $("#event-title").textContent = status === "confirmed" ? "疑似非法捕捞事件 · 人工已确认" : "疑似非法捕捞事件 · 人工标记误报";
+      const result = await post("/api/review", { eventId: state.result?.report.updatePlan?.threatSummary?.assessmentId || "E-017", status, reason: status === "rejected" ? "演示复核：证据需要进一步核实" : "演示复核：确认该候选事件" });
+      $("#event-title").textContent = status === "confirmed" ? "候选事件或事件簇 · 人工已确认" : "候选事件或事件簇 · 人工标记误报";
       $("#state-caption").textContent = `复核结果：${status === "confirmed" ? "已确认" : "误报；历史事件保留"}`;
       $("#confirm-button").disabled = true;
       $("#reject-button").disabled = true;
     } catch (error) { showAlert(`复核未能保存：${error.message}`); }
   }
 
+  $$("[data-ontology-review]").forEach(button => button.addEventListener("click", async () => {
+    try {
+      const result = await post("/api/ontology-review", { version: state.result.report.ontologyVersion,
+        status: button.dataset.ontologyReview, reviewer: $("#ontology-reviewer").value,
+        reason: $("#ontology-review-reason").value });
+      state.result.report.ontologyValidation.expertReview = result;
+      $("#ontology-review-status").textContent = `本体专家复审：${result.status} · ${result.reviewer} · ${result.reason}`;
+    } catch (error) { showAlert(`本体复审未能保存：${error.message}`); }
+  }));
   resetView();
   fetch("/api/health").then(response => response.json()).then(health => {
     if (health.ok) $("#connection").textContent = "演示服务已就绪";

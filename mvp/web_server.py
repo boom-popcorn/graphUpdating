@@ -21,7 +21,7 @@ LOCK = threading.RLock()
 CURRENT: dict[str, Any] = {"harness": None, "report": None, "temp": None}
 
 
-def _run(mode: str = "standard", include_text: bool = True) -> dict[str, Any]:
+def _run(mode: str = "standard", include_text: bool = True, scenario_name: str = "narrative") -> dict[str, Any]:
     with LOCK:
         temp = tempfile.TemporaryDirectory(prefix="maritime_demo_ui_")
         try:
@@ -31,7 +31,13 @@ def _run(mode: str = "standard", include_text: bool = True) -> dict[str, Any]:
             graph = read_json(ROOT / "data" / "initial_graph.json")
             harness = Harness(working, graph)
             scenario = read_json(ROOT / "data" / "observations_R001.json")
-            if include_text:
+            if scenario_name not in {"narrative", "disguised", "insufficient"}:
+                raise ValueError("unsupported scenario")
+            if scenario_name != "narrative":
+                scenario = read_json(ROOT / "data" / f"observations_{scenario_name}.json")
+                if not include_text:
+                    scenario.pop("texts", None)
+            elif include_text:
                 scenario = with_text_input(scenario, ROOT / "data" / "texts_R001.json")
             report = harness.run_round(scenario, demo_mode=mode)
         except Exception:
@@ -96,7 +102,22 @@ class Handler(BaseHTTPRequestHandler):
                 if mode not in {"standard", "ontology_conflict", "plan_rejected", "execution_rollback"}:
                     self._json(400, {"error": "unsupported demo mode"})
                     return
-                self._json(200, _run(mode, include_text))
+                scenario_name = body.get("scenario", "narrative")
+                if scenario_name not in ("narrative", "disguised", "insufficient"):
+                    raise ValueError("unsupported scenario")
+                self._json(200, _run(mode, include_text, scenario_name))
+                return
+            if path == "/api/ontology-review":
+                body = self._read_body()
+                with LOCK:
+                    harness = CURRENT.get("harness")
+                    if harness is None:
+                        self._json(409, {"error": "run a case before ontology review"})
+                        return
+                    result = harness.ontology_agent.record_expert_review(
+                        body.get("version"), body.get("status"), body.get("reviewer"), body.get("reason"))
+                    CURRENT["report"]["ontologyValidation"]["expertReview"] = result
+                    self._json(200, result)
                 return
             if path == "/api/review":
                 body = self._read_body()
