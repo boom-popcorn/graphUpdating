@@ -116,11 +116,18 @@ class MCPToolbox:
                 links = event.setdefault("evidence", [])
                 if attachment["evidence"] not in links:
                     links.append(attachment["evidence"])
-                    staged.setdefault("provenance", []).append({
+                    provenance = {
                         "event": attachment["event"],
                         "evidence": attachment["evidence"],
                         "relation": "used",
-                    })
+                    }
+                    if evidence.get("modality") == "text":
+                        provenance.update(span=deepcopy(evidence["span"]), source=evidence["source"],
+                                          rawText=evidence["rawText"], timestamp=evidence["timestamp"])
+                        provenance["factSpans"] = [
+                            {"predicate": fact["predicate"], "span": deepcopy(fact["span"]), "quote": fact["quote"]}
+                            for fact in plan.get("textFacts", []) if fact["evidence"] == attachment["evidence"]]
+                    staged.setdefault("provenance", []).append(provenance)
                     record("attachEvidence", event=attachment["event"], evidence=attachment["evidence"])
 
             commit_number = len(staged.setdefault("commits", [])) + 1
@@ -142,6 +149,7 @@ class MCPToolbox:
                     if original["nodes"].get(close["id"], {}).get("validTo") != close["validTo"]
                 ),
                 "attachedEvidence": len(plan.get("attachEvidence", [])),
+                "registeredEvidence": len(staged.get("evidence", {})) - len(original.get("evidence", {})),
                 "toolCalls": len(audit),
                 "failure": None,
             }
@@ -163,6 +171,7 @@ class MCPToolbox:
                 "createdTypeAssertions": 0,
                 "closedStates": 0,
                 "attachedEvidence": 0,
+                "registeredEvidence": 0,
                 "toolCalls": len(audit),
                 "failure": str(exc),
                 "rolledBack": True,

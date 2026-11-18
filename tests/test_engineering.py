@@ -21,7 +21,7 @@ from mvp.harness import Harness
 from mvp.io import read_json, write_json, write_text
 from mvp.ontology import OntologyModel
 from mvp.playback import PlaybackSession
-from run_demo import run
+from run_demo import export_ontology, run
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -237,6 +237,25 @@ class AtomicIOTests(unittest.TestCase):
 
 
 class CLITests(ScenarioTest):
+    def test_unpublished_directories_are_not_exported(self):
+        unpublished = self.root / "ontology" / "03"
+        unpublished.mkdir()
+        (unpublished / "ontology.json").write_text("{}", encoding="utf-8")
+        destination = self.root / "export"
+        export_ontology(self.root / "ontology", destination)
+        self.assertTrue((destination / "00" / "ontology.json").is_file())
+        self.assertFalse((destination / "03").exists())
+
+    def test_incomplete_version_index_fails_before_export(self):
+        from mvp.io import write_json
+        write_json(self.root / "ontology" / "versions.json", {
+            "latestVersion": "02", "versions": [{"versionId": "02", "path": "02/ontology.ttl"}],
+        })
+        destination = self.root / "export"
+        with self.assertRaisesRegex(ValueError, "incomplete"):
+            export_ontology(self.root / "ontology", destination)
+        self.assertFalse(destination.exists())
+
     def test_all_modes_export_reports_and_only_published_versions(self):
         output = self.root / "reports"
         for mode, status, version in (("standard", "COMMITTED", "01"),
@@ -310,6 +329,17 @@ class HTTPTests(unittest.TestCase):
 
     def test_review_before_run_is_conflict(self):
         self.assertEqual(self.request("POST", "/api/review", {})[0], 409)
+
+    def test_text_input_is_default_and_can_be_disabled(self):
+        status, payload = self.request("POST", "/api/run", {})
+        self.assertEqual(status, 200)
+        self.assertEqual(len(payload["graph"]["nodes"]["E-017"]["evidence"]), 11)
+        self.assertIn("R4", payload["report"]["feedback"]["ruleHits"])
+        status, payload = self.request("POST", "/api/run", {"includeText": False})
+        self.assertEqual(status, 200)
+        self.assertEqual(len(payload["graph"]["nodes"]["E-017"]["evidence"]), 6)
+        self.assertNotIn("R4", payload["report"]["feedback"]["ruleHits"])
+        self.assertEqual(self.request("POST", "/api/run", {"includeText": "false"})[0], 400)
 
     def test_review_confirm_reject_and_invalid_inputs(self):
         self.assertEqual(self.request("POST", "/api/run", {})[0], 200)

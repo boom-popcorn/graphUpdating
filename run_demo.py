@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from mvp.harness import Harness
-from mvp.io import read_json, write_json, write_text
+from mvp.io import read_json, write_json, write_text, with_text_input
 
 
 ROOT = Path(__file__).resolve().parent
@@ -17,35 +17,51 @@ ROOT = Path(__file__).resolve().parent
 MODES = ("standard", "ontology_conflict", "plan_rejected", "execution_rollback")
 
 
-def run(input_path: Path, output_dir: Path, mode: str = "standard") -> dict[str, Any]:
+def export_ontology(source_root: Path, destination_root: Path) -> None:
+    """Export every published version and remove only stale exporter-owned files."""
+    index_path = source_root / "versions.json"
+    index = read_json(index_path) if index_path.exists() else {
+        "latestVersion": "00", "versions": [{"versionId": "00", "path": "00/ontology.ttl"}],
+    }
+    versions = {item["versionId"] for item in index["versions"]}
+    if index["latestVersion"] not in versions:
+        raise ValueError("latest ontology version is missing from the version index")
+    for version in versions:
+        if not isinstance(version, str) or not version.isascii() or not version.isdigit():
+            raise ValueError(f"invalid ontology version: {version!r}")
+        source = source_root / version
+        if not (source / "ontology.json").is_file() or not (source / "ontology.ttl").is_file():
+            raise ValueError(f"published ontology version {version} is incomplete")
+    for version in sorted(versions, key=int):
+        shutil.copytree(source_root / version, destination_root / version, dirs_exist_ok=True)
+    for destination in destination_root.iterdir():
+        if (destination.is_dir() and destination.name.isascii() and destination.name.isdigit()
+                and destination.name not in versions):
+            for filename in ("ontology.json", "ontology.ttl", "validation_report.json"):
+                (destination / filename).unlink(missing_ok=True)
+            if not any(destination.iterdir()):
+                destination.rmdir()
+    write_json(destination_root / "versions.json", index)
+
+
+def run(input_path: Path, output_dir: Path, mode: str = "standard", texts_path: Path | None = None,
+        ontology_dir: Path | None = None) -> dict[str, Any]:
     if mode not in MODES:
         raise ValueError(f"unsupported demo mode: {mode}")
     raw = read_json(input_path)
+    if texts_path is not None:
+        raw = with_text_input(raw, texts_path)
     output_dir.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="maritime_kg_mvp_") as staging:
         staging_root = Path(staging)
-        (staging_root / "ontology").mkdir()
-        shutil.copytree(ROOT / "ontology" / "00", staging_root / "ontology" / "00")
+        if ontology_dir is None:
+            shutil.copytree(ROOT / "ontology" / "00", staging_root / "ontology" / "00")
+        else:
+            export_ontology(ontology_dir, staging_root / "ontology")
         graph_document = read_json(ROOT / "data" / "initial_graph.json")
         harness = Harness(staging_root, graph_document)
         report = harness.run_round(raw, demo_mode=mode)
-        # Only export published versions. A rejected proposal still exports version 00.
-        for version in ("00", "01"):
-            source = staging_root / "ontology" / version
-            destination = output_dir / "ontology" / version
-            if source.is_dir():
-                shutil.copytree(source, destination, dirs_exist_ok=True)
-            elif destination.is_dir():
-                # Remove only files owned by this exporter after a prior successful run.
-                for filename in ("ontology.json", "ontology.ttl", "validation_report.json"):
-                    (destination / filename).unlink(missing_ok=True)
-                if not any(destination.iterdir()):
-                    destination.rmdir()
-        index_path = staging_root / "ontology" / "versions.json"
-        index = read_json(index_path) if index_path.exists() else {
-            "latestVersion": "00", "versions": [{"versionId": "00", "path": "00/ontology.ttl"}],
-        }
-        write_json(output_dir / "ontology" / "versions.json", index)
+        export_ontology(staging_root / "ontology", output_dir / "ontology")
 
     execution = report.get("executionResult") or {}
     comparison = report["comparison"]
@@ -70,6 +86,7 @@ def run(input_path: Path, output_dir: Path, mode: str = "standard") -> dict[str,
         "createdRelations": execution.get("createdRelations"),
         "createdTypeAssertions": execution.get("createdTypeAssertions"),
         "attachedEvidence": execution.get("attachedEvidence"),
+        "textSummary": (report.get("updatePlan") or {}).get("textSummary", {}),
         "report": str(output_dir / f"round_{raw['roundId']}.json"),
     }, ensure_ascii=False, indent=2))
     return report
@@ -79,10 +96,13 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Run the maritime KG update MVP demo.")
     parser.add_argument("--input", type=Path, default=ROOT / "data" / "observations_R001.json")
     parser.add_argument("--mode", choices=MODES, default="standard")
+    parser.add_argument("--texts", type=Path, help="Optional text evidence JSON; e.g. data/texts_R001.json")
+    parser.add_argument("--ontology-dir", type=Path, help="Start from published ontology versions in this directory")
     parser.add_argument("--output-dir", type=Path, default=None)
     args = parser.parse_args()
-    output_dir = args.output_dir or ROOT / "reports" / ("R-001-run" if args.mode == "standard" else f"R-001-{args.mode}")
-    run(args.input, output_dir, args.mode)
+    name = "R-001-run" if args.mode == "standard" else f"R-001-{args.mode}"
+    output_dir = args.output_dir or ROOT / "reports" / (name + ("-text" if args.texts else ""))
+    run(args.input, output_dir, args.mode, args.texts, args.ontology_dir)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,143 @@
+@prefix maritime: <https://example.org/maritime#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<https://example.org/maritime/ontology/02> a owl:Ontology .
+
+maritime:CommunicationAnomaly a owl:Class ; rdfs:subClassOf maritime:Event .
+maritime:CommunicationEndpoint a owl:Class ; rdfs:subClassOf maritime:TemporalEntity .
+maritime:CommunicationEvent a owl:Class ; rdfs:subClassOf maritime:Event .
+maritime:DeclarationStatement a owl:Class ; rdfs:subClassOf maritime:TextEvidence .
+maritime:Device a owl:Class .
+maritime:Env a owl:Class .
+maritime:Event a owl:Class ; rdfs:subClassOf maritime:TemporalEntity .
+maritime:FishingEvent a owl:Class ; rdfs:subClassOf maritime:Event .
+maritime:FishingVessel a owl:Class ; rdfs:subClassOf maritime:Plat .
+maritime:IdentityConflict a owl:Class ; rdfs:subClassOf maritime:Event .
+maritime:Image a owl:Class .
+maritime:InspectionObservation a owl:Class ; rdfs:subClassOf maritime:TextEvidence .
+maritime:Instant a owl:Class .
+maritime:LoiteringState a owl:Class ; rdfs:subClassOf maritime:State .
+maritime:Plat a owl:Class .
+maritime:SensitiveArea a owl:Class ; rdfs:subClassOf maritime:Env .
+maritime:State a owl:Class ; rdfs:subClassOf maritime:TemporalEntity .
+maritime:SuspectedIllegalFishingActivity a owl:Class ; rdfs:subClassOf maritime:FishingEvent .
+maritime:TemporalEntity a owl:Class .
+maritime:TextEvidence a owl:Class ; rdfs:subClassOf maritime:TemporalEntity .
+maritime:UnderWayState a owl:Class ; rdfs:subClassOf maritime:State .
+maritime:VHFCallEvent a owl:Class ; rdfs:subClassOf maritime:Event .
+maritime:Video a owl:Class .
+maritime:State owl:disjointWith maritime:Env .
+
+maritime:calledBy a owl:ObjectProperty ;
+    rdfs:domain maritime:Plat ;
+    rdfs:range maritime:VHFCallEvent .
+maritime:contradicts a owl:ObjectProperty ;
+    rdfs:domain maritime:DeclarationStatement ;
+    rdfs:range maritime:InspectionObservation .
+maritime:declaredAs a owl:ObjectProperty ;
+    rdfs:domain maritime:Plat ;
+    rdfs:range maritime:DeclarationStatement .
+maritime:dependsOn a owl:ObjectProperty ;
+    rdfs:domain maritime:State ;
+    rdfs:range maritime:Env .
+maritime:hasDevice a owl:ObjectProperty ;
+    rdfs:domain maritime:Plat ;
+    rdfs:range maritime:Device .
+maritime:hasImage a owl:ObjectProperty ;
+    rdfs:domain maritime:Event ;
+    rdfs:range maritime:Image .
+maritime:hasInstant a owl:ObjectProperty ;
+    rdfs:domain maritime:TemporalEntity ;
+    rdfs:range maritime:Instant .
+maritime:hasObject a owl:ObjectProperty ;
+    rdfs:domain maritime:Event ;
+    rdfs:range maritime:Env .
+maritime:hasPotentialIllegalActivity a owl:ObjectProperty ;
+    rdfs:domain maritime:Plat ;
+    rdfs:range maritime:SensitiveArea .
+maritime:hasState a owl:ObjectProperty ;
+    rdfs:domain maritime:Plat ;
+    rdfs:range maritime:State .
+maritime:hasSubject a owl:ObjectProperty ;
+    rdfs:domain maritime:Event ;
+    rdfs:range maritime:Plat .
+maritime:hasTextEvidence a owl:ObjectProperty ;
+    rdfs:domain maritime:Event ;
+    rdfs:range maritime:TextEvidence .
+maritime:hasVideo a owl:ObjectProperty ;
+    rdfs:domain maritime:Event ;
+    rdfs:range maritime:Video .
+maritime:isEmitterOf a owl:ObjectProperty ;
+    rdfs:domain maritime:Device ;
+    rdfs:range maritime:Event .
+maritime:isReceiverOf a owl:ObjectProperty ;
+    rdfs:domain maritime:Device ;
+    rdfs:range maritime:Event .
+maritime:locatedIn a owl:ObjectProperty ;
+    rdfs:domain maritime:Plat ;
+    rdfs:range maritime:Env .
+maritime:reportedBy a owl:ObjectProperty ;
+    rdfs:domain maritime:Event ;
+    rdfs:range maritime:TextEvidence .
+maritime:sentTo a owl:ObjectProperty ;
+    rdfs:domain maritime:CommunicationEvent ;
+    rdfs:range maritime:CommunicationEndpoint .
+
+maritime:callAttempts a owl:DatatypeProperty ;
+    rdfs:domain maritime:VHFCallEvent ;
+    rdfs:range xsd:integer .
+maritime:callSign a owl:DatatypeProperty ;
+    rdfs:domain maritime:TextEvidence ;
+    rdfs:range xsd:string .
+maritime:coordinate a owl:DatatypeProperty ;
+    rdfs:domain maritime:Plat ;
+    rdfs:range xsd:string .
+maritime:declaredGearType a owl:DatatypeProperty ;
+    rdfs:domain maritime:DeclarationStatement ;
+    rdfs:range xsd:string .
+maritime:declaredVesselType a owl:DatatypeProperty ;
+    rdfs:domain maritime:DeclarationStatement ;
+    rdfs:range xsd:string .
+maritime:deviceNumber a owl:DatatypeProperty ;
+    rdfs:domain maritime:Device ;
+    rdfs:range xsd:string .
+maritime:durationSeconds a owl:DatatypeProperty ;
+    rdfs:domain maritime:State ;
+    rdfs:range xsd:integer .
+maritime:encryptedMessageCount a owl:DatatypeProperty ;
+    rdfs:domain maritime:CommunicationEvent ;
+    rdfs:range xsd:integer .
+maritime:rawTextSpan a owl:DatatypeProperty ;
+    rdfs:domain maritime:TextEvidence ;
+    rdfs:range xsd:string .
+maritime:responseStatus a owl:DatatypeProperty ;
+    rdfs:domain maritime:VHFCallEvent ;
+    rdfs:range xsd:string .
+maritime:speed a owl:DatatypeProperty ;
+    rdfs:domain maritime:State ;
+    rdfs:range xsd:decimal .
+maritime:textSource a owl:DatatypeProperty ;
+    rdfs:domain maritime:TextEvidence ;
+    rdfs:range xsd:string .
+maritime:timestamp a owl:DatatypeProperty ;
+    rdfs:domain maritime:Instant ;
+    rdfs:range xsd:dateTime .
+maritime:travelDistance a owl:DatatypeProperty ;
+    rdfs:domain maritime:State ;
+    rdfs:range xsd:decimal .
+maritime:vesselType a owl:DatatypeProperty ;
+    rdfs:domain maritime:Plat ;
+    rdfs:range xsd:string .
+maritime:weather a owl:DatatypeProperty ;
+    rdfs:domain maritime:Env ;
+    rdfs:range xsd:string .
+
+maritime:R1 a maritime:Rule ; rdfs:label "FishingVessel(?v) ^ hasState(?v, ?s) ^ speed(?s, ?x) ^ swrlb:lessThan(?x, 5) -> LoiteringState(?s)" .
+maritime:R2 a maritime:Rule ; rdfs:label "FishingVessel(?v) ^ hasState(?v, ?s) ^ LoiteringState(?s) ^ locatedIn(?v, ?a) ^ SensitiveArea(?a) -> hasPotentialIllegalActivity(?v, ?a)" .
+maritime:R3 a maritime:Rule ; rdfs:label "hasPotentialIllegalActivity(?v, ?a) ^ hasState(?v, ?s) ^ durationSeconds(?s, ?d) ^ swrlb:greaterThan(?d, 600) ^ travelDistance(?s, ?m) ^ swrlb:lessThan(?m, 0.5)" .
+maritime:R4 a maritime:Rule ; rdfs:label "materialize identity conflict from declaration and inspection evidence" .
+maritime:R5 a maritime:Rule ; rdfs:label "materialize anomaly from unanswered calls and encrypted message count in round window" .
+maritime:R6 a maritime:Rule ; rdfs:label "raise candidate confidence and threat level using report, loitering and sensitive area" .

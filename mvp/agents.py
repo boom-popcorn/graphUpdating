@@ -6,6 +6,7 @@ import re
 from typing import Any
 
 from .ontology import OntologyModel
+from .text import TextPerceptionAgent
 
 
 def _parse_time(value: str) -> datetime:
@@ -14,6 +15,9 @@ def _parse_time(value: str) -> datetime:
 
 class SemanticPerceptionAgent:
     name = "semantic_perception_agent"
+
+    def __init__(self, text_agent: TextPerceptionAgent | None = None):
+        self.text_agent = text_agent or TextPerceptionAgent()
 
     def perceive(self, raw: dict[str, Any]) -> dict[str, Any]:
         observations = raw["observations"]
@@ -39,7 +43,7 @@ class SemanticPerceptionAgent:
             for item in observations
         ]
         times = sorted(item["timestamp"] for item in observations)
-        return {
+        delta = {
             "roundId": raw["roundId"],
             "timestamp": max(times),
             "vesselId": raw["vesselId"],
@@ -71,6 +75,16 @@ class SemanticPerceptionAgent:
             "validTo": end,
             "temporalEntities": [{"id": "T3", "timestamp": end}],
         }
+        if "texts" in raw:
+            text_delta = self.text_agent.perceive(raw["texts"], raw["vesselId"], start, end,
+                                                 raw.get("textToleranceSeconds", 120))
+            text_evidence = text_delta.pop("evidence")
+            if {item["id"] for item in evidence} & {item["id"] for item in text_evidence}:
+                raise ValueError("text and trajectory evidence IDs must be distinct")
+            delta.update(text_delta)
+            delta["evidence"].extend(text_evidence)
+            delta["modalities"] = ["trajectory"] + (["text"] if text_evidence else [])
+        return delta
 
 
 class DecisionPlanningAgent:
@@ -145,12 +159,17 @@ class DecisionPlanningAgent:
             evidence = [{"event": event_id, "evidence": item["id"]} for item in delta["evidence"]]
             expected.append(event_id)
 
+        text_summary = self._plan_text(delta, ontology, created, assert_types, relations, evidence,
+                                       expected, rule_hits, event_id, state_type)
+
         return {
             "planId": "P1",
             "baseOntologyVersion": ontology.version,
             "replanAttempt": attempt,
             "replanFeedback": feedback or [],
             "ruleHits": rule_hits,
+            "textSummary": text_summary,
+            "textFacts": deepcopy(delta.get("textFacts", [])),
             "closeStates": [{"id": "S-017-0", "validTo": state["validFrom"]}],
             "createIndividuals": created,
             "assertTypes": assert_types,
@@ -160,6 +179,110 @@ class DecisionPlanningAgent:
             "temporalValues": delta["temporalEntities"],
             "expectedSubgraph": expected,
         }
+
+    @staticmethod
+    def _plan_text(delta, ontology, created, assert_types, relations, attachments,
+                   expected, hits, main_event, state_type):
+        from hashlib import sha256
+
+        facts = delta.get("textFacts", [])
+        records = [item for item in delta["evidence"] if item.get("modality") == "text"]
+        if not records:
+            return {}
+        def select(predicate, condition=lambda value: True):
+            return [f for f in facts if f["predicate"] == predicate and condition(f["value"])]
+        def add_node(node_id, class_id, properties, extra_types=()):
+            created.append({"id": node_id, "type": class_id, "properties": properties})
+            assert_types.append({"id": node_id, "type": class_id})
+            assert_types.extend({"id": node_id, "type": t} for t in extra_types)
+            expected.append(node_id)
+        def link(s, p, o):
+            relation = {"s": s, "p": p, "o": o}
+            if relation not in relations:
+                relations.append(relation)
+        def attach(event, ids):
+            for evidence_id in sorted(set(ids)):
+                item = {"event": event, "evidence": evidence_id}
+                if item not in attachments:
+                    attachments.append(item)
+                link(event, "hasTextEvidence", evidence_id)
+        for record in records:
+            source = record["source"]
+            class_id = {"AISStatic": "DeclarationStatement", "VesselRegistry": "DeclarationStatement",
+                        "EOAnnotation": "InspectionObservation", "DutyLog": "InspectionObservation",
+                        "VHFTranscript": "VHFCallEvent", "CommunicationMonitor": "CommunicationEvent"}.get(source, "TextEvidence")
+            properties = {"textSource": source, "rawText": record["rawText"],
+                          "rawTextSpan": str(record["span"]), "timestamp": record["timestamp"]}
+            for fact in facts:
+                if fact["evidence"] == record["id"]:
+                    properties[fact["predicate"]] = fact["value"]
+            add_node(record["id"], class_id, properties, ("TextEvidence",) if class_id in {"VHFCallEvent", "CommunicationEvent"} else ())
+            if class_id == "DeclarationStatement":
+                link(delta["vesselId"], "declaredAs", record["id"])
+            if class_id == "VHFCallEvent":
+                link(delta["vesselId"], "calledBy", record["id"])
+            if ontology.is_subclass(class_id, "Event"):
+                attach(record["id"], [record["id"]])
+            if main_event:
+                link(main_event, "hasTextEvidence", record["id"])
+        for fact in select("foreignAddress"):
+            endpoint = "ENDPOINT-" + sha256(fact["value"].encode()).hexdigest()[:12]
+            if endpoint not in expected:
+                add_node(endpoint, "CommunicationEndpoint", {"address": fact["value"]})
+            link(fact["evidence"], "sentTo", endpoint)
+
+        labels, events = [], []
+        r4 = ontology.rules.get("R4")
+        declarations = select("declaredVesselType", lambda value: value in r4["when"]["declaredTypes"]) if r4 else []
+        inspections = select("hasFishingGear", lambda value: value is False) + select("hasDirectionalAntenna", lambda value: value is True)
+        if declarations and inspections:
+            event = f"{delta['vesselId']}-IDENTITY-{delta['roundId']}"
+            support = declarations + inspections
+            add_node(event, r4["then"]["eventType"], {"reviewStatus": "pending", "rule": "R4",
+                     "confidence": min(f["confidence"] for f in support)})
+            attach(event, [f["evidence"] for f in support])
+            link(event, "hasSubject", delta["vesselId"])
+            for declaration in declarations:
+                for inspection in inspections:
+                    link(declaration["evidence"], "contradicts", inspection["evidence"])
+            hits.append("R4")
+            events.append(event)
+            labels.append("身份矛盾")
+        r5 = ontology.rules.get("R5")
+        attempts = select("callAttempts", lambda value: value >= r5["when"]["callAttemptsAtLeast"]) if r5 else []
+        no_response = select("responseStatus", lambda value: value == "no_response")
+        responded = {f["evidence"] for f in select("responseStatus", lambda value: value == "responded")}
+        call_ids = ({f["evidence"] for f in attempts} & {f["evidence"] for f in no_response}) - responded
+        calls = [f for f in attempts + no_response if f["evidence"] in call_ids]
+        calls = [f for f in calls if f["source"] == "VHFTranscript"]
+        encrypted = select("encryptedMessageCount", lambda value: value >= r5["when"]["encryptedMessageCountAtLeast"]) if r5 else []
+        if calls and encrypted:
+            event = f"{delta['vesselId']}-COMM-{delta['roundId']}"
+            support = calls + encrypted
+            add_node(event, r5["then"]["eventType"], {"reviewStatus": "pending", "rule": "R5",
+                     "confidence": min(f["confidence"] for f in support)})
+            attach(event, [f["evidence"] for f in support])
+            link(event, "hasSubject", delta["vesselId"])
+            hits.append("R5")
+            events.append(event)
+            labels.append("通信异常")
+        r6 = ontology.rules.get("R6")
+        reports = select("reportedSuspicion", lambda value: value is True)
+        if (r6 and main_event and reports and r6["when"]["requiresRule"] in hits
+                and (not r6["when"]["inSensitiveArea"] or delta["areaSensitive"])):
+            rule = r6["then"]
+            event = next(item for item in created if item["id"] == main_event)
+            properties = event["properties"]
+            properties["baseConfidence"] = properties["confidence"]
+            properties["confidence"] = round(min(rule["confidenceCap"], properties["confidence"] + rule["confidenceBonus"]), 3)
+            properties["threatLevel"] = rule["threatLevel"]
+            for fact in reports:
+                link(main_event, "reportedBy", fact["evidence"])
+            hits.append("R6")
+        if main_event:
+            next(item for item in created if item["id"] == main_event)["properties"].update(labels=labels, ruleHits=list(hits))
+        return {"labels": labels, "events": events, "textEvidenceCount": len(records),
+                "trajectoryEvidenceCount": len(delta["evidence"]) - len(records)}
 
     def replan(
         self,
@@ -175,7 +298,6 @@ class DecisionPlanningAgent:
         plan["replanAttempt"] = int(previous_plan.get("replanAttempt", 1)) + 1
         plan["replanFeedback"] = suggestions
         repairs = []
-        event_type = ontology.rules.get("R3", {}).get("then", {}).get("eventType")
         for suggestion in suggestions:
             match = re.fullmatch(r"use a declared class for (.+)", suggestion)
             assertion_match = re.fullmatch(r"declare (.+) and its individual before asserting the type", suggestion)
@@ -184,10 +306,12 @@ class DecisionPlanningAgent:
                 targets.update(item["id"] for item in plan.get("assertTypes", [])
                                if item["type"] == assertion_match[1])
             for individual in plan.get("createIndividuals", []):
+                rule_id = individual.get("properties", {}).get("rule", "R3")
+                event_type = ontology.rules.get(rule_id, {}).get("then", {}).get("eventType")
                 if individual["id"] not in targets or event_type not in ontology.classes:
                     continue
                 # Only restore an event justified by the matched rule; never invent a class.
-                if "R3" not in plan.get("ruleHits", []) or not ontology.is_subclass(event_type, "Event"):
+                if rule_id not in plan.get("ruleHits", []) or not ontology.is_subclass(event_type, "Event"):
                     continue
                 individual["type"] = event_type
                 assertions = plan.setdefault("assertTypes", [])

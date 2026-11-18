@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from .io import read_json, write_json, write_text
+from .text import TEXT_CLASSES, TEXT_DATA_PROPERTIES, TEXT_RELATIONS, TEXT_RULES
 
 
 def _turtle_local_name(value: str) -> str:
@@ -205,6 +206,16 @@ class OntologyConsistencyChecker:
             else:
                 candidate["objectProperties"][prop_id] = {"domain": domain, "range": range_}
 
+        for prop in proposal.get("newDataProperties", []):
+            prop_id = prop.get("id")
+            if (not prop_id or prop_id in candidate.get("dataProperties", {})
+                    or prop.get("domain") not in candidate["classes"]
+                    or prop.get("datatype") not in {"string", "integer", "decimal", "dateTime"}):
+                checks["domainRangeDeclarations"] = False
+                issues.append(f"data property {prop_id!r} is invalid or already declared")
+            else:
+                candidate.setdefault("dataProperties", {})[prop_id] = {key: value for key, value in prop.items() if key != "id"}
+
         definitions = {rule["id"]: rule for rule in proposal.get("ruleDefinitions", [])}
         for rule_id in proposal.get("newRules", []):
             if rule_id in candidate["rules"] or rule_id not in definitions:
@@ -256,13 +267,16 @@ class OntologyAgent:
         self.tool_audit: list[dict[str, Any]] = []
 
     def load_current(self) -> OntologyModel:
-        return OntologyModel.load(self.ontology_root / "00" / "ontology.json")
+        index = self.ontology_root / "versions.json"
+        version = read_json(index)["latestVersion"] if index.exists() else "00"
+        return OntologyModel.load(self.ontology_root / version / "ontology.json")
 
     def propose(self, delta: dict[str, Any], current: OntologyModel) -> dict[str, Any]:
         new_classes = []
         new_properties = []
         new_rules = []
         definitions = []
+        new_data_properties = []
         if "SuspectedIllegalFishingActivity" not in current.classes:
             new_classes.append({"id": "SuspectedIllegalFishingActivity", "parent": "FishingEvent"})
         if "hasPotentialIllegalActivity" not in current.object_properties:
@@ -275,11 +289,21 @@ class OntologyAgent:
             if rule_id not in current.rules:
                 new_rules.append(rule_id)
                 definitions.append(candidate_rule_definition(rule_id))
+        if any(item.get("modality") == "text" for item in delta.get("evidence", [])):
+            new_classes.extend({"id": name, "parent": parent} for name, parent in TEXT_CLASSES.items() if name not in current.classes)
+            new_properties.extend({"id": name, **signature} for name, signature in TEXT_RELATIONS.items() if name not in current.object_properties)
+            new_data_properties.extend({"id": name, **signature} for name, signature in TEXT_DATA_PROPERTIES.items()
+                                       if name not in current.document.get("dataProperties", {}))
+            for name, rule in TEXT_RULES.items():
+                if name not in current.rules:
+                    new_rules.append(name)
+                    definitions.append(deepcopy(rule))
         return {
             "proposalId": "EP-001",
             "baseOntologyVersion": current.version,
             "newClasses": new_classes,
             "newObjectProperties": new_properties,
+            "newDataProperties": new_data_properties,
             "newRules": new_rules,
             "ruleDefinitions": definitions,
             "validationFacts": [
@@ -298,17 +322,19 @@ class OntologyAgent:
         if candidate_model is None:
             return report, None
         candidate = deepcopy(candidate_model.document)
-        candidate["versionId"] = "01"
+        version = f"{int(current.version) + 1:02d}"
+        candidate["versionId"] = version
         candidate["parentVersion"] = current.version
         candidate["proposalId"] = proposal["proposalId"]
         candidate["createdAt"] = proposal.get("createdAt")
         candidate["changeLog"] = {
             "newClasses": [item["id"] for item in proposal["newClasses"]],
             "newObjectProperties": [item["id"] for item in proposal["newObjectProperties"]],
+            "newDataProperties": [item["id"] for item in proposal.get("newDataProperties", [])],
             "newRules": proposal["newRules"],
             "validationEngine": report["engine"],
         }
-        report["ontologyVersion"] = "01"
+        report["ontologyVersion"] = version
         return report, OntologyModel(candidate)
 
     def validate_plan(
@@ -394,6 +420,9 @@ class OntologyAgent:
         evidence_by_id = {item["id"]: item for item in delta.get("evidence", [])}
         registered_evidence = dict(graph.get("evidence", {}))
         registered_evidence.update({item["id"]: item for item in plan.get("evidenceRecords", [])})
+        if plan.get("textFacts", []) != delta.get("textFacts", []):
+            started_checks["provenanceCheck"] = False
+            suggestions.append("preserve grounded text facts from semantic perception")
         evidence_for_event: dict[str, list[dict[str, Any]]] = {}
         for attachment in plan.get("attachEvidence", []):
             evidence = evidence_by_id.get(attachment["evidence"])
@@ -450,6 +479,8 @@ class OntologyAgent:
             self.tool_audit.append({"tool": "createClass", "classId": class_id})
         for prop_id in ontology.document.get("changeLog", {}).get("newObjectProperties", []):
             self.tool_audit.append({"tool": "createObjectProperty", "propertyId": prop_id})
+        for prop_id in ontology.document.get("changeLog", {}).get("newDataProperties", []):
+            self.tool_audit.append({"tool": "createDataProperty", "propertyId": prop_id})
         for rule_id in ontology.document.get("changeLog", {}).get("newRules", []):
             self.tool_audit.append({"tool": "addSWRLRule", "ruleId": rule_id})
         version_dir = self.ontology_root / ontology.version
@@ -551,7 +582,7 @@ def serialize_turtle(document: dict[str, Any]) -> str:
         ])
     lines.append("")
     for rule_id, rule in sorted(document["rules"].items()):
-        rule_text = rule.get("swrl", rule.get("swrlPattern", ""))
+        rule_text = rule.get("swrl", rule.get("swrlPattern", rule.get("plannerAction", "")))
         swrl = rule_text.replace('"', '\\"')
         lines.append(f'maritime:{rule_id} a maritime:Rule ; rdfs:label "{swrl}" .')
     return "\n".join(lines) + "\n"

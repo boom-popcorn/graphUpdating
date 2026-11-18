@@ -1,0 +1,90 @@
+{
+  "roundId": "R-001",
+  "toleranceSeconds": 120,
+  "texts": [
+    {
+      "id": "TX-AIS-017",
+      "source": "AISStatic",
+      "subject": "V-017",
+      "timestamp": "2026-11-11T10:05:00+08:00",
+      "confidence": 0.95,
+      "rawText": "船名：海研017；呼号：BXYZ7；申报船型：捕捞船；申报渔具：拖网。",
+      "span": [
+        0,
+        35
+      ]
+    },
+    {
+      "id": "TX-EO-017",
+      "source": "EOAnnotation",
+      "subject": "V-017",
+      "timestamp": "2026-11-11T10:12:30+08:00",
+      "confidence": 0.92,
+      "rawText": "标注：无渔具；发现定向天线。",
+      "span": [
+        0,
+        14
+      ]
+    },
+    {
+      "id": "TX-VHF-017",
+      "source": "VHFTranscript",
+      "subject": "V-017",
+      "timestamp": "2026-11-11T10:15:00+08:00",
+      "confidence": 0.94,
+      "rawText": "呼叫3次，均无应答。",
+      "span": [
+        0,
+        10
+      ]
+    },
+    {
+      "id": "TX-COMM-017",
+      "source": "CommunicationMonitor",
+      "subject": "V-017",
+      "timestamp": "2026-11-11T10:18:00+08:00",
+      "confidence": 0.93,
+      "rawText": "窗口内监测到加密短报文25条；境外地址：203.0.113.17。",
+      "span": [
+        0,
+        33
+      ]
+    },
+    {
+      "id": "TX-REPORT-017",
+      "source": "PublicReport",
+      "subject": "V-017",
+      "timestamp": "2026-11-11T10:20:00+08:00",
+      "confidence": 0.9,
+      "rawText": "举报：疑似非法捕捞，请核查该船。",
+      "span": [
+        0,
+        16
+      ]
+    },
+    {
+      "id": "TX-LOG-017",
+      "source": "DutyLog",
+      "subject": "V-017",
+      "timestamp": "2026-11-11T09:30:00+08:00",
+      "confidence": 0.85,
+      "rawText": "检查：有渔具；正常应答。",
+      "span": [
+        0,
+        12
+      ]
+    },
+    {
+      "id": "TX-REG-017",
+      "source": "VesselRegistry",
+      "subject": "V-017",
+      "timestamp": "2026-11-11T08:00:00+08:00",
+      "confidence": 0.98,
+      "rawText": "船名：海研017；呼号：BXYZ7；登记船型：捕捞船。",
+      "span": [
+        0,
+        27
+      ]
+    }
+  ]
+}

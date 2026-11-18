@@ -5,13 +5,14 @@ import os
 import shutil
 import tempfile
 import threading
+import traceback
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse
 from typing import Any
 
 from .harness import Harness
-from .io import read_json
+from .io import read_json, with_text_input
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -20,7 +21,7 @@ LOCK = threading.RLock()
 CURRENT: dict[str, Any] = {"harness": None, "report": None, "temp": None}
 
 
-def _run(mode: str = "standard") -> dict[str, Any]:
+def _run(mode: str = "standard", include_text: bool = True) -> dict[str, Any]:
     with LOCK:
         temp = tempfile.TemporaryDirectory(prefix="maritime_demo_ui_")
         try:
@@ -30,6 +31,8 @@ def _run(mode: str = "standard") -> dict[str, Any]:
             graph = read_json(ROOT / "data" / "initial_graph.json")
             harness = Harness(working, graph)
             scenario = read_json(ROOT / "data" / "observations_R001.json")
+            if include_text:
+                scenario = with_text_input(scenario, ROOT / "data" / "texts_R001.json")
             report = harness.run_round(scenario, demo_mode=mode)
         except Exception:
             temp.cleanup()
@@ -83,13 +86,17 @@ class Handler(BaseHTTPRequestHandler):
         path = urlparse(self.path).path
         try:
             if path == "/api/run":
-                mode = self._read_body().get("mode", "standard")
+                body = self._read_body()
+                mode = body.get("mode", "standard")
+                include_text = body.get("includeText", True)
+                if not isinstance(include_text, bool):
+                    raise ValueError("includeText must be a boolean")
                 if not isinstance(mode, str):
                     raise ValueError("mode must be a string")
                 if mode not in {"standard", "ontology_conflict", "plan_rejected", "execution_rollback"}:
                     self._json(400, {"error": "unsupported demo mode"})
                     return
-                self._json(200, _run(mode))
+                self._json(200, _run(mode, include_text))
                 return
             if path == "/api/review":
                 body = self._read_body()
@@ -112,6 +119,7 @@ class Handler(BaseHTTPRequestHandler):
         except (ValueError, UnicodeDecodeError) as exc:
             self._json(400, {"error": str(exc), "type": type(exc).__name__})
         except Exception as exc:
+            traceback.print_exc()
             self._json(500, {"error": str(exc), "type": type(exc).__name__})
 
     def _read_body(self) -> dict[str, Any]:

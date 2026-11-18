@@ -1,0 +1,24 @@
+这是最优先的扩展，直接支撑“≥2种模态”和伪装渔船场景。
+一、数据层：
+1. 新增 data/texts_R001.json，包含AIS静态报文、VHF通话记录、值班日志、船舶登记、光电标注、通信监测、举报文本，每条带 id/source/subject/timestamp/confidence/rawText/span。
+2. 文本时间可能早于/晚于轨迹，按“本轮窗口±容差”纳入。
+二、感知层：
+1. 新增 TextPerceptionAgent 或在 SemanticPerceptionAgent 里加 perceive_text()：
+2. 先用规则/正则抽实体和属性（船名、呼号、申报船型、渔具、呼叫次数、应答状态、加密报文数、境外地址）；
+3. 预留大模型抽取接口（LLMTextExtractor），输出候选事实，带 evidence 回链原文ID和 span；
+4. 输出 textFacts，合并进 DeltaSemantics。
+三、本体层：
+1. 本体00扩展：TextEvidence、DeclarationStatement、VHFCallEvent、CommunicationEvent、InspectionObservation、IdentityConflict、CommunicationAnomaly；关系 hasTextEvidence、declaredAs、calledBy、sentTo、contradicts、reportedBy；数据属性 callSign、declaredVesselType、declaredGearType、callAttempts、responseStatus、encryptedMessageCount、textSource、rawTextSpan。
+2. 第一次接入文本时，走一次本体演化，生成01或02，HermiT校验。
+四、规则层：
+1. R4：申报捕捞船 ∧ 视觉无渔具/有定向天线 → IdentityConflict；
+2. R5：VHF多次无应答 ∧ 高频加密短报文 → CommunicationAnomaly；
+3. R6：举报文本 ∧ 轨迹徘徊 ∧ 敏感区 → 提升置信度/威胁等级。
+五、执行层：
+1. attachEvidence 支持文本证据，事件节点的 evidence 列表混装轨迹和文本ID；
+2. provenance 记录 used 关系，保留 span 便于回链。
+六、演示层：
+1. 证据面板加“文本”标签页；
+2. 事件卡显示“命中规则 R1-R6”“身份矛盾/通信异常”标签；
+3. 本体版本树显示文本相关新增类/关系。
+验收：一条AIS申报“捕捞船”+一条光电“无渔具”→ 生成 IdentityConflict；HermiT通过；事件证据链含6条轨迹+5条文本。

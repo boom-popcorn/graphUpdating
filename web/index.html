@@ -124,7 +124,7 @@
     .evidence[hidden] { display: none; }
     .change-list { display: grid; gap: 7px; }
     .change-row { display: flex; justify-content: space-between; align-items: start; gap: 10px; font-size: 11px; }
-    .change-kind { color: var(--muted); }
+    .change-kind { color: var(--muted); flex: 0 0 48px; white-space: nowrap; }
     .change-value { text-align: right; font-weight: 600; }
     .check-list { display: grid; gap: 8px; }
     .check-row { display: grid; grid-template-columns: 16px minmax(0, 1fr) auto; align-items: center; gap: 7px; font-size: 11px; }
@@ -133,6 +133,11 @@
     .check-icon.pending { background: #edf1ef; color: #52615e; }
     .check-note { color: var(--muted); font-size: 10px; text-align: right; }
     .evidence-list { display: grid; gap: 0; }
+    .evidence-tabs { display: flex; gap: 8px; padding: 10px 14px 0; }
+    .evidence-tabs button[aria-selected="true"] { background: var(--blue-soft); color: var(--blue); }
+    .evidence-quote { margin-top: 5px; line-height: 1.6; overflow-wrap: anywhere; color: var(--ink); }
+    .evidence-list { max-height: 350px; overflow-y: auto; }
+    .change-value { overflow-wrap: anywhere; min-width: 0; }
     .evidence { display: grid; grid-template-columns: 33px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 8px 0; border-bottom: 1px solid #edf0ef; }
     .evidence:last-child { border-bottom: 0; }
     .evidence-kind { color: var(--blue); background: var(--blue-soft); padding: 4px 3px; text-align: center; font-size: 9px; font-weight: 700; }
@@ -225,7 +230,7 @@
       <div class="summary"><div class="summary-label">观测时间</div><div class="summary-value">10:06–10:19</div></div>
       <div class="summary"><div class="summary-label">最新航速</div><div class="summary-value" id="summary-speed">等待观测</div></div>
       <div class="summary"><div class="summary-label">窗口内移动</div><div class="summary-value" id="summary-distance">待感知计算</div></div>
-      <div class="summary"><div class="summary-label">已到达证据</div><div class="summary-value" id="summary-evidence">0 / 6 条</div></div>
+      <div class="summary"><div class="summary-label">已到达证据</div><div class="summary-value" id="summary-evidence">0 / 11 条</div></div>
       <div class="summary"><div class="summary-label">知识版本</div><div class="summary-value" id="version-summary">00</div></div>
     </section>
 
@@ -293,7 +298,7 @@
           <div class="panel-head"><h2 class="panel-title" id="flow-heading">更新过程</h2><span class="panel-kicker" id="flow-status">等待回放</span></div>
           <div class="agent-list" id="agent-list" aria-live="polite">
             <div class="agent" data-agent="0"><div class="agent-index">1</div><div><div class="agent-name">语义感知</div><div class="agent-summary">三组观测聚合为一个新增状态，提取航速、移动范围和时间窗口。</div></div><div class="agent-status">待开始</div></div>
-            <div class="agent" data-agent="1"><div class="agent-index">2</div><div><div class="agent-name">本体演化与逻辑检查</div><div class="agent-summary">补齐事件概念和区域风险关系；检查通过后发布知识版本 01。</div></div><div class="agent-status">待开始</div></div>
+            <div class="agent" data-agent="1"><div class="agent-index">2</div><div><div class="agent-name">本体演化与逻辑检查</div><div class="agent-summary">补齐事件概念和区域风险关系；检查通过后发布新知识版本。</div></div><div class="agent-status">待开始</div></div>
             <div class="agent" data-agent="2"><div class="agent-index">3</div><div><div class="agent-name">决策规划</div><div class="agent-summary">依据航速、敏感区域和停留特征匹配业务规则，形成更新方案。</div></div><div class="agent-status">待开始</div></div>
             <div class="agent" data-agent="3"><div class="agent-index">4</div><div><div class="agent-name">受控执行与计划复核</div><div class="agent-summary">本体演化智能体复核计划，执行工具只提交获准的图谱变更。</div></div><div class="agent-status">待开始</div></div>
           </div>
@@ -325,7 +330,7 @@
         <section class="panel" aria-labelledby="ontology-heading">
           <div class="panel-head"><h2 class="panel-title" id="ontology-heading">知识模型变化</h2><span class="panel-kicker">版本树</span></div>
           <div class="panel-body">
-            <div class="version-tree" aria-label="知识版本从00演进到01"><div class="version-node">00</div><div class="version-link"></div><div class="version-node current" id="version-node">01</div><span class="version-caption" id="version-caption">已发布</span></div>
+            <div class="version-tree" aria-label="知识版本从00演进到01"><div class="version-node" id="base-version-node">00</div><div class="version-link"></div><div class="version-node current" id="version-node">01</div><span class="version-caption" id="version-caption">已发布</span></div>
             <div class="change-list" id="ontology-changes">
               <div class="version-caption" id="change-title">等待提案</div>
               <div class="change-row"><span class="change-kind">新增概念</span><span class="change-value">疑似非法捕捞事件</span></div>
@@ -349,6 +354,7 @@
         </section>
         <section class="panel" aria-labelledby="evidence-heading">
           <div class="panel-head"><h2 class="panel-title" id="evidence-heading">观测证据</h2><span class="panel-kicker" id="evidence-caption">尚未接收</span></div>
+          <div class="evidence-tabs" role="tablist" aria-label="证据模态"><button type="button" class="button" role="tab" data-evidence-tab="all" aria-selected="true">全部</button><button type="button" class="button" role="tab" data-evidence-tab="trajectory" aria-selected="false">轨迹</button><button type="button" class="button" role="tab" data-evidence-tab="text" aria-selected="false">文本</button></div>
           <div class="panel-body evidence-list" id="evidence-list">
             <div class="evidence" data-evidence-index="1" hidden><span class="evidence-kind">AIS</span><div><div class="evidence-id">EV-AIS-1006</div><div class="evidence-time">10:06 · 航速 0.8 节</div></div><span class="confidence">0.95</span></div>
             <div class="evidence" data-evidence-index="2" hidden><span class="evidence-kind">雷达</span><div><div class="evidence-id">EV-RADAR-1006</div><div class="evidence-time">10:06 · 低速回波</div></div><span class="confidence">0.90</span></div>
@@ -364,7 +370,7 @@
         <div class="panel-body event-content">
           <div class="event-name"><div class="event-mark" id="event-mark" aria-hidden="true">·</div><div><div class="event-id" id="event-id">尚无事件</div><div class="event-title" id="event-title">候选事件将在规则命中并通过复核后生成</div></div></div>
           <div class="event-facts"><span>目标 <strong>V-017</strong></span><span>区域 <strong>A-03</strong></span><span>时间 <strong>—</strong></span><span>置信度 <strong id="event-confidence">—</strong></span><span>证据 <strong id="event-evidence-count">0 条</strong></span></div>
-          <div class="rules" aria-label="命中规则"><span class="rule">低速徘徊</span><span class="rule">敏感区域</span><span class="rule">持续停留</span></div>
+          <div class="rules" id="event-rules" aria-label="命中规则"></div>
           <div class="review-actions"><button class="button" id="confirm-button" type="button">确认</button><button class="button danger" id="reject-button" type="button">标为误报</button></div>
         </div>
       </section>
@@ -386,9 +392,74 @@
 </div>
 <script>
 (() => {
-  const state = { result: null, step: 0, steps: [], timer: null, busy: false, mode: "standard" };
+  const state = { result: null, step: 0, steps: [], timer: null, busy: false, mode: "standard", evidenceTab: "all", arrivedEvidence: 0 };
   const $ = (selector) => document.querySelector(selector);
   const $$ = (selector) => [...document.querySelectorAll(selector)];
+
+  function filterEvidence() {
+    $$("#evidence-list .evidence").forEach(item => {
+      item.hidden = Number(item.dataset.evidenceIndex) > state.arrivedEvidence ||
+        (state.evidenceTab !== "all" && item.dataset.modality !== state.evidenceTab);
+    });
+    $$("[data-evidence-tab]").forEach(button => button.setAttribute("aria-selected", String(button.dataset.evidenceTab === state.evidenceTab)));
+  }
+
+  function buildEvidence(report) {
+    const container = $("#evidence-list");
+    container.replaceChildren();
+    (report.deltaSemantics?.evidence || []).forEach((record, index) => {
+      const row = document.createElement("div");
+      row.className = "evidence";
+      row.dataset.evidenceIndex = index + 1;
+      row.dataset.modality = record.modality === "text" ? "text" : "trajectory";
+      row.hidden = true;
+      const kind = document.createElement("span");
+      kind.className = "evidence-kind";
+      kind.textContent = record.modality === "text" ? "文本" : record.source;
+      const body = document.createElement("div");
+      const id = document.createElement("div");
+      id.className = "evidence-id";
+      id.textContent = record.id;
+      const time = document.createElement("div");
+      time.className = "evidence-time";
+      const clock = record.timestamp?.match(/T(\d{2}:\d{2})/)?.[1] || record.timestamp || "—";
+      time.textContent = `${clock} · ${record.source}`;
+      time.title = record.timestamp || "";
+      body.append(id, time);
+      if (record.modality === "text") {
+        const details = document.createElement("details");
+        const summary = document.createElement("summary");
+        summary.textContent = `原文回链 · 字符 [${record.span.join(", ")})`;
+        const quote = document.createElement("div");
+        quote.className = "evidence-quote";
+        quote.textContent = record.rawText;
+        details.append(summary, quote);
+        (report.deltaSemantics.textFacts || []).filter(fact => fact.evidence === record.id).forEach(fact => {
+          const line = document.createElement("div");
+          line.className = "evidence-time";
+          line.textContent = `${fact.predicate} = ${fact.value} · [${fact.span.join(", ")})「${fact.quote}」`;
+          details.append(line);
+        });
+        body.append(details);
+      }
+      const confidence = document.createElement("span");
+      confidence.className = "confidence";
+      confidence.textContent = Number(record.confidence).toFixed(2);
+      row.append(kind, body, confidence);
+      container.append(row);
+    });
+  }
+
+  function showRules(plan) {
+    const tags = $("#event-rules");
+    tags.replaceChildren();
+    [...(plan.ruleHits || []), ...(plan.textSummary?.labels || [])].forEach(label => {
+      const tag = document.createElement("span");
+      tag.className = "rule";
+      tag.textContent = label;
+      tags.append(tag);
+    });
+  }
 
   async function post(url, body) {
     const response = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -425,18 +496,30 @@
     row.querySelector(".check-note").textContent = note;
   }
 
+  function versionsFor(report = {}) {
+    const base = report.evolutionProposal?.baseOntologyVersion || "00";
+    const candidate = report.ontologyValidation?.ontologyVersion ||
+      String(Number(base) + 1).padStart(base.length, "0");
+    return { base, candidate };
+  }
+
   function resetView() {
+    const { base, candidate } = versionsFor(state.result?.report);
+    state.arrivedEvidence = 0;
+    $("#event-rules").replaceChildren();
     $("#headline").textContent = "V-017 敏感海域案例";
     $("#result-sub").textContent = "尚未运行 · 点击“运行闭环”加载本案例";
     $("#state-symbol").textContent = "○";
     $("#state-symbol").style.background = "var(--surface-muted)";
     $("#state-symbol").style.color = "var(--muted)";
     $("#state-title").textContent = "案例起点";
-    $("#state-caption").textContent = "本体 00 · 正常航行状态 S-017-0";
+    $("#state-caption").textContent = `本体 ${base} · 正常航行状态 S-017-0`;
     $("#summary-speed").textContent = "等待观测";
     $("#summary-distance").textContent = "待感知计算";
-    $("#summary-evidence").textContent = "0 / 6 条";
-    $("#version-summary").textContent = "00";
+    $("#summary-evidence").textContent = `0 / ${state.result?.report.deltaSemantics?.evidence?.length || 11} 条`;
+    $("#version-summary").textContent = base;
+    $("#base-version-node").textContent = base;
+    $(".version-tree").setAttribute("aria-label", `知识版本从 ${base} 演进到 ${candidate}`);
     $("#old-state-node").classList.remove("inactive");
     $("#old-state-label").textContent = "当前状态 · 正常航行";
     $("#new-state-node").classList.remove("visible");
@@ -451,8 +534,7 @@
     $("#event-panel").style.opacity = "1";
     $("#confirm-button").disabled = true;
     $("#reject-button").disabled = true;
-    $$(".rules .rule").forEach(rule => rule.hidden = true);
-    $("#version-node").textContent = "01";
+    $("#version-node").textContent = candidate;
     $("#version-node").classList.remove("current");
     $("#version-caption").textContent = "尚未演化";
     $("#change-title").textContent = "等待提案";
@@ -488,12 +570,13 @@
   }
 
   function buildSteps(report, mode) {
+    const { candidate } = versionsFor(report);
     const observation1 = { id: "observation1", agent: 0, label: "10:06 · 第一组观测", title: "AIS 与雷达首次报告 V-017 低速活动。", copy: "第一组证据到达；轨迹从起始点开始显现。", outcome: "speed_1", error: false };
     const observation2 = { id: "observation2", agent: 0, label: "10:12 · 第二组观测", title: "第二组观测显示船舶仍在敏感海域低速活动。", copy: "新增 AIS 与雷达证据，系统继续累积时间窗口。", outcome: "speed_2", error: false };
-    const perception = { id: "perception", agent: 0, label: "语义感知完成", title: "三组观测被归纳为一个持续低速小范围徘徊状态。", copy: "语义感知智能体计算最新航速、累计移动距离、持续时间与证据集合。", outcome: "perception", error: false };
+    const perception = { id: "perception", agent: 0, label: "语义感知完成", title: "三组观测被归纳为一个持续低速小范围徘徊状态。", copy: `语义感知智能体计算轨迹指标并提取窗口内文本事实，聚合 ${report.deltaSemantics?.evidence?.length || 0} 条证据。`, outcome: "perception", error: false };
     const ontology = { id: "ontology", agent: 1, label: "本体演化提案", title: "现有知识模型缺少这类候选事件的概念与关系。", copy: "本体演化智能体提出新增事件类、区域风险关系和规则登记。", outcome: "ontology", error: false };
-    const ontologyValidated = { id: "ontologyValidated", agent: 1, label: "HermiT 本体校验", title: "候选本体通过逻辑一致性检查并发布为版本 01。", copy: "HermiT 校验由本体演化智能体负责；通过后规划器才会基于新版本生成计划。", outcome: "ontologyValidated", error: false };
-    const planning = { id: "planning", agent: 2, label: "规则匹配与计划", title: "业务规则把低速、敏感区域和持续时间组合起来。", copy: "规划器命中 R1、R2、R3，形成包含新状态、候选事件与证据关系的方案。", outcome: "planning", error: false };
+    const ontologyValidated = { id: "ontologyValidated", agent: 1, label: "HermiT 本体校验", title: `候选本体通过逻辑一致性检查并发布为版本 ${candidate}。`, copy: "HermiT 校验由本体演化智能体负责；通过后规划器才会基于新版本生成计划。", outcome: "ontologyValidated", error: false };
+    const planning = { id: "planning", agent: 2, label: "规则匹配与计划", title: "业务规则把低速、敏感区域和持续时间组合起来。", copy: `规划器命中 ${(report.updatePlan?.ruleHits || []).join("、")}，形成包含新状态、候选事件与证据关系的方案。`, outcome: "planning", error: false };
     const planValidation = { id: "planValidation", agent: 1, label: "计划一致性校验", title: "本体演化智能体逐项核验计划约束。", copy: "复核对象类型、关系范围、时间顺序、证据来源和规则引用；决策规划不负责校验。", outcome: "planValidation", error: false };
     const execution = { id: "execution", agent: 3, label: "增量写入", title: "行动执行智能体只处理通过复核的局部变更。", copy: "旧状态结束时间被关闭但不删除；新状态、事件、关系与证据来源写入影响子图。", outcome: "execution", error: false };
     const commit = { id: "commit", agent: 3, label: "提交与反馈", title: "本轮事务完成并记录提交结果。", copy: "生成提交编号，反馈候选事件、规则命中、知识版本和耗时指标。", outcome: "commit", error: false };
@@ -520,6 +603,7 @@
 
   function applyResult(payload) {
     state.result = payload;
+    buildEvidence(payload.report);
     state.mode = payload.mode || payload.report.demoMode || "standard";
     state.steps = buildSteps(payload.report, state.mode);
     state.step = 0;
@@ -544,6 +628,7 @@
   }
 
   function revealOutcome(step, report) {
+    const { base, candidate } = versionsFor(report);
     const delta = report.deltaSemantics || {};
     const plan = report.updatePlan || {};
     const validation = report.planValidation || {};
@@ -551,8 +636,9 @@
     const ontology = report.ontologyValidation || {};
     const comparison = report.comparison || {};
     const showEvidence = count => {
-      $$(".evidence").forEach(item => { item.hidden = Number(item.dataset.evidenceIndex) > count; });
-      $("#summary-evidence").textContent = `${count} / ${(delta.evidence || []).length || 6} 条`;
+      state.arrivedEvidence = count;
+      filterEvidence();
+      $("#summary-evidence").textContent = `${count} / ${(delta.evidence || []).length || 11} 条`;
       $("#evidence-caption").textContent = count ? `${count} 条已到达` : "尚未接收";
     };
     const setMetricValues = () => {
@@ -571,8 +657,8 @@
     const setAgentSummaries = () => {
       $("#agent-list [data-agent='0'] .agent-summary").textContent = `输出速度 ${delta.states?.[0]?.speed ?? "—"} 节、移动 ${delta.states?.[0]?.travelDistance ?? "—"} 海里、持续 ${delta.states?.[0]?.durationSeconds ?? "—"} 秒，聚合 ${(delta.evidence || []).length} 条证据。`;
       $("#agent-list [data-agent='1'] .agent-summary").textContent = ontology.consistent
-        ? "新增候选事件类和区域风险关系；HermiT 检查通过并发布知识版本 01。"
-        : "候选关系值域与现有知识约束冲突；HermiT 拒绝发布，本体保持 00。";
+        ? `新增候选事件类和区域风险关系；HermiT 检查通过并发布知识版本 ${candidate}。`
+        : `候选关系值域与现有知识约束冲突；HermiT 拒绝发布，本体保持 ${base}。`;
       $("#agent-list [data-agent='2'] .agent-summary").textContent = plan.replanAttempt > 1
         ? `首版计划被拦截；收到本体演化智能体反馈后，重规划第 ${plan.replanAttempt} 次通过。`
         : `命中规则 ${(plan.ruleHits || []).join(" / ") || "无"}，生成更新计划 ${plan.planId || "P1"}。`;
@@ -612,13 +698,29 @@
         return `形成 S-017-1：持续 ${delta.states?.[0]?.durationSeconds ?? "—"} 秒，移动 ${delta.states?.[0]?.travelDistance ?? "—"} 海里。`;
       case "ontology":
         $("#ontology-changes").classList.remove("pending-list");
-        $("#version-summary").textContent = "00 → 01";
-        $("#version-node").textContent = "01";
+        $("#version-summary").textContent = `${base} → ${candidate}`;
+        $("#version-node").textContent = candidate;
         $("#version-node").classList.add("current");
         $("#version-caption").textContent = "候选校验中";
         $("#change-title").textContent = "候选提案 · 校验中";
+        $("#ontology-changes").querySelectorAll(".change-row").forEach(row => row.remove());
+        [["新增概念", report.evolutionProposal?.newClasses?.map(item => item.id)],
+         ["新增关系", report.evolutionProposal?.newObjectProperties?.map(item => item.id)],
+         ["新增属性", report.evolutionProposal?.newDataProperties?.map(item => item.id)],
+         ["新增规则", report.evolutionProposal?.newRules]].forEach(([label, values]) => {
+          const row = document.createElement("div");
+          row.className = "change-row";
+          const kind = document.createElement("span");
+          kind.className = "change-kind";
+          kind.textContent = label;
+          const value = document.createElement("span");
+          value.className = "change-value";
+          value.textContent = (values || []).join(" · ") || "无";
+          row.append(kind, value);
+          $("#ontology-changes").append(row);
+        });
         $("#agent-list [data-agent='1'] .agent-summary").textContent = "已提出候选事件类、船舶潜在区域风险关系及低速徘徊规则；等待逻辑校验。";
-        return "提出新增概念、关系及规则；候选本体 01 等待 HermiT 逻辑一致性检查。";
+        return `提出新增概念、关系及规则；候选本体 ${candidate} 等待 HermiT 逻辑一致性检查。`;
       case "ontologyValidated": {
         const checkTime = ontology.durationMs > 0
           ? `${Math.max(1, Math.round(ontology.durationMs))} ms`
@@ -629,12 +731,12 @@
         $("#check-caption").textContent = `HermiT 逻辑一致性检查 · ${checkTime}`;
         setCheck("ontology", Boolean(ontology.consistent), ontology.consistent ? "通过" : "未通过");
         $("#version-caption").textContent = "已发布";
-        $("#change-title").textContent = "本体版本 01 · 已发布";
-        $("#agent-list [data-agent='1'] .agent-summary").textContent = "HermiT 检查通过；本体演化智能体发布版本 01，后续计划以此版本为依据。";
-        return "HermiT 推理确认候选本体一致；版本 01 已发布，允许进入决策规划。";
+        $("#change-title").textContent = `本体版本 ${candidate} · 已发布`;
+        $("#agent-list [data-agent='1'] .agent-summary").textContent = `HermiT 检查通过；本体演化智能体发布版本 ${candidate}，后续计划以此版本为依据。`;
+        return `HermiT 推理确认候选本体一致；版本 ${candidate} 已发布，允许进入决策规划。`;
       }
       case "ontologyRejected":
-        $("#version-summary").textContent = "00";
+        $("#version-summary").textContent = base;
         $("#version-node").textContent = "×";
         $("#version-node").classList.remove("current");
         $("#version-caption").textContent = "被拒绝 · 未发布";
@@ -651,18 +753,18 @@
         $("#state-title").textContent = "逻辑检查拒绝";
         $("#state-caption").textContent = "HermiT 检查到候选本体与相关图谱断言不一致";
         $("#event-title").textContent = "候选事件未写入";
-        $("#event-version").textContent = "本体版本 00";
+        $("#event-version").textContent = `本体版本 ${base}`;
         $("#change-title").textContent = "候选提案 · 已拒绝";
         $("#agent-list [data-agent='1'] .agent-status").textContent = "已拦截";
         $("#agent-list [data-agent='1']").classList.add("error");
-        return "HermiT 已实际运行并判定不一致；版本停留在 00，图谱没有写入。";
+        return `HermiT 已实际运行并判定不一致；版本停留在 ${base}，图谱没有写入。`;
       case "planning":
       case "planningFirst":
-        $$(".rules .rule").forEach(rule => rule.hidden = false);
         $("#event-id").textContent = "E-017 · 计划候选";
         $("#event-title").textContent = "疑似非法捕捞事件 · 尚未写入图谱";
-        $("#event-version").textContent = "计划 P1 · 本体版本 01";
-        $("#event-confidence").textContent = "0.90";
+        $("#event-version").textContent = `计划 ${plan.planId || "—"} · 本体版本 ${plan.baseOntologyVersion || candidate}`;
+        $("#event-confidence").textContent = Number(plan.createIndividuals?.find(item => item.id === "E-017")?.properties?.confidence ?? 0).toFixed(2);
+        showRules(plan);
         $("#event-evidence-count").textContent = `${(delta.evidence || []).length} 条`;
         $("#agent-list [data-agent='2'] .agent-summary").textContent = `命中 ${(plan.ruleHits || []).join(" / ") || "业务规则"}，生成计划 ${plan.planId || "P1"}；尚未执行图谱写入。`;
         return `规则命中 ${(plan.ruleHits || []).join(" / ") || "无"}，提出候选事件和局部更新计划。`;
@@ -696,14 +798,14 @@
         $("#agent-list [data-agent='2'] .agent-summary").textContent = `规划器根据反馈生成修正计划，当前重规划次数 ${plan.replanAttempt}；等待重新复核。`;
         $("#event-id").textContent = "E-017 · 修正后计划";
         $("#event-title").textContent = "重新规划中 · 尚未执行";
-        $("#event-version").textContent = "计划 P2 · 本体版本 01";
+        $("#event-version").textContent = `计划 ${plan.planId || "—"} · 第 ${plan.replanAttempt || 1} 次方案 · 本体版本 ${plan.baseOntologyVersion || candidate}`;
         return `规划器重生成方案，当前重规划次数 ${plan.replanAttempt}。`;
       case "planValidation":
       case "planValidationRetry":
         setPlanCheck();
         $("#check-status").textContent = "计划复核通过";
         $("#agent-list [data-agent='1'] .agent-summary").textContent = "计划通过对象类型、关系范围、时间、证据来源与规则引用检查；本体演化智能体准许执行。";
-        $("#event-version").textContent = "候选本体版本 01";
+        $("#event-version").textContent = `已校验本体版本 ${plan.baseOntologyVersion || candidate}`;
         return `类型、定义域/值域、时序、证据来源和规则引用检查${validation.passed ? "全部通过" : "未通过"}；校验归属：本体演化智能体。`;
       case "executionStaged":
         $("#agent-list [data-agent='3'] .agent-summary").textContent = "计划变更进入事务暂存区；图谱尚未提交，失败时可整体撤销。";
@@ -716,8 +818,9 @@
         $("#event-mark").textContent = "!";
         $("#event-id").textContent = "E-017";
         $("#event-title").textContent = "疑似非法捕捞事件 · 待人工复核";
-        $("#event-version").textContent = "本体版本 01";
-        $("#event-confidence").textContent = "0.90";
+        $("#event-version").textContent = `本体版本 ${report.ontologyVersion || candidate}`;
+        $("#event-confidence").textContent = Number(plan.createIndividuals?.find(item => item.id === "E-017")?.properties?.confidence ?? 0).toFixed(2);
+        showRules(plan);
         $("#event-evidence-count").textContent = `${(delta.evidence || []).length} 条`;
         $("#confirm-button").disabled = false;
         $("#reject-button").disabled = false;
@@ -731,7 +834,7 @@
         $("#event-mark").textContent = "·";
         $("#event-id").textContent = "未提交";
         $("#event-title").textContent = "事件写入随事务一并回滚";
-        $("#event-version").textContent = "本体版本 01 · 图谱未变";
+        $("#event-version").textContent = `本体版本 ${report.ontologyVersion || candidate} · 图谱未变`;
         $("#event-confidence").textContent = "—";
         $("#event-evidence-count").textContent = "0 条";
         $("#confirm-button").disabled = true;
@@ -798,7 +901,7 @@
       outcome.textContent = revealOutcome(spec, state.result.report);
       outcome.classList.toggle("visible", Boolean(outcome.textContent));
     }
-    $("#summary-evidence").textContent = $("#evidence-list").querySelectorAll(".evidence:not([hidden])").length + " / 6 条";
+    $("#summary-evidence").textContent = `${state.arrivedEvidence} / ${state.result.report.deltaSemantics?.evidence?.length || 0} 条`;
     $$(".agent").forEach(agent => {
       const index = Number(agent.dataset.agent);
       const prior = state.steps.slice(0, Math.max(state.step - 1, 0));
@@ -828,7 +931,7 @@
       const result = await post("/api/run", { mode });
       applyResult(result);
     } catch (error) {
-      showAlert(`演示未能运行：${error.message}。请确认本地服务和 Java 17 已启动。`);
+      showAlert(`演示未能运行：${error.message}。请查看启动终端中的错误详情；修改后端代码后需重启服务再重试。`);
       $("#flow-status").textContent = "运行失败";
     } finally { setBusy(false); }
   }
@@ -853,6 +956,7 @@
     }, 2200);
   });
   $$(".mini-button").forEach(button => button.addEventListener("click", () => run(button.dataset.mode)));
+  $$("[data-evidence-tab]").forEach(button => button.addEventListener("click", () => { state.evidenceTab = button.dataset.evidenceTab; filterEvidence(); }));
   $("#confirm-button").addEventListener("click", () => review("confirmed"));
   $("#reject-button").addEventListener("click", () => review("rejected"));
 

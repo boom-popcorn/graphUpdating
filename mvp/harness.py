@@ -37,7 +37,7 @@ class Harness:
             execution.get("createdNodes", 0)
             + execution.get("createdRelations", 0)
             + execution.get("createdTypeAssertions", 0)
-            + execution.get("attachedEvidence", 0)
+            + execution.get("registeredEvidence", execution.get("attachedEvidence", 0))
             + max(
                 len(graph.get("provenance", []))
                 - len(self.initial_graph.get("provenance", [])),
@@ -152,6 +152,7 @@ class Harness:
             "feedback": {
                 "ontologyChanges": updated.document["changeLog"],
                 "ruleHits": plan["ruleHits"],
+                "textSummary": plan.get("textSummary", {}),
                 "reviewStatus": "pending" if "E-017" in self.graph.document["nodes"] else None,
                 "recommendation": "Keep the current thresholds; review the candidate event before treating it as confirmed.",
             },
