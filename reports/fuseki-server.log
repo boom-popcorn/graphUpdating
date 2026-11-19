@@ -1,0 +1,20 @@
+[main] INFO org.eclipse.jetty.server.Server - jetty-12.0.11; built: 2024-06-27T23:42:49.912Z; git: 9f90cedce372142f30c744a16a38d2c6bf634ab6; jvm 17+35-LTS-2724
+[main] INFO org.eclipse.jetty.server.handler.ContextHandler - Started oeje10s.ServletContextHandler@60d8c0dc{org.apache.jena.fuseki.Servlet,/,b=null,a=AVAILABLE,h=oeje10s.ServletHandler@4204541c{STARTED}}
+[main] INFO org.eclipse.jetty.ee10.servlet.ServletContextHandler - Started oeje10s.ServletContextHandler@60d8c0dc{org.apache.jena.fuseki.Servlet,/,b=null,a=AVAILABLE,h=oeje10s.ServletHandler@4204541c{STARTED}}
+[main] INFO org.eclipse.jetty.server.AbstractConnector - Started ServerConnector@355e34c7{HTTP/1.1, (http/1.1)}{localhost:3030}
+[main] INFO org.eclipse.jetty.server.Server - Started oejs.Server@9bd0fa6{STARTING}[12.0.11,sto=0] @1300ms
+[main] INFO org.apache.jena.fuseki.Server - Start Fuseki (http=3030)
+Fuseki query console: http://localhost:3030/
+TDB2 dataset: D:\HZAU\KG\code\code0\storage\fuseki-demo
+[qtp1433208870-25] INFO org.apache.jena.fuseki.Fuseki - [1] POST http://localhost:3030/maritime/query
+[qtp1433208870-25] INFO org.apache.jena.fuseki.Fuseki - [1] Query = SELECT ?stateId WHERE { GRAPH <urn:maritime:data> {             <https://example.org/maritime#V-017> <https://example.org/maritime#hasState> ?state . ?state <https://example.org/maritime#id> ?stateId .             FILTER NOT EXISTS { ?state <https://example.org/maritime#validTo> ?end }         } } ORDER BY ?stateId
+[qtp1433208870-25] INFO org.apache.jena.fuseki.Fuseki - [1] 200 OK (104 ms)
+[qtp1433208870-25] INFO org.apache.jena.fuseki.Request - 127.0.0.1 - - [18/11��/2026:10:23:43 +0000] "POST /maritime/query" 200 - "" "Python-urllib/3.9"
+[qtp1433208870-25] INFO org.apache.jena.fuseki.Fuseki - [2] POST http://localhost:3030/maritime/query
+[qtp1433208870-25] INFO org.apache.jena.fuseki.Fuseki - [2] Query = SELECT ?s ?p ?o WHERE { GRAPH <urn:maritime:data> { ?s ?p ?o } }
+[qtp1433208870-25] INFO org.apache.jena.fuseki.Fuseki - [2] 200 OK (39 ms)
+[qtp1433208870-25] INFO org.apache.jena.fuseki.Request - 127.0.0.1 - - [18/11��/2026:10:23:56 +0000] "POST /maritime/query" 200 - "http://localhost:3030/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36"
+[qtp1433208870-25] INFO org.apache.jena.fuseki.Fuseki - [3] POST http://localhost:3030/maritime/query
+[qtp1433208870-25] INFO org.apache.jena.fuseki.Fuseki - [3] Query = SELECT ?s ?p ?o WHERE { GRAPH <urn:maritime:data> { ?s ?p ?o } }
+[qtp1433208870-25] INFO org.apache.jena.fuseki.Fuseki - [3] 200 OK (9 ms)
+[qtp1433208870-25] INFO org.apache.jena.fuseki.Request - 127.0.0.1 - - [18/11��/2026:10:28:09 +0000] "POST /maritime/query" 200 - "http://localhost:3030/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36"

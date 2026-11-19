@@ -1,0 +1,20 @@
+把内存JSON换成图数据库，把本地工具换成真正的MCP服务。
+
+一、图数据库选型：
+1. RDF路线：Apache Jena TDB2 / GraphDB / Stardog，适合OWL+SPARQL+PROV-O；
+2. 属性图路线：Neo4j，适合演示和查询性能，但OWL支持弱；
+3. 推荐 Jena TDB2 或 GraphDB：和OWL/HermiT/SPARQL天然对齐，证据溯源用PROV-O。
+
+二、改造点：
+1. GraphStore 接口不变，实现换成 JenaGraphStore；
+2. MCPToolbox 的每个工具改成SPARQL Update或图库事务API；
+3. 事务用图库原生事务；幂等用 appliedPlans 持久化；
+4. 提交记录写 commits 图或审计表；
+5. 查询接口 getSubgraph、queryState 用SPARQL。
+
+三、MCP服务化：
+1. 把 MCPToolbox 包装成真正的MCP Server（stdio或HTTP），工具描述用JSON Schema；
+2. 行动执行智能体通过MCP客户端调用，不再直接import；
+3. 这样演示时可以说“工具是标准MCP协议，可替换”。
+
+验收：同一轮案例在Jena TDB2上跑通；事务回滚、幂等、证据挂接行为与内存版一致；查询“V-017当前有效状态”能返回S-017-1。

@@ -1,0 +1,12 @@
+test_failed_native_commit_restores_python_snapshot_and_disk (tests.test_storage_mcp.StorageMCPTests) ... ok
+test_failure_rolls_back_nodes_evidence_commits_and_idempotency (tests.test_storage_mcp.StorageMCPTests) ... ok
+test_process_disconnect_aborts_native_transaction (tests.test_storage_mcp.StorageMCPTests) ... ok
+test_real_mcp_execution_matches_memory_and_queries_rdf (tests.test_storage_mcp.StorageMCPTests) ... ok
+test_restart_replay_does_not_write_second_commit (tests.test_storage_mcp.StorageMCPTests) ... ok
+test_review_persists_across_restart_with_feedback_history (tests.test_storage_mcp.StorageMCPTests) ... ok
+test_stdio_discovery_schemas_and_protocol_errors (tests.test_storage_mcp.StorageMCPTests) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 57.883s
+
+OK

@@ -12,16 +12,24 @@ from .ontology import OntologyAgent, OntologyModel
 
 
 class Harness:
-    def __init__(self, root: Path, graph_document: dict[str, Any] | None = None):
+    def __init__(self, root: Path, graph_document: dict[str, Any] | None = None,
+                 dataset_dir: Path | None = None):
         self.root = root
         self.ontology_agent = OntologyAgent(root / "ontology")
         self.semantic_agent = SemanticPerceptionAgent()
         self.planning_agent = DecisionPlanningAgent()
         if graph_document is None:
             graph_document = read_json(root / "data" / "initial_graph.json")
-        self.initial_graph = deepcopy(graph_document)
-        self.graph = GraphStore(graph_document)
-        self.execution_agent = ActionExecutionAgent(self.graph, self.ontology_agent.load_current())
+        if dataset_dir is None:
+            self.graph = GraphStore(graph_document)
+            toolbox = None
+        else:
+            from .jena import JenaGraphStore
+            from .mcp_client import MCPClientToolbox
+            self.graph = JenaGraphStore(graph_document, dataset_dir)
+            toolbox = MCPClientToolbox(self.graph)
+        self.initial_graph = self.graph.snapshot()
+        self.execution_agent = ActionExecutionAgent(self.graph, self.ontology_agent.load_current(), toolbox=toolbox)
 
     def _comparison_metrics(self, execution: dict[str, Any] | None = None) -> dict[str, Any]:
         graph = self.graph.document

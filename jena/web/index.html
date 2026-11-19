@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>海上知识图谱 · Fuseki 查询与可视化</title>
+<!-- 引入 vis-network 可视化库 -->
+<script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+<style>
+:root{font-family:Segoe UI,Microsoft YaHei,sans-serif;color:#17324d;background:#eef3f8}*{box-sizing:border-box}body{margin:0;display:flex;flex-direction:column;height:100vh;overflow:hidden}
+header{padding:15px 4vw;background:#102c45;color:white;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+h1{font-size:20px;margin:5px 0}header small{color:#9acbdc;letter-spacing:2px}.badge{border:1px solid #47728a;border-radius:20px;padding:7px 14px;font-size:13px}
+main{display:flex;flex:1;overflow:hidden}
+/* 左侧图谱可视化区 */
+#network-container{flex:2;background:#f8fafc;position:relative;border-right:1px solid #d4e0ea}
+#network{width:100%;height:100%;outline:none}
+.graph-toolbar{position:absolute;top:15px;left:15px;background:white;padding:10px;border-radius:8px;box-shadow:0 4px 15px rgba(0,0,0,0.1);z-index:10;display:flex;gap:10px;align-items:center}
+/* 右侧查询面板 */
+aside{flex:1;min-width:400px;display:flex;flex-direction:column;background:white;overflow:hidden}
+.panel-head{padding:15px;border-bottom:1px solid #d4e0ea;display:flex;justify-content:space-between;align-items:center}
+textarea{flex:1;resize:none;font:14px/1.7 Consolas,monospace;background:#f7fafc;color:#12354d;border:none;padding:15px;outline:none;border-bottom:1px solid #d4e0ea}
+.result-area{flex:1;overflow:auto;padding:15px;background:#f8fafc}
+table{border-collapse:collapse;width:100%;font:12px/1.6 Consolas,Microsoft YaHei,monospace}
+th{position:sticky;top:0;background:#e9f2f6;text-align:left;color:#294e65}
+th,td{padding:8px 10px;border-bottom:1px solid #e2eaf0;vertical-align:top}
+tbody tr:hover{background:#eef6fb}
+button,select{font:inherit;font-size:13px;padding:8px 12px;border:1px solid #cad9e4;border-radius:6px;background:white;cursor:pointer}
+button.primary{background:#086b89;color:white;border-color:#086b89}
+button:disabled{opacity:.5;cursor:wait}
+.legend{position:absolute;bottom:15px;left:15px;background:white;padding:10px 15px;border-radius:8px;font-size:12px;box-shadow:0 4px 15px rgba(0,0,0,0.1);line-height:1.8}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px}
+</style>
+</head>
+<body>
+<header><div><small>APACHE JENA FUSEKI · TDB2</small><h1>海上知识图谱 / 底层数据透视</h1></div><span class="badge">图谱视图 & SPARQL 查询</span></header>
+<main>
+  <!-- 左侧：图谱画布 -->
+  <div id="network-container">
+    <div class="graph-toolbar">
+      <button id="btn-reload" class="primary">🔄 重新加载全图</button>
+      <span id="status" style="font-size:13px;color:#678093">等待加载...</span>
+    </div>
+    <div id="network"></div>
+    <div class="legend">
+      <div><span class="dot" style="background:#97c2fc"></span>常规节点</div>
+      <div><span class="dot" style="background:#fb7e81"></span>事件/威胁 (Event)</div>
+      <div><span class="dot" style="background:#7be188"></span>文本/证据 (Text)</div>
+      <div style="margin-top:5px;color:#8899a6;font-size:11px">提示：可拖拽节点、缩放画布。右键节点可查看详情。</div>
+    </div>
+  </div>
+
+  <!-- 右侧：查询区 -->
+  <aside>
+    <div class="panel-head">
+      <strong>SPARQL 查询</strong>
+      <select id="preset">
+        <option value="triples">全部业务三元组</option>
+        <option value="state">V-017 当前有效状态</option>
+        <option value="evidence">事件证据 · PROV-O</option>
+      </select>
+      <button id="btn-query" class="primary">执行查询</button>
+    </div>
+    <textarea id="query" spellcheck="false"></textarea>
+    <div class="result-area" id="results"><div style="color:#678093;text-align:center;padding:30px">查询结果将显示在这里</div></div>
+  </aside>
+</main>
+
+<script>
+const presets = {
+  triples: 'SELECT ?s ?p ?o WHERE { GRAPH <urn:maritime:data> { ?s ?p ?o } } LIMIT 200',
+  state: `PREFIX m: <https://example.org/maritime#>\nSELECT ?state ?stateId WHERE {\n  GRAPH <urn:maritime:data> {\n    m:V-017 m:hasState ?state .\n    ?state m:id ?stateId .\n    FILTER NOT EXISTS { ?state m:validTo ?end }\n  }\n}`,
+  evidence: `PREFIX prov: <http://www.w3.org/ns/prov#>\nSELECT ?event ?evidence WHERE {\n  GRAPH <urn:maritime:data> { ?event prov:used ?evidence }\n}`
+};
+
+const queryArea = document.getElementById('query');
+queryArea.value = presets.triples;
+document.getElementById('preset').addEventListener('change', e => queryArea.value = presets[e.target.value]);
+
+const statusEl = document.getElementById('status');
+const container = document.getElementById('network');
+let network = null;
+
+// 根据节点类型分配颜色
+function getColor(types) {
+  if (!types) return '#97c2fc';
+  if (types.some(t => t.includes('Event') || t.includes('Alert') || t.includes('Threat'))) return '#fb7e81';
+  if (types.some(t => t.includes('Text') || t.includes('Declaration') || t.includes('Inspection'))) return '#7be188';
+  if (types.some(t => t.includes('State'))) return '#ffca80';
+  return '#97c2fc';
+}
+
+// 核心：将 JSON 转为可视化网络
+function renderNetwork(doc) {
+  if (!doc || !doc.nodes) throw new Error('数据库尚未初始化，请重启最新版 Fuseki 服务');
+  if (!window.vis) throw new Error('图谱绘图库加载失败，请检查网络后刷新页面');
+  const nodesData = [];
+  const edgesData = [];
+
+  // 1. 解析节点
+  for (const [id, data] of Object.entries(doc.nodes)) {
+    nodesData.push({
+      id: id,
+      label: id, // 显示节点 ID
+      title: `类型: ${data.types?.join(', ')}`,
+      color: {
+        background: getColor(data.types),
+        border: '#2b7ce9'
+      },
+      shape: data.types?.some(t => t.includes('Event')) ? 'box' : 'dot', // 事件用方块，其他用圆点
+      font: { size: 12, face: 'Microsoft YaHei' }
+    });
+  }
+
+  // 2. 解析关系
+  for (const [id, timestamp] of Object.entries(doc.temporalValues || {})) {
+    if (!doc.nodes[id]) nodesData.push({id, label:id, title:timestamp, color:'#ffca80', shape:'dot'});
+  }
+  if (doc.relations) {
+    doc.relations.forEach((rel, index) => {
+      edgesData.push({
+        id: `e_${index}`,
+        from: rel.s,
+        to: rel.o,
+        label: rel.p, // 连线上的文字
+        arrows: 'to',
+        font: { size: 10, align: 'middle', color: '#556677', strokeWidth: 2, strokeColor: '#ffffff' },
+        color: { color: '#b1b7c1', highlight: '#086b89' }
+      });
+    });
+  }
+
+  const data = {
+    nodes: new vis.DataSet(nodesData),
+    edges: new vis.DataSet(edgesData)
+  };
+  
+  const options = {
+    nodes: { borderWidth: 2, size: 20, shadow: true },
+    edges: { width: 1.5, smooth: { type: 'continuous' } },
+    physics: {
+      barnesHut: { gravitationalConstant: -3000, springLength: 150 }, // 物理引擎设置，让节点散开
+      stabilization: { iterations: 150 }
+    },
+    interaction: { hover: true, tooltipDelay: 200 }
+  };
+
+  if (network) {
+    network.setData(data);
+  } else {
+    network = new vis.Network(container, data, options);
+  }
+}
+
+// 从 Fuseki 获取最新全量快照
+async function loadGraph() {
+  statusEl.textContent = '正在加载图谱...';
+  try {
+    const res = await fetch('/api/snapshot');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (data.ok) {
+      renderNetwork(data.document);
+      statusEl.textContent = `${(data.document.commits || []).length ? '当前图谱' : '初始知识图谱'} · ${Object.keys(data.document.nodes).length} 个业务节点 · ${new Date().toLocaleTimeString()}`;
+    } else {
+      statusEl.textContent = '加载失败';
+    }
+  } catch (e) {
+    statusEl.textContent = `加载失败：${e.message}`;
+  }
+}
+
+// 执行 SPARQL 查询并渲染表格
+async function executeQuery() {
+  const btn = document.getElementById('btn-query');
+  btn.disabled = true;
+  const resEl = document.getElementById('results');
+  resEl.innerHTML = '<div style="padding:20px;color:#678093">查询中...</div>';
+  try {
+    const res = await fetch('/maritime/query', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/sparql-query', 'Accept': 'application/sparql-results+json' },
+      body: queryArea.value
+    });
+    if (!res.ok) throw new Error(await res.text());
+    const data = await res.json();
+    
+    if (!data.results || !data.results.bindings.length) {
+      resEl.innerHTML = '<div style="padding:20px;color:#678093">查询成功，无结果。</div>';
+      return;
+    }
+
+    let html = '<table><thead><tr>';
+    data.head.vars.forEach(v => html += `<th>?${v}</th>`);
+    html += '</tr></thead><tbody>';
+    
+    data.results.bindings.forEach(row => {
+      html += '<tr>';
+      data.head.vars.forEach(v => {
+        html += `<td>${row[v] ? row[v].value : ''}</td>`;
+      });
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+    resEl.innerHTML = html;
+
+  } catch (e) {
+    resEl.innerHTML = `<div style="color:red;padding:20px">${e.message}</div>`;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// 绑定事件
+document.getElementById('btn-reload').addEventListener('click', loadGraph);
+document.getElementById('btn-query').addEventListener('click', executeQuery);
+
+// 页面初始化时自动加载图谱
+loadGraph();
+</script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+test_dataset_path_mismatch_is_explicit (tests.test_fuseki.FusekiTests) ... ok
+test_execution_failure_rolls_back_over_http (tests.test_fuseki.FusekiTests) ... ok
+test_mcp_writes_visible_through_official_sparql_endpoint (tests.test_fuseki.FusekiTests) ... ok
+test_native_rollback_after_rdf_writes (tests.test_fuseki.FusekiTests) ... ok
+test_ontology_versions_follow_actual_complete_directories (tests.test_fuseki.FusekiTests) ... ok
+test_query_console_and_read_only_sparql_routes (tests.test_fuseki.FusekiTests) ... ok
+test_stale_writer_is_rejected_without_lost_update (tests.test_fuseki.FusekiTests) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 5.684s
+
+OK

@@ -1,6 +1,10 @@
 from __future__ import annotations
 
 from copy import deepcopy
+from contextlib import contextmanager
+from threading import RLock
+import hashlib
+import json
 from pathlib import Path
 from typing import Any
 
@@ -15,6 +19,17 @@ class ToolExecutionError(RuntimeError):
 class GraphStore:
     def __init__(self, document: dict[str, Any]):
         self.document = deepcopy(document)
+        self._lock = RLock()
+
+    @contextmanager
+    def transaction(self):
+        with self._lock:
+            original = self.snapshot()
+            try:
+                yield
+            except BaseException:
+                self.document = original
+                raise
 
     def snapshot(self) -> dict[str, Any]:
         return deepcopy(self.document)
@@ -39,10 +54,24 @@ class MCPToolbox:
         plan: dict[str, Any],
         fail_after_operations: int | None = None,
     ) -> dict[str, Any]:
+        self.audit = []
+        with self.graph.transaction():
+            return self._execute_plan(plan, fail_after_operations)
+
+    def _execute_plan(self, plan, fail_after_operations=None):
+        mutation_keys = ("closeStates", "createIndividuals", "assertTypes", "assertRelations", "attachEvidence",
+                         "evidenceRecords", "temporalValues", "textFacts", "expectedSubgraph")
+        digest = hashlib.sha256(json.dumps({key: plan.get(key, []) for key in mutation_keys},
+                                          sort_keys=True, ensure_ascii=False).encode("utf-8")).hexdigest()
         applied = self.graph.document.setdefault("appliedPlans", {})
         if plan["planId"] in applied:
             result = deepcopy(applied[plan["planId"]])
+            if result.get("planDigest") != digest:
+                raise ToolExecutionError(f"plan ID {plan['planId']} already exists with different content")
             result["idempotentReplay"] = True
+            for key in ("createdNodes", "createdRelations", "createdTypeAssertions", "closedStates",
+                        "attachedEvidence", "registeredEvidence", "toolCalls"):
+                result[key] = 0
             return result
 
         original = self.graph.snapshot()
@@ -133,6 +162,7 @@ class MCPToolbox:
             commit_number = len(staged.setdefault("commits", [])) + 1
             result = {
                 "planId": plan["planId"],
+                "planDigest": digest,
                 "commitId": f"C-{commit_number:04d}",
                 "success": True,
                 "idempotentReplay": False,
@@ -181,14 +211,20 @@ class MCPToolbox:
 class ActionExecutionAgent:
     name = "action_execution_agent"
 
-    def __init__(self, graph: GraphStore, ontology: OntologyModel | None = None):
-        self.toolbox = MCPToolbox(graph)
+    def __init__(self, graph: GraphStore, ontology: OntologyModel | None = None, toolbox=None):
+        self.toolbox = toolbox or MCPToolbox(graph)
         self.ontology = ontology
 
     def execute(self, plan: dict[str, Any], fail_after_operations: int | None = None) -> dict[str, Any]:
         return self.toolbox.execute_plan(plan, fail_after_operations)
 
     def record_review(self, event_id: str, status: str, reason: str) -> dict[str, Any]:
+        if hasattr(self.toolbox, "record_review"):
+            return self.toolbox.record_review(event_id, status, reason, self.ontology)
+        with self.toolbox.graph.transaction():
+            return self._record_review(event_id, status, reason)
+
+    def _record_review(self, event_id: str, status: str, reason: str) -> dict[str, Any]:
         if status not in {"confirmed", "rejected"}:
             raise ValueError("review status must be 'confirmed' or 'rejected'")
         graph = self.toolbox.graph

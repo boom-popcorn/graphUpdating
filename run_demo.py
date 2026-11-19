@@ -45,10 +45,13 @@ def export_ontology(source_root: Path, destination_root: Path) -> None:
 
 
 def run(input_path: Path, output_dir: Path, mode: str = "standard", texts_path: Path | None = None,
-        ontology_dir: Path | None = None) -> dict[str, Any]:
+        ontology_dir: Path | None = None, dataset_dir: Path | None = None) -> dict[str, Any]:
     if mode not in MODES:
         raise ValueError(f"unsupported demo mode: {mode}")
     raw = read_json(input_path)
+    persistent_ontology = dataset_dir / "ontology" if dataset_dir is not None else None
+    if ontology_dir is None and persistent_ontology is not None and (persistent_ontology / "00").is_dir():
+        ontology_dir = persistent_ontology
     if texts_path is not None:
         raw = with_text_input(raw, texts_path)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -59,9 +62,15 @@ def run(input_path: Path, output_dir: Path, mode: str = "standard", texts_path: 
         else:
             export_ontology(ontology_dir, staging_root / "ontology")
         graph_document = read_json(ROOT / "data" / "initial_graph.json")
-        harness = Harness(staging_root, graph_document)
+        harness = Harness(staging_root, graph_document, dataset_dir=dataset_dir)
         report = harness.run_round(raw, demo_mode=mode)
+        report["storage"] = {"backend": "jena-tdb2" if dataset_dir else "memory",
+                             "transport": "mcp-stdio" if dataset_dir else "local",
+                             "datasetDir": str(dataset_dir.resolve()) if dataset_dir else None,
+                             "fusekiUrl": getattr(harness.graph, "fuseki_url", None) or None}
         export_ontology(staging_root / "ontology", output_dir / "ontology")
+        if persistent_ontology is not None:
+            export_ontology(staging_root / "ontology", persistent_ontology)
 
     execution = report.get("executionResult") or {}
     comparison = report["comparison"]
@@ -99,6 +108,7 @@ def main() -> None:
     parser.add_argument("--mode", choices=MODES, default="standard")
     parser.add_argument("--texts", type=Path, help="Optional text evidence JSON; e.g. data/texts_R001.json")
     parser.add_argument("--ontology-dir", type=Path, help="Start from published ontology versions in this directory")
+    parser.add_argument("--dataset-dir", type=Path, help="Use persistent Jena TDB2 and MCP stdio tools")
     parser.add_argument("--output-dir", type=Path, default=None)
     parser.add_argument("--scenario", choices=("disguised", "insufficient"), help="Run an extended threat scenario")
     args = parser.parse_args()
@@ -110,7 +120,7 @@ def main() -> None:
         args.input = ROOT / "data" / f"observations_{args.scenario}.json"
         output_dir = args.output_dir or ROOT / "reports" / f"R-001-{args.scenario}-{args.mode}"
     args.input = args.input or ROOT / "data" / "observations_R001.json"
-    run(args.input, output_dir, args.mode, args.texts, args.ontology_dir)
+    run(args.input, output_dir, args.mode, args.texts, args.ontology_dir, args.dataset_dir)
 
 
 if __name__ == "__main__":

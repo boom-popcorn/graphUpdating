@@ -1,0 +1,14 @@
+test_expert_review_is_separate_versioned_history (tests.test_threat.ThreatTests) ... ok
+test_full_cluster_real_reasoner_and_provenance (tests.test_threat.ThreatTests) ... ok
+test_identity_only_no_high_threat (tests.test_threat.ThreatTests) ... ok
+test_low_confidence_and_outside_area_block_alert (tests.test_threat.ThreatTests) ... ok
+test_r7_patterns_are_grounded_annotations (tests.test_threat.ThreatTests) ... ok
+test_r9_requires_explicit_silence_outbound_and_no_response (tests.test_threat.ThreatTests) ... ok
+test_tampered_cluster_or_alert_is_rejected (tests.test_threat.ThreatTests) ... ok
+test_threat_transaction_failure_removes_alert_and_cluster (tests.test_threat.ThreatTests) ... ok
+test_web_scenarios_and_disabled_text (tests.test_threat.ThreatTests) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 2.283s
+
+OK

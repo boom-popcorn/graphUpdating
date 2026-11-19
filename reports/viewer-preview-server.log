@@ -1,0 +1,8 @@
+[main] INFO org.eclipse.jetty.server.Server - jetty-12.0.11; built: 2024-06-27T23:42:49.912Z; git: 9f90cedce372142f30c744a16a38d2c6bf634ab6; jvm 17+35-LTS-2724
+[main] INFO org.eclipse.jetty.server.handler.ContextHandler - Started oeje10s.ServletContextHandler@24855019{org.apache.jena.fuseki.Servlet,/,b=null,a=AVAILABLE,h=oeje10s.ServletHandler@3abd581e{STARTED}}
+[main] INFO org.eclipse.jetty.ee10.servlet.ServletContextHandler - Started oeje10s.ServletContextHandler@24855019{org.apache.jena.fuseki.Servlet,/,b=null,a=AVAILABLE,h=oeje10s.ServletHandler@3abd581e{STARTED}}
+[main] INFO org.eclipse.jetty.server.AbstractConnector - Started ServerConnector@3c49fab6{HTTP/1.1, (http/1.1)}{localhost:3031}
+[main] INFO org.eclipse.jetty.server.Server - Started oejs.Server@5bd1ceca{STARTING}[12.0.11,sto=0] @1150ms
+[main] INFO org.apache.jena.fuseki.Server - Start Fuseki (http=3031)
+Fuseki query console: http://localhost:3031/
+TDB2 dataset: D:\HZAU\KG\code\code0\reports\viewer-initial-validation\tdb2

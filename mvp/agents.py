@@ -168,7 +168,7 @@ class DecisionPlanningAgent:
         threat_summary = extend_plan(delta, ontology, created, assert_types, relations, evidence, expected, rule_hits)
         return {
             "threatSummary": threat_summary,
-            "planId": "P1",
+            "planId": f"P-{delta['vesselId']}-{delta['roundId']}",
             "baseOntologyVersion": ontology.version,
             "replanAttempt": attempt,
             "replanFeedback": feedback or [],

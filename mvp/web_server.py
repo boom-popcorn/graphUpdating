@@ -29,7 +29,13 @@ def _run(mode: str = "standard", include_text: bool = True, scenario_name: str =
             (working / "ontology").mkdir()
             shutil.copytree(ROOT / "ontology" / "00", working / "ontology" / "00")
             graph = read_json(ROOT / "data" / "initial_graph.json")
-            harness = Harness(working, graph)
+            dataset = os.environ.get("MARITIME_DATASET_DIR")
+            dataset_dir = Path(dataset).resolve() if dataset else None
+            if dataset_dir is not None and (dataset_dir / "ontology" / "00").is_dir():
+                from run_demo import export_ontology
+                export_ontology(dataset_dir / "ontology", working / "ontology")
+            harness = Harness(working, graph, dataset_dir=dataset_dir)
+            initial_graph = harness.graph.snapshot()
             scenario = read_json(ROOT / "data" / "observations_R001.json")
             if scenario_name not in {"narrative", "disguised", "insufficient"}:
                 raise ValueError("unsupported scenario")
@@ -40,6 +46,12 @@ def _run(mode: str = "standard", include_text: bool = True, scenario_name: str =
             elif include_text:
                 scenario = with_text_input(scenario, ROOT / "data" / "texts_R001.json")
             report = harness.run_round(scenario, demo_mode=mode)
+            report["storage"] = {"backend": "jena-tdb2" if dataset_dir else "memory",
+                                 "transport": "mcp-stdio" if dataset_dir else "local",
+                                 "fusekiUrl": getattr(harness.graph, "fuseki_url", None) or None}
+            if dataset_dir is not None:
+                from run_demo import export_ontology
+                export_ontology(working / "ontology", dataset_dir / "ontology")
         except Exception:
             temp.cleanup()
             raise
@@ -52,7 +64,7 @@ def _run(mode: str = "standard", include_text: bool = True, scenario_name: str =
         return {
             "report": report,
             "graph": harness.graph.snapshot(),
-            "initialGraph": graph,
+            "initialGraph": initial_graph,
             "mode": mode,
         }
 
@@ -117,6 +129,9 @@ class Handler(BaseHTTPRequestHandler):
                     result = harness.ontology_agent.record_expert_review(
                         body.get("version"), body.get("status"), body.get("reviewer"), body.get("reason"))
                     CURRENT["report"]["ontologyValidation"]["expertReview"] = result
+                    if hasattr(harness.graph, "dataset_dir"):
+                        from run_demo import export_ontology
+                        export_ontology(harness.root / "ontology", harness.graph.dataset_dir / "ontology")
                     self._json(200, result)
                 return
             if path == "/api/review":

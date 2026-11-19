@@ -28,6 +28,12 @@ class ThreatTests(unittest.TestCase):
         self.assertEqual(report["status"], "COMMITTED" if mode != "execution_rollback" else "EXECUTION_FAILED")
         return report
 
+    def fresh_case(self):
+        """Independent counterexamples must execute, rather than replay a prior plan."""
+        root = Path(tempfile.mkdtemp(dir=self.temp.name))
+        shutil.copytree(ROOT / "ontology/00", root / "ontology/00")
+        self.harness = Harness(root, read_json(ROOT / "data/initial_graph.json"))
+
     def test_full_cluster_real_reasoner_and_provenance(self):
         report = self.run_case()
         self.assertTrue(report["ontologyValidation"]["hermitResultUsed"])
@@ -55,6 +61,7 @@ class ThreatTests(unittest.TestCase):
     def test_low_confidence_and_outside_area_block_alert(self):
         for mutation in ("low", "outside"):
             with self.subTest(mutation=mutation):
+                self.fresh_case()
                 raw = deepcopy(self.raw)
                 if mutation == "low":
                     next(t for t in raw["texts"] if t["source"] == "EOAnnotation")["confidence"] = 0.5
@@ -81,6 +88,7 @@ class ThreatTests(unittest.TestCase):
         for text in ("加密短报文25条；加密短报文外发。", "通信静默；加密短报文25条。",
                      "未发现通信静默；加密短报文25条；加密短报文外发。",
                      "通信静默；正常通信；加密短报文25条；加密短报文外发。"):
+            self.fresh_case()
             raw = deepcopy(self.raw)
             item = next(t for t in raw["texts"] if t["source"] == "CommunicationMonitor")
             item.update(rawText=text, span=[0, len(text)])

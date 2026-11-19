@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>本体演化可视化 (TBox Viewer)</title>
+<script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+<style>
+  html, body { height: 100%; }
+  body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #f4f6f8; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+  header { background: #102c45; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+  header h1 { margin: 0; font-size: 20px; }
+  .controls { display: flex; gap: 10px; }
+  select, button { padding: 8px 15px; font-size: 14px; border-radius: 5px; border: none; cursor: pointer; }
+  button { background: #086b89; color: white; }
+  button:hover { background: #064f66; }
+  /* flex 项默认 min-height:auto，会被 vis-network 注入的 canvas 反复撑高；必须归零并限制溢出 */
+  #network { flex: 1 1 auto; min-height: 0; width: 100%; position: relative; overflow: hidden; background: white; outline: none; }
+  .legend { position: absolute; bottom: 20px; left: 20px; background: rgba(255,255,255,0.9); padding: 15px; border-radius: 8px; border: 1px solid #ddd; font-size: 13px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+  .legend-item { display: flex; align-items: center; margin-bottom: 5px; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; margin-right: 8px; }
+  .line { width: 20px; height: 2px; background: #666; margin-right: 8px; }
+  .line.dashed { border-top: 2px dashed #666; background: none; height: 0; }
+</style>
+</head>
+<body>
+<header>
+  <h1>本体演化全景图 (Ontology Evolution)</h1>
+  <div class="controls">
+    <span id="versionStatus" role="status"></span>
+    <select id="versionSelect" aria-label="本体版本" disabled></select>
+    <button id="loadBtn">加载本体</button>
+  </div>
+</header>
+
+<div id="network"></div>
+
+<div class="legend">
+  <div class="legend-item"><div class="dot" style="background:#97c2fc;"></div> 概念类 (Class)</div>
+  <div class="legend-item"><div class="dot" style="background:#fb7e81;"></div> 新增概念 (New)</div>
+  <div class="legend-item"><div class="dot" style="background:#ffca80;"></div> 数据类型 (Datatype)</div>
+  <div class="legend-item"><div class="line"></div> 对象/继承关系</div>
+  <div class="legend-item"><div class="line dashed"></div> 数据属性</div>
+</div>
+
+<script>
+// 注意：请将这里的路径替换为你真实存储本体的目录路径！
+const ONTOLOGY_BASE_PATH = './storage/fuseki-demo/ontology/';
+let ontologyVersions = [];
+let useOntologyAPI = false;
+let useInitialBaseline = false;
+const versionSelect = document.getElementById('versionSelect');
+const versionStatus = document.getElementById('versionStatus');
+function ontologyURL(version) {
+  if (version === '00' && useInitialBaseline) return './ontology/00/ontology.json';
+  return useOntologyAPI ? `/api/ontology/${version}` : `${ONTOLOGY_BASE_PATH}${version}/ontology.json`;
+}
+
+async function refreshVersions() {
+  const selected = versionSelect.value;
+  useInitialBaseline = false;
+  let versions;
+  const api = await fetch('/api/ontology/', {cache:'no-store'});
+  if (api.ok && (api.headers.get('content-type') || '').includes('application/json')) {
+    versions = (await api.json()).versions;
+    useOntologyAPI = true;
+  } else {
+    // Also support python -m http.server from the project directory.
+    const response = await fetch(ONTOLOGY_BASE_PATH, {cache:'no-store'});
+    if (!response.ok && response.status !== 404) throw new Error('无法读取本体目录，请通过 Fuseki 或项目根目录的 HTTP 服务打开页面');
+    const listing = new DOMParser().parseFromString(response.ok ? await response.text() : '', 'text/html');
+    versions = [...listing.querySelectorAll('a[href]')].map(a => a.getAttribute('href'))
+      .filter(href => /^\d+\/$/.test(href)).map(href => href.slice(0,-1));
+    // Ignore unrelated/incomplete numeric directories.
+    versions = (await Promise.all(versions.map(async version => {
+      const file = await fetch(`${ONTOLOGY_BASE_PATH}${version}/ontology.json`, {cache:'no-store'});
+      return file.ok ? version : null;
+    }))).filter(Boolean);
+    useOntologyAPI = false;
+    // Static hosting may be opened before Fuseki has created its storage directory.
+    if (!versions.includes('00')) {
+      const initial = await fetch('./ontology/00/ontology.json', {cache:'no-store'});
+      if (!initial.ok) throw new Error('无法加载初始本体 00，请确认从项目根目录启动 HTTP 服务');
+      versions.push('00');
+      useInitialBaseline = true;
+    }
+  }
+  ontologyVersions = [...new Set(versions)].filter(v => /^\d+$/.test(v))
+    .sort((a,b) => Number(a)-Number(b) || a.localeCompare(b));
+  versionSelect.replaceChildren(...ontologyVersions.map(version => {
+    const option = document.createElement('option');
+    option.value = version;
+    option.textContent = `${version === '00' ? '初始版本' : '演化版本'} ${version}`;
+    return option;
+  }));
+  versionSelect.disabled = !ontologyVersions.length;
+  versionStatus.textContent = `共 ${ontologyVersions.length} 个版本`;
+  if (ontologyVersions.includes(selected)) versionSelect.value = selected;
+  return versionSelect.value;
+}
+
+const container = document.getElementById('network');
+let network = null;
+
+async function loadOntology(version, prevVersion) {
+  try {
+    // 1. 读取当前版本的本体
+    const res = await fetch(ontologyURL(version), {cache:'no-store'});
+    if (!res.ok) throw new Error("找不到该版本文件");
+    const doc = await res.json();
+    
+    // 2. 如果有上一个版本，读取并对比出“新增”的元素
+    let prevDoc = null;
+    if (prevVersion) {
+      const prevRes = await fetch(ontologyURL(prevVersion), {cache:'no-store'});
+      if (prevRes.ok) prevDoc = await prevRes.json();
+    }
+
+    const nodes = [];
+    const edges = [];
+    const nodeIds = new Set();
+    const edgeIds = new Set();
+    const addedNodes = new Set();
+    const addedEdges = new Set();
+
+    // vis.DataSet 不允许重复 id：统一在写入前去重
+    function addNode(node) {
+      if (nodeIds.has(node.id)) return;
+      nodeIds.add(node.id);
+      nodes.push(node);
+    }
+    function addEdge(edge) {
+      if (edgeIds.has(edge.id)) return;
+      edgeIds.add(edge.id);
+      edges.push(edge);
+    }
+    // 判断类是否存在，必须检查 key，不能用值的真假（顶级类的值是 null）
+    const hasClass = name => Object.prototype.hasOwnProperty.call(doc.classes || {}, name);
+    const hadClass = name => !!prevDoc && Object.prototype.hasOwnProperty.call(prevDoc.classes || {}, name);
+
+    // 解析类 (Classes)
+    for (const [cls, parent] of Object.entries(doc.classes || {})) {
+      const isNew = !!prevDoc && !hadClass(cls);
+      if (isNew) addedNodes.add(cls);
+
+      addNode({
+        id: cls,
+        label: cls,
+        group: 'class',
+        color: isNew ? '#fb7e81' : '#97c2fc',
+        font: { face: 'monospace' },
+        title: isNew ? '新增类' : '已有类'
+      });
+
+      if (parent) {
+        const edgeId = `${cls}->${parent}`;
+        if (prevDoc && (!hadClass(cls) || prevDoc.classes[cls] !== parent)) addedEdges.add(edgeId);
+        addEdge({
+          id: edgeId, from: cls, to: parent, label: 'subClassOf',
+          arrows: 'to', dashes: true, color: { color: '#99aab5' }
+        });
+      }
+    }
+
+    // 解析对象属性 (ObjectProperties)
+    for (const [prop, sig] of Object.entries(doc.objectProperties || {})) {
+      const isNew = !!prevDoc && !Object.prototype.hasOwnProperty.call(prevDoc.objectProperties || {}, prop);
+      const edgeId = `${sig.domain}-[${prop}]->${sig.range}`;
+      if (isNew) addedEdges.add(edgeId);
+
+      // 确保 domain 和 range 的节点存在，如果不在，补一个临时节点
+      if (!hasClass(sig.domain)) addNode({ id: sig.domain, label: sig.domain, group: 'class', color: '#ccc' });
+      if (!hasClass(sig.range)) addNode({ id: sig.range, label: sig.range, group: 'class', color: '#ccc' });
+
+      addEdge({
+        id: edgeId, from: sig.domain, to: sig.range, label: prop,
+        arrows: 'to', color: { color: isNew ? '#fb7e81' : '#2b7ce9' }, width: isNew ? 2 : 1,
+        font: { size: 11, color: isNew ? '#fb7e81' : '#333', align: 'middle' }
+      });
+    }
+
+    // 解析数据属性 (DataProperties)
+    const datatypes = new Set();
+    for (const [prop, sig] of Object.entries(doc.dataProperties || {})) {
+      const dtype = sig.datatype;
+      if (!datatypes.has(dtype)) {
+        datatypes.add(dtype);
+        addNode({ id: dtype, label: dtype, group: 'datatype', color: '#ffca80', shape: 'box', font: { face: 'monospace' } });
+      }
+      // 数据属性的 domain 也可能不在 classes 中，同样需要补节点
+      if (!hasClass(sig.domain)) addNode({ id: sig.domain, label: sig.domain, group: 'class', color: '#ccc' });
+
+      const edgeId = `${sig.domain}-[${prop}]->${dtype}`;
+      const isNew = !!prevDoc && !Object.prototype.hasOwnProperty.call(prevDoc.dataProperties || {}, prop);
+
+      addEdge({
+        id: edgeId, from: sig.domain, to: dtype, label: prop,
+        arrows: 'to', dashes: true, color: { color: isNew ? '#fb7e81' : '#888' }
+      });
+    }
+
+    const data = { nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges) };
+    const options = {
+      nodes: { shape: 'dot', size: 16, font: { size: 14 } },
+      edges: { smooth: { type: 'continuous' } },
+      physics: { barnesHut: { gravitationalConstant: -2000, springLength: 120 }, stabilization: { iterations: 100 } },
+      interaction: { hover: true }
+    };
+
+    if (network) network.destroy();
+    network = new vis.Network(container, data, options);
+    versionStatus.textContent = `共 ${ontologyVersions.length} 个版本 · 已显示${version === '00' ? '初始' : '演化'}版本 ${version}`;
+
+  } catch (e) {
+    throw e;
+  }
+}
+
+async function reloadOntology() {
+  const button = document.getElementById('loadBtn');
+  button.disabled = true;
+  try {
+    const version = await refreshVersions();
+    if (!version) throw new Error('本体目录中没有可加载的版本');
+    const index = ontologyVersions.indexOf(version);
+    await loadOntology(version, index > 0 ? ontologyVersions[index-1] : null);
+  } catch (error) { versionStatus.textContent = error.message; }
+  finally { button.disabled = false; }
+}
+document.getElementById('loadBtn').addEventListener('click', reloadOntology);
+reloadOntology();
+</script>
+</body>
+</html>

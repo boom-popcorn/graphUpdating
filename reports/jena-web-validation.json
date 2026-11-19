@@ -1,0 +1,12 @@
+{
+  "currentStates": [
+    "S-017-1"
+  ],
+  "firstStatus": "COMMITTED",
+  "reviewPersisted": "confirmed",
+  "secondReplay": true,
+  "storage": {
+    "backend": "jena-tdb2",
+    "transport": "mcp-stdio"
+  }
+}

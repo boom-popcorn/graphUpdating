@@ -1,0 +1,110 @@
+{
+  "status": "COMMITTED",
+  "mode": "standard",
+  "ontologyVersion": "01",
+  "ruleHits": [
+    "R1",
+    "R2",
+    "R3",
+    "R4",
+    "R5",
+    "R6",
+    "R7",
+    "R9",
+    "R8"
+  ],
+  "commitId": "C-0001",
+  "createdNodes": 14,
+  "createdRelations": 42,
+  "createdTypeAssertions": 16,
+  "attachedEvidence": 44,
+  "textSummary": {
+    "labels": [
+      "身份矛盾",
+      "通信异常"
+    ],
+    "events": [
+      "V-017-IDENTITY-R-001",
+      "V-017-COMM-R-001"
+    ],
+    "textEvidenceCount": 5,
+    "trajectoryEvidenceCount": 6
+  },
+  "threatSummary": {
+    "assessmentId": "V-017-R-001-ASSESSMENT",
+    "subEvents": [
+      "E-017",
+      "V-017-COMM-R-001",
+      "V-017-IDENTITY-R-001",
+      "V-017-R-001-HIGH-RISK",
+      "V-017-R-001-TRAJECTORY"
+    ],
+    "threatLevel": "high",
+    "confidence": 0.9,
+    "confidenceMethod": "minimum_child_and_evidence_confidence",
+    "alertId": "V-017-R-001-ALERT",
+    "blockedReasons": [],
+    "trajectoryPatterns": [
+      "circling"
+    ]
+  },
+  "report": "reports\\jena-disguised\\round_R-001.json"
+}
+{
+  "vesselId": "V-017",
+  "states": [
+    "S-017-1"
+  ]
+}
+{
+  "status": "COMMITTED",
+  "mode": "standard",
+  "ontologyVersion": "02",
+  "ruleHits": [
+    "R1",
+    "R2",
+    "R3",
+    "R4",
+    "R5",
+    "R6",
+    "R7",
+    "R9",
+    "R8"
+  ],
+  "commitId": "C-0001",
+  "createdNodes": 14,
+  "createdRelations": 42,
+  "createdTypeAssertions": 16,
+  "attachedEvidence": 44,
+  "textSummary": {
+    "labels": [
+      "身份矛盾",
+      "通信异常"
+    ],
+    "events": [
+      "V-017-IDENTITY-R-001",
+      "V-017-COMM-R-001"
+    ],
+    "textEvidenceCount": 5,
+    "trajectoryEvidenceCount": 6
+  },
+  "threatSummary": {
+    "assessmentId": "V-017-R-001-ASSESSMENT",
+    "subEvents": [
+      "E-017",
+      "V-017-COMM-R-001",
+      "V-017-IDENTITY-R-001",
+      "V-017-R-001-HIGH-RISK",
+      "V-017-R-001-TRAJECTORY"
+    ],
+    "threatLevel": "high",
+    "confidence": 0.9,
+    "confidenceMethod": "minimum_child_and_evidence_confidence",
+    "alertId": "V-017-R-001-ALERT",
+    "blockedReasons": [],
+    "trajectoryPatterns": [
+      "circling"
+    ]
+  },
+  "report": "reports\\jena-disguised-replay\\round_R-001.json"
+}
